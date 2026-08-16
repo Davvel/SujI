@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#121826">
+  <title>SuJi — Snapshot #14 v1.14.0</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">
+        <span></span><span></span><span></span><span></span>
+        <b class="eye e1"></b><b class="eye e2"></b><i class="smile"></i>
+      </div>
+      <div>
+        <h1>SuJi</h1>
+        <p>Snapshot #14 · Version 1.14.0</p>
+      </div>
+    </div>
+    <button id="helpBtn" class="icon-btn settings-btn" title="Settings" aria-label="Settings">⚙</button>
+  </header>
+
+  <main class="app">
+    <section class="compact-status-strip panel" aria-label="Current level, attempt info and controls">
+      <div class="compact-level-block" role="group" aria-label="Current level and level history">
+        <span id="levelBtn" class="level-current-label compact-level-label">Level 0001</span>
+        <button id="levelSelectBtn" class="level-select-btn compact-level-btn" type="button" aria-label="Choose a previous level" title="Choose a previous level">▦</button>
+      </div>
+      <div class="compact-metric compact-time" aria-label="Elapsed time">
+        <span class="compact-metric-label">Time</span>
+        <strong id="levelTimer" class="compact-metric-value digital-timer">0:00</strong>
+        <span class="timer-live-dot compact-live-dot" aria-hidden="true"></span>
+      </div>
+      <div class="compact-metric compact-moves" aria-label="Moves so far">
+        <span class="compact-metric-label">Moves</span>
+        <strong id="movesStat" class="compact-metric-value">0</strong>
+      </div>
+      <button id="resetBtn" class="reset-btn compact-reset-btn" title="Restart this level">↻</button>
+      <div id="hintLevelSlot" class="hint-level-slot" hidden></div>
+    </section>
+
+
+
+        <div class="play-layout">
+      <section class="board-section">
+        <div class="section-heading board-section-heading">
+          <div class="board-title-block">
+            <h2>Board</h2>
+          </div>
+          <div id="conflictAlert" class="conflict-alert" role="status" aria-live="assertive" hidden>
+            <span class="conflict-alert-icon conflict-warning-icon" aria-hidden="true">
+              <svg class="conflict-alert-icon-svg" viewBox="0 0 64 64" focusable="false" aria-hidden="true">
+                <path d="M32 6 C29 6 26.5 7.5 24.8 10.4 L7.8 40.6 C4.4 46.6 8.7 54 15.6 54 H48.4 C55.3 54 59.6 46.6 56.2 40.6 L39.2 10.4 C37.5 7.5 35 6 32 6 Z" fill="#ffbd59" stroke="#f19a3d" stroke-width="3" stroke-linejoin="round"/>
+                <rect x="29.4" y="18" width="5.2" height="21" rx="2.6" fill="#5a4a4a"/>
+                <circle cx="32" cy="45.5" r="3.6" fill="#5a4a4a"/>
+              </svg>
+            </span>
+            <span class="hint-alert-icon" aria-hidden="true">💡</span>
+            <span id="conflictAlertText" class="conflict-alert-text"></span>
+          </div>
+          <div class="board-heading-tools"><button id="picturePreviewBtn" class="picture-preview-btn" type="button" title="Show completed picture" aria-label="Show completed picture">
+  <svg class="picture-preview-icon" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+    <defs>
+      <linearGradient id="sujiPicSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#62d8ff"/><stop offset="1" stop-color="#7c8dff"/></linearGradient>
+      <linearGradient id="sujiPicHill" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#56d68b"/><stop offset="1" stop-color="#2ca66f"/></linearGradient>
+    </defs>
+    <rect x="4" y="5" width="40" height="38" rx="10" fill="#ffffff" stroke="#32405c" stroke-width="2"/>
+    <rect x="8" y="9" width="32" height="27" rx="6" fill="url(#sujiPicSky)"/>
+    <circle cx="31" cy="16" r="4.2" fill="#ffd83d" stroke="#fff4b2" stroke-width="1.4"/>
+    <path d="M9 32 L18 22.5 L24 28 L29 23 L40 34 L40 36 L8 36 Z" fill="url(#sujiPicHill)"/>
+    <path d="M9 34 L17 27 L21 30 L25 27 L31 33 L40 29 L40 36 L8 36 Z" fill="#f5bd35" opacity=".92"/>
+    <circle cx="11.5" cy="12.5" r="2.2" fill="#ff5c83"/>
+  </svg>
+</button></div>
+        </div>
+        <div id="boardWrap" class="board-wrap">
+          <div id="board" class="board" aria-label="9 by 9 SuJi board"></div>
+          <div id="tutorialStripe" class="tutorial-stripe" hidden aria-hidden="true"></div>
+          <div class="suji-watermark" aria-hidden="true"><span>SuJi</span></div>
+          <div class="sudoku-cell-grid" aria-hidden="true"></div>
+          <div class="sudoku-lines" aria-hidden="true"></div>
+        </div>
+        <div class="board-taskbar" aria-label="Board tools">
+          <button id="placementHintBtn" class="placement-hint-btn" type="button" aria-label="Use placement hint" title="Show where the next piece can fit">
+            <span class="placement-hint-icon" aria-hidden="true">💡</span>
+            <span id="placementHintCount" class="placement-hint-count">5</span>
+          </button>
+        </div>
+
+      </section>
+
+      <section class="rack-section">
+        <div class="section-heading">
+          <div>
+            <h2>Rack</h2>
+          </div>
+        </div>
+        <div class="rack-shell">
+          <div id="rack" class="rack" aria-label="Available SuJi pieces"></div>
+        </div>
+
+      </section>
+    </div>
+
+    <footer class="game-footer" aria-label="SuJi footer">
+      <span class="footer-mark">SuJi</span>
+    </footer>
+  </main>
+
+  <dialog id="confirmDialog">
+    <form method="dialog">
+      <h3>Restart puzzle?</h3>
+      <p id="confirmText">Changing this game option will restart the puzzle and erase your current progress.</p>
+      <div class="dialog-actions">
+        <button value="cancel" class="secondary">Keep Playing</button>
+        <button value="confirm" class="primary">Restart & Change</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="levelDialog" class="level-picker-dialog">
+    <div class="level-picker-shell">
+      <div class="level-picker-titlebar">
+        <span class="level-picker-title">Select Level</span>
+        <button id="levelPickerClose" class="level-picker-close" type="button" aria-label="Close level selector" title="Close">×</button>
+      </div>
+      <div class="level-picker-body">
+        <section class="level-achievement-hero" aria-label="Your SuJi progress">
+          <div class="level-achievement-copy">
+            <span class="level-achievement-kicker">YOUR SUJI JOURNEY</span>
+            <strong id="levelAchievementHeadline">Level 1 reached</strong>
+            <span id="levelAchievementMessage">Build your streak and turn every level gold.</span>
+          </div>
+          <div class="level-achievement-trophy" aria-hidden="true">🏆</div>
+          <div class="level-achievement-stats">
+            <div><strong id="levelHighestReached">1</strong><span>Highest</span></div>
+            <div><strong id="levelCompletedCount">0</strong><span>Cleared</span></div>
+            <div class="perfect"><strong id="levelPerfectCount">0</strong><span>★★★ Perfect</span></div>
+          </div>
+        </section>
+        <div class="level-picker-subhead">
+          <strong id="levelPickerRange">Levels 1–100</strong>
+          <span>Tap any unlocked level to replay it.</span>
+        </div>
+        <div class="level-picker-jump" aria-label="Jump to level page">
+          <label for="levelJumpInput">Jump to level</label>
+          <div class="level-picker-jump-controls">
+            <input id="levelJumpInput" type="number" inputmode="numeric" min="1" max="9999" step="1" placeholder="1–9999" aria-label="Enter any level from 1 to 9999">
+            <button id="levelJumpGo" class="primary" type="button">Go</button>
+          </div>
+          <span id="levelJumpError" class="level-picker-jump-error" aria-live="polite"></span>
+        </div>
+        <div class="level-picker-pager">
+          <button id="levelPagePrev" class="secondary" type="button">‹ 100</button>
+          <strong id="levelPageLabel">1–100</strong>
+          <button id="levelPageNext" class="secondary" type="button">100 ›</button>
+        </div>
+        <div id="levelGrid" class="level-grid" aria-label="Level history"></div>
+        <p class="level-picker-note">Browse 100 levels at a time, up to Level 9999. Levels above your highest-ever reached level remain locked.</p>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="levelCompleteDialog" class="level-complete-dialog">
+    <div class="level-complete-card">
+      <div class="level-complete-burst" aria-hidden="true">✓</div>
+      <h2>Well done!</h2>
+      <p id="levelCompleteTitle">Level complete</p>
+      <div id="levelCompleteStars" class="level-complete-stars" aria-label="Star rating">★★★</div>
+      <div class="level-complete-stats">
+        <div><span>Time</span><strong id="levelCompleteTime">0:00</strong></div>
+        <div><span>Moves</span><strong id="levelCompleteMoves">0</strong></div>
+      </div>
+      <p id="levelCompleteBest" class="level-complete-best"></p>
+      <div class="level-complete-actions">
+        <button id="levelCompleteReplay" class="secondary" type="button">↻ Replay</button>
+        <button id="levelCompleteOK" class="primary" type="button">OK · Next Level</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="helpDialog" class="settings-dialog">
+    <form method="dialog" class="settings-shell">
+      <div class="settings-head">
+        <h3>Settings</h3>
+        <button value="close" class="settings-close-btn" aria-label="Close settings" title="Close settings">
+          <svg class="settings-close-icon-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M7 7 L17 17 M17 7 L7 17" fill="none" stroke="#f3f6ff" stroke-width="3.2" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+
+      <section class="settings-config" aria-label="Game settings">
+        <div class="settings-switch-row option-group option-group-picture">
+          <button id="pictureToggle" class="mode-toggle picture-toggle settings-switch" type="button" aria-pressed="true" title="Show or hide the jigsaw picture">
+            <span class="mode-toggle-text settings-switch-copy">
+              <span class="toggle-label-icon">🙂</span>
+              <span id="pictureToggleText">Show Jigsaw Picture</span>
+            </span>
+            <span id="pictureLock" class="settings-padlock settings-padlock-near-switch" aria-hidden="true" hidden>🔒</span>
+            <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
+          </button>
+        </div>
+      </section>
+
+      <div class="settings-future-space" aria-hidden="true"></div>
+      <p id="settingsLockedNote" class="settings-locked-note" hidden>During Tutorial Levels 1-5 Some settings are locked.</p>
+    </form>
+  </dialog>
+
+  <dialog id="tutorialModal" class="tutorial-modal tutorial-modal-bottom" aria-live="assertive">
+    <div class="tutorial-modal-inner">
+      <div class="tutorial-modal-line">
+        <span id="tutorialText">Solve the Jigsaw - Take care of the Sudoku numbers.</span>
+        <button id="tutorialClose" class="tutorial-close" type="button" aria-label="Close message" title="Close">×</button>
+      </div>
+      <div class="tutorial-modal-actions">
+        <button id="tutorialOk" class="tutorial-ok" type="button">OK</button>
+      </div>
+    </div>
+  </dialog>
+
+
+  <div id="picturePreviewOverlay" class="picture-preview-overlay" hidden aria-hidden="true">
+    <div id="picturePreviewCard" class="picture-preview-card" role="dialog" aria-modal="true" aria-label="Completed puzzle picture">
+      <div class="picture-preview-titlebar">
+        <span id="picturePreviewTitle" class="picture-preview-title">Puzzle Preview</span>
+        <button id="picturePreviewClose" class="picture-preview-close" type="button" aria-label="Close completed picture" title="Close">×</button>
+      </div>
+      <div class="picture-preview-frame">
+        <img id="picturePreviewImage" class="picture-preview-image" alt="Completed puzzle preview">
+      </div>
+    </div>
+  </div>
+
+  <script src="patterns.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

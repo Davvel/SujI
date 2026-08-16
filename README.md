@@ -1,0 +1,925 @@
+# SuJi — Snapshot #14 v1.14.0
+
+## Snapshot 14 baseline
+
+- Snapshot #14 is created directly from the accepted Checkpoint #13 v13.0.4 build.
+- No gameplay behaviour is changed by this snapshot creation.
+- This is the protected starting baseline for Snapshot #14.
+- New versioning convention begins here: **v1.14.0**.
+  - `1` = first major release line.
+  - `14` = Snapshot / checkpoint number.
+  - `0` = no minor revision has yet been made within Snapshot 14.
+- Future minor revisions within this snapshot should increment the final component: v1.14.1, v1.14.2, and so on.
+
+## Inherited accepted behaviour
+
+Snapshot #14 preserves the full accepted v13.0.4 state, including:
+- five placement hints on every level;
+- authoritative purple Hint lock-on placement;
+- Hint-confirmed pieces receive a silent correctness lock only in their exact canonical home;
+- uncertain pieces involved in a Sudoku conflict shake, while system-locked and correctly Hint-confirmed pieces do not;
+- successful Hint drops terminate the drag cleanly on mouse/finger release.
+
+---
+
+# SuJi — Checkpoint #13 v13.0.4
+
+## v13.0.4 — Hint drop release / drag cleanup fix
+
+- Fixed a v13.0.3 JavaScript error that occurred after releasing a piece onto a locked purple Hint destination.
+- The Hint drop code was incorrectly reading `target.targetPiece.id` even though `target` was already the target piece object.
+- The error interrupted `cleanupDrag()`, leaving the drag ghost attached to the mouse/finger even after release.
+- Corrected the exact-home test to use `target.id === drag.id`.
+- Successful Hint drops now commit to the board, terminate the drag immediately, consume the Hint normally, and retain the silent correctness-lock behaviour only for the piece's own canonical home.
+- All v13.0.3 behaviour is otherwise preserved.
+
+Checkpoint #13 branches from the latest Checkpoint #12 build, v12.0.2.
+
+
+## v13.0.3 — correct Hint certainty + complete conflict shaking
+
+- Fixed a bug where snapping a piece with a placement Hint into **any compatible same-shape placeholder** incorrectly gave it the invisible correctness lock.
+- A piece now receives the silent Hint correctness lock **only when it is placed into its own exact canonical home placeholder**.
+- Same-shape but wrong-home placements remain uncertain and therefore shake when they participate in an active Sudoku conflict.
+- The protection check also verifies that a Hint-confirmed piece is still physically at its own home, preventing stale correctness state from suppressing a legitimate shake.
+- This specifically fixes cases such as a movable 2×2 `5-6 / 9-1` piece failing to shake during a 3×3 duplicate-number conflict.
+- Preserves the five placement hints per level, authoritative purple lock-on drop, and all v13.0.2 conflict rules.
+
+## v13.0.2 — fair Sudoku conflict shaking + silent Hint correctness lock
+
+- Sudoku conflicts no longer automatically blame only the most recently placed piece.
+- For the active Sudoku error, **every movable/uncertain piece participating in that error shakes**. If two ordinary pieces conflict, both shake because either one may be the piece the player chooses to move.
+- System starting/anchor pieces remain fully locked and never perform the Sudoku-error reminder shake.
+- A piece placed successfully into the exact purple destination using a placement Hint gains an invisible **correctness lock** for conflict feedback. It stays movable and shows no padlock icon, but it will not shake while it remains in the Hint-confirmed home position.
+- If another piece later conflicts with that Hint-confirmed piece, only the uncertain piece shakes. The exact conflicting cells can still receive the normal red Sudoku styling.
+- If the player deliberately moves a Hint-confirmed piece away from its confirmed home, its invisible correctness protection is removed and it becomes an ordinary uncertain piece again. Cancelling an attempted move or an invalid drop that restores it to the same home restores the protection.
+- Preserves v13.0.1 five placement hints per level and the v13.0.0 authoritative purple-lock drop behaviour.
+
+## v13.0.1 — five placement hints on every level
+
+- Every level now starts with exactly **5 placement hints** in the Board taskbar.
+- Placement hints are now independent from the legacy starting/locked-hints count.
+- Using a placement hint consumes one from the five-count as before.
+- Resetting, replaying, or entering any level replenishes the placement-hint counter to 5.
+- The v13.0.0 authoritative purple placeholder lock remains unchanged.
+
+
+## v13.0.0 — authoritative purple placeholder lock
+
+- When a placement-hint target has visibly locked purple, that target becomes authoritative for the current drag.
+- Releasing the mouse/finger commits the piece to that highlighted placeholder even if the pointer drifts slightly before release.
+- The drop no longer requires the final rounded pointer-derived board cell to still equal the locked guide target.
+- The locked destination is still validated with the normal `fits(...)` check before placement.
+- Rack-return behaviour and non-hint free placement are unchanged.
+
+---
+
+# SuJi — Checkpoint #12
+
+## Frozen end state: v12.0.2
+
+- Checkpoint #12 ended with the locked-placeholder release fix that is carried forward as the starting baseline for Checkpoint #13.
+
+
+## Current UI changes
+
+- Removed the Board eyebrow text “PLAY HERE”.
+- Removed the Rack eyebrow text “FACE-UP PIECES”.
+- Removed the Rack “Pattern … shape families” summary.
+- Removed the Board “Picture / Guides ON” summary text; the picture-preview icon remains.
+- Removed “Show Pieces Guide” from Settings.
+- Added a compact Board taskbar below the Board.
+- Added a yellow placement-hint bulb with a remaining-hints counter.
+- Pressing the bulb consumes one hint, greys/disables it, and shows a pulsing bulb message in the normal Sudoku-warning location: “Next piece: we’ll show where it can fit.”
+- The next movable piece grabbed reveals matching available destinations.
+- The hint message disappears after that piece is dropped, including when dropped back into the Rack.
+- If hints remain, the bulb is enabled again; at zero it remains grey/disabled.
+- The hint reveals destinations only and does not change the normal free-placement drop rules.
+
+---
+
+# SuJi — Checkpoint #11
+
+## v11.0.0 — Ten fixed tessellation patterns
+
+This build branches from the accepted Checkpoint #10 v10.0.2 state and begins Checkpoint #11.
+
+### New tessellation system
+
+- Added `patterns.js`, a centralized library containing 10 fixed 9×9 tessellations.
+- Level-to-pattern mapping is deterministic and cycles every 10 levels: Level 1 → Pattern 1, ... Level 10 → Pattern 10, Level 11 → Pattern 1.
+- Every pattern contains exactly 21 pieces and covers all 81 board cells exactly once.
+- Every pattern uses five shape families.
+- Each pattern uses eighteen 4-cell pieces and three 3-cell pieces; no 1×1 filler pieces are required.
+- Patterns include I, O, T, L, S, J and Z-style tetromino families plus straight and bent triominoes.
+- Pieces remain fixed-orientation: there is still no rotation mechanic.
+- Sudoku generation remains level-based and deterministic, so the same physical pattern can carry different Sudoku numbers on different levels.
+- Picture fragments continue to map from each piece's true home cells.
+- Guides ON now renders the actual irregular cell silhouette for every destination piece.
+- Guides OFF preserves free geometrically valid non-overlapping placement.
+- Starting hints continue to select meaningful multi-cell pieces.
+- Checkpoint #10 conflict wording and once-per-second violating-piece shake are preserved unchanged.
+
+### Pattern cycle
+
+| Levels | Pattern |
+|---|---|
+| 1, 11, 21, ... | 1 |
+| 2, 12, 22, ... | 2 |
+| 3, 13, 23, ... | 3 |
+| 4, 14, 24, ... | 4 |
+| 5, 15, 25, ... | 5 |
+| 6, 16, 26, ... | 6 |
+| 7, 17, 27, ... | 7 |
+| 8, 18, 28, ... | 8 |
+| 9, 19, 29, ... | 9 |
+| 10, 20, 30, ... | 10 |
+
+---
+
+## Inherited Checkpoint #10 history
+
+## Frozen baseline: v10.0.0
+
+Checkpoint #10 starts from the accepted Checkpoint #9 v9.0.18 build.
+
+## v10.0.2 — Restore shake when an earlier conflict resurfaces
+
+- If the current conflict is removed and another highlighted Sudoku conflict remains, the yellow region continues to identify it and the piece that originally caused that conflict resumes its once-per-second reminder shake.
+- No automatic Rack return.
+- All v10.0.1 wording and behaviour are preserved.
+
+## v10.0.1 — Sudoku Rule wording + offending-piece reminder shake
+
+- Conflict text now uses `Sudoku Rule,` instead of `Illegal Move —`.
+- User-facing message punctuation uses commas instead of em dashes.
+- The most recently placed piece that creates the active Sudoku conflict stays on the Board and gives a short shake once every second.
+- The piece does not automatically return to the Rack.
+- The shake stops immediately when the player grabs that piece and resumes only if its new placement still causes a Sudoku conflict.
+- Moving other pieces does not cancel the reminder shake while the original conflict remains.
+
+
+This package is now the protected SuJi Checkpoint #10 baseline.
+
+Future development should branch from this exact v10.0.0 state without modifying the frozen baseline directly.
+
+### Accepted state carried into Checkpoint #10
+
+- Compact SuJi header and single-line Level / Time / Moves status strip.
+- Settings moved behind the top-right cog.
+- Picture Guides and Jigsaw Picture switches live in Settings.
+- Tutorial Levels 1–5 lock those settings with visible padlocks.
+- Locked tutorial switches remain visually grey.
+- Clicking a locked switch shakes the corresponding padlock every time.
+- Tutorial lock message remains at the bottom of the Settings panel.
+- Conflict warnings are non-modal, always shown while active, centered above the Board, and disappear immediately when fixed.
+- Conflict warning triangle and text pulse for attention.
+- Picture / Guides board summary remains permanently stacked.
+- Level selector, timer, move counter, stars, progression gating and replay behavior from Checkpoint #9 are preserved.
+
+---
+
+## v9.0.18 — Locked settings padlock shake
+
+- During Tutorial Levels 1–5, clicking either locked settings switch no longer does nothing silently.
+- The related padlock now shakes every time the player tries to use the locked switch.
+- The setting itself remains unchanged until Level 6.
+
+## v9.0.17 — Settings close button changed to SVG image icon
+
+- Replaced the text-based X with a true SVG image icon inside the close button.
+- This allows the close mark to be centered precisely without relying on text glyph alignment.
+
+## v9.0.16 — Close X centered precisely
+
+- Reworked the close button so the X is truly centered in the square.
+- Removed the earlier visual nudge and replaced it with exact centering.
+
+## v9.0.15 — Settings window-style top bar and close-button centering tweak
+
+- Styled the Settings title area as a distinct blue top bar, like a window header.
+- Tweaked the X icon so it appears more vertically centered inside the close button.
+
+## v9.0.14 — Close button centred, larger note text, padlocks moved by switches
+
+- Centered the X inside the close button more accurately.
+- Enlarged the bottom yellow-note text and kept it black for contrast.
+- Moved each padlock so it sits next to the switch rather than next to the label text.
+
+## v9.0.13 — Settings visual corrections
+
+- Centered the close X button properly.
+- Changed the bottom yellow-note text to black for better contrast.
+- Moved the padlocks into the left side content area of each switch.
+- Made the toggle switch colour grey during tutorial Levels 1–5.
+
+## v9.0.12 — Bottom yellow message box and reserved space for future settings
+
+- Moved the tutorial note to the true bottom of the Settings panel.
+- Restyled the tutorial note as a yellowish message box rather than a button.
+- Matched the note more closely to the SuJi warning/error message colour family.
+- Reserved vertical space for three future setting options between the last switch and the bottom note.
+
+## v9.0.11 — Settings popup close button and bottom tutorial note refinement
+
+- Removed the Done button from the settings popup.
+- Added a top-right X button to close the settings panel.
+- Made the tutorial warning label more yellowish and bottom-aligned.
+- Increased the gap between the last settings item and the bottom tutorial label.
+- Enlarged the padlock icons.
+
+## v9.0.10 — Settings dialog redesigned with two lockable switches
+
+- Removed the explanatory text from the settings panel.
+- Added two slider switches: Show Picture Guides and Show Jigsaw Picture.
+- In Levels 1–5, both switches stay visible but show a small padlock and remain locked.
+- From Level 6 onwards, the padlocks disappear and both switches can be turned on or off.
+- Added a yellow tutorial note at the bottom: "During Tutorial Levels 1-5 Some settings are locked."
+- Gave the settings panel a double-border treatment and stronger drop shadow.
+
+## v9.0.9 — Cog opens settings popup
+
+- The top-right cog button now opens a settings popup.
+- Picture ON/OFF, Guides ON/OFF, and Hints are moved into that popup.
+- The former in-page options panel is removed from the main layout.
+- Tutorial levels show a note explaining that extra settings unlock from Level 6.
+
+## v9.0.8 — Compact chrome and single-line status strip
+
+- Reduced the height of the SuJi header bar.
+- Replaced the top-right question-mark button with a cog-wheel placeholder for the future settings-based UI.
+- Condensed Level selection, Time, and Moves into one thin, neat strip.
+- Kept Restart on the same strip for a cleaner top layout.
+
+## v9.0.7 — Picture / Guides always stacked
+
+- The Board heading summary is no longer responsive.
+- It always displays **Picture / No Picture** on the top line.
+- It always displays **Guides ON / OFF** on the bottom line.
+- This applies in landscape, portrait, desktop, tablet and mobile.
+
+## v9.0.6 — Portrait condensed Picture / Guides summary
+
+- On narrow portrait devices, the right-side mode summary is condensed to two lines.
+- The first line shows Picture / No Picture.
+- The second line shows Guides ON / OFF.
+- This prevents overlap with the picture preview button.
+
+## v9.0.5 — Slimmer warning label and pulsing text test
+
+- Reduced the warning label height so it sits less tall.
+- Kept the triangle free to protrude outside the label rectangle.
+- Added a zoom-in / zoom-out pulse to the warning text as well as the triangle for visual testing.
+
+## v9.0.4 — Softer warning triangle and better label balance
+
+- The warning triangle is now less pointy and visually softer.
+- The triangle is vertically centred at the left side of the warning label.
+- The warning text is centred within the remaining label area between the triangle and the right edge.
+
+## v9.0.3 — Conflict warning triangle enlarged and pulsing
+
+- The warning triangle is now larger and can extend beyond the yellow conflict label.
+- The triangle now zooms in and out with a clear pulse while the conflict remains active.
+- The yellow warning label remains centered and non-modal.
+
+## v9.0.1 — Empty options divider fully removed
+
+- When Picture/Guides/Hints controls are unavailable, the whole options panel is now removed from layout rather than leaving its blue background/border visible as a thin divider.
+
+## v8.0.11 — Level selector jump to 1–9999
+
+- Level selector supports Levels 1 through 9999.
+- Pages still contain up to 100 levels each.
+- A player may type any whole level number from 1–9999 to jump directly to the page containing that level.
+- Paging stops at the final page, Levels 9901–9999.
+- No placeholder/cell is rendered for Level 10000 or any higher level.
+
+## v8.0.10 — Tutorial hints fixed at 3
+
+- Levels 1–5 always use exactly 3 starting hints, even if the player later chooses 1 or 2 hints from Level 6 onward.
+- The player's Level 6+ hint preference remains stored in localStorage and is restored whenever a Level 6+ puzzle is entered.
+- Replaying tutorial levels does not overwrite that saved preference.
+
+## v8.0.9 — Hint progression + one-time picture introduction
+
+- Hints stay hidden until the player has reached Level 6.
+- Default hint count is 3 for a fresh browser profile; once changed, the player's chosen 1–3 value persists across future and replayed levels.
+- The empty options/divider panel is removed whenever it has no visible controls.
+- A fresh level automatically shows its completed-picture preview once, after a 2-second delay.
+- Replays, Reset, and returning to any previously visited level do not auto-open the picture; the picture button remains available.
+- Visited-level state is stored locally in the browser.
+
+## v8.0.8 — Unlocked highest-level display fix
+
+- Fixed the Level Selector so an unfinished level at or below `highest_level_reached` is shown unlocked with no padlock.
+- Padlocks now render only for levels strictly above `highest_level_reached`.
+- Progression and click behaviour are unchanged: all levels from 1 through the highest-ever reached level remain selectable.
+
+
+- Level access is now based on the highest level ever reached, stored locally. Replaying an earlier level never re-locks later levels already reached.
+- Any level from 1 through the highest-ever reached level can be opened from the selector, whether or not it is the currently active level.
+- Levels above the highest-ever reached level remain locked and shake when tapped.
+- Replaced the Placed / Conflicts / Remaining status boxes with a compact animated Time + Moves HUD.
+- The live timer keeps running while overlays/selectors are open and stops only when the level is correctly completed.
+- Time and Moves reset when a level is deliberately opened from the selector, when advancing to a new level, or when Reset/restart starts a fresh attempt.
+- Tapping the current level in the selector merely closes the selector, preserving its running timer and move count.
+
+## v8.0.2 — Local level history, best times, scores and 100-level selector
+- Removed the previous/next < > arrows from the Level control.
+- The level row now shows the current level plus a compact grid icon for opening level history.
+- Added a 10×10 level picker showing 100 levels per page, with 100-level backward/forward paging.
+- Completed past levels show their locally stored best completion time and score and can be replayed.
+- Unvisited/unavailable levels show a padlock and cannot be selected.
+- The current progression frontier cannot be skipped: only completed levels below the highest reached level are replayable.
+- Added browser-local persistence for level history and highest level reached.
+- A replay only updates the record when the completion time improves; slower attempts never overwrite the best result.
+- Score is time-derived: 10,000 minus completion seconds, with a minimum of 100 points.
+- Added a Well done completion screen showing the run time and score, followed by automatic progression to the next level.
+
+
+## Checkpoint 5 v5.0.4 tutorial messaging
+- All automatic onboarding/help messages in Levels 1–5 are one-line modal messages with an × close button.
+- Each level-introduction message appears at most 3 times.
+- Row, column and 3×3 conflict teaching messages each appear at most 3 times.
+- Trying to drag a pinned starting tetromino shows a compact modal at most 3 times.
+- Closing a conflict message immediately removes its yellow teaching stripe; the true red Sudoku conflict remains.
+- All automatic tutorial/help messages are disabled after Level 5.
+- Permanent board/rack instructional sentences were removed.
+# SuJi — Checkpoint 5 v5.0.4
+
+This build refines the original Checkpoint #1 prototype into the visual language intended to bridge SuJi Online and SuJi Printed.
+
+## New in v2.1
+- Three independent icon-style options:
+  - Picture / No Picture
+  - 1 / 2 / 3 starting hint pieces
+  - pale colour-matched board guides On / Off
+- Board guides are glass-like and contain no numbers.
+- Rack is a loose, face-up "box of pieces" instead of framed tray cards.
+- Piece colours are consistent by piece type:
+  - I = blue
+  - O = yellow
+  - 1x1 helper = green
+- Correct 9x9 square geometry is preserved at all times.
+- Long I pieces can cross 3x3 Sudoku quadrant boundaries; quadrants are never stretched.
+- Pointer-event drag/drop, deterministic Sudoku, deterministic piece order, locked anchors and Sudoku conflict highlighting are preserved.
+- Picture fragments move with their pieces.
+- No rotation.
+- No service worker is registered in this development checkpoint, avoiding stale cached builds.
+
+## Run
+Because Picture Mode loads a resource image, serve the folder over HTTP:
+
+    python3 -m http.server 8000
+
+Then open:
+
+    http://localhost:8000/SuJi_Checkpoint_1_v2_1/
+
+For a phone on the same Wi-Fi, use your computer's LAN IP instead of localhost.
+
+
+## v2.1.1 correction
+- Each board destination is now a distinct faint colour-matched silhouette, so adjacent yellow O destinations no longer read as one huge yellow square.
+- Blue I pieces show as unmistakable pale-blue 1×4/4×1 slots, like crossword word positions.
+- Starting hint pieces now visibly travel from their real Rack positions upward to the board one after another.
+
+## v2.1.2 board-guide refinement
+- Each 2×2 yellow O-piece now has its own separate faint 2×2 destination indentation.
+- Adjacent O-piece destinations have a small visible gutter, so they no longer merge into one huge yellow field.
+- Destination areas are intentionally very faint, like coloured glass viewed from above.
+- Same-colour darker lower/right bevels plus lighter upper/left highlights create a recessed 3D mould effect.
+- Blue I pieces have separate pale-blue 1×4 or 4×1 slots.
+- The green 1×1 helper has its own pale-green indentation.
+- With Board Guide switched off, all coloured indentations disappear and the board becomes a normal clean 9×9 Sudoku board with only the 3×3 quadrant boundaries.
+
+## v2.1.3 visual refinement
+- Board-guide colours are now much lighter and more transparent, like very lightly tinted glass.
+- The Sudoku board remains visible through every guide indentation.
+- Guided mode now uses a subtle pale sage/green felt-like board surface to strengthen the physical-board illusion.
+- The 3D cue is carried mainly by very soft bevel highlights/shadows rather than opaque colour fills.
+- Adjacent 2x2 destinations remain individually separated and readable.
+- No Guide mode still returns to a conventional clean Sudoku board with no coloured moulds.
+
+## v2.1.4 visual correction
+- Removed the green felt concept completely.
+- Guided and No Guide modes now use the exact same clean white Sudoku board.
+- Guide indentations are only a very faint translucent tint in the matching piece colour.
+- The board and its lines remain clearly visible through every guide slot.
+- Actual SuJi pieces remain bright, glossy, plastic-looking objects.
+- Added a large faint circular SuJi watermark in the exact centre of the board.
+- The watermark remains visible in both Guide and No Guide modes, making the relationship between the two board states immediately obvious.
+- Guide mode therefore feels like a transparent mould/indentation layer placed over the same underlying Sudoku board.
+
+## v2.1.5 guide-opacity correction
+- Fixed a legacy CSS rule that was still applying a solid yellow/blue background directly to guide containers.
+- Guide containers are now explicitly transparent.
+- Yellow and blue guides are now only a tiny translucent tint over the white Sudoku board.
+- The main visual cue comes from a faint same-colour indentation edge/refraction, not from colour fill.
+- The central circular SuJi watermark has been made noticeably brighter while remaining subtle enough to function as a watermark.
+
+## v2.1.6 visibility balance
+- Increased guide visibility from v2.1.5 while preserving translucency.
+- Yellow and blue slots now carry a noticeable but light tint over the same white board.
+- Edge/refraction strength increased slightly so each destination piece remains individually readable.
+- The large central SuJi watermark has been made more visible.
+- Bright plastic game pieces are unchanged.
+
+## v2.1.7 readability refinement
+- Increased guide readability while keeping the guides translucent.
+- Yellow and blue guide borders are now much clearer and the bevel/indentation effect is stronger.
+- The white Sudoku board still shows through the guide slots.
+- The central SuJi watermark is now faint but colourful rather than monochrome.
+- The watermark ring is also a little easier to notice, without becoming gameplay clutter.
+
+## v2.1.8 interaction and rack refinement
+- Picture/No Picture, Start Hints 1/2/3, and Board Guide On/Off now always require confirmation before changing.
+- Confirmation explicitly warns that changing the game option restarts the current level and erases progress.
+- Rack pieces no longer overlap.
+- Every rack piece has its own clear visual space so all numbers and image fragments remain readable.
+- The Rack Area automatically becomes taller when necessary instead of shrinking or stacking pieces on top of one another.
+- Narrow phones use fewer rack columns and more vertical space, preserving mobile readability.
+- Pieces remain loose and face-up with no individual card/frame around them.
+
+## v2.1.9 progress-protection and rack compaction
+- Picture/No Picture, Start Hints, and Board Guide changes now restart immediately if the player has not manually placed/moved any piece.
+- Those same changes ask for confirmation only after the player has made real progress.
+- Previous Level, Next Level, and direct Level selection now also ask for confirmation only when manual progress would be lost.
+- Board Area renamed to Board.
+- Rack Area renamed to Rack.
+- Rack spacing is tighter and more efficient while still preventing overlap.
+- Wider screens use more rack columns; narrower phones use fewer columns and grow vertically only as much as needed.
+
+## v2.2.0 checkpoint-2 final layout
+- Rack packing is tighter again, reducing wasted vertical space while still preventing overlap.
+- In portrait/mobile layout, Board remains above Rack.
+- In landscape layout (for laptops and tablets held horizontally), the interface automatically changes to a two-column view:
+  - Board on the left
+  - Rack on the right
+- Responsive layout is decided dynamically from the current viewport shape.
+- The Rack remains mobile-friendly and grows only as much as required.
+- Existing progress-protection behaviour remains:
+  - configuration changes or level changes warn only if the player has already made manual progress.
+
+## v2.2.1 adaptive rack sizing
+- Replaced the conservative fixed-slot rack algorithm with a dynamic maximum-size packing algorithm.
+- Rack pieces now grow as large as the actual available Rack frame permits.
+- No overlaps are allowed.
+- Landscape mode now stretches Board and Rack frames to the same outer height.
+- In landscape, the Rack uses its full height instead of leaving large unused vertical gaps.
+- In portrait/mobile, Board and Rack are both full width and the Rack grows vertically only as much as needed.
+- Resizing the browser recalculates the layout and piece scale automatically.
+- Large laptop/tablet displays now use more of the available viewport instead of keeping the Rack artificially small.
+
+## v2.2.2 conflict-highlighting fix
+- Fixed the Sudoku conflict feedback bug that was colouring an entire tetromino red whenever only one or two of its cells were actually in conflict.
+- Only the exact numbered cells that break a Sudoku rule now flash/highlight red.
+- Innocent numbers on the same piece remain normal.
+- Conflict counter now reflects the number of individual conflicting cells, which is more intuitive for players.
+
+## v2.2.3 drag-to-rack fix
+- Fixed the bug that prevented placed pieces from being dragged back off the Board into the Rack.
+- A piece dropped back onto the Rack is now removed from the Board and becomes available in the Rack again.
+- Invalid drops elsewhere still snap the piece back to its previous board position.
+- Dragging from the Rack to the Board continues to behave normally.
+
+## v2.2.4 guided-placement finale
+- When Board Guide is ON, pieces can no longer be dropped into arbitrary board cells.
+- A piece may only snap into a predefined, currently empty placeholder with the exact same shape/orientation.
+- Hovering a matching piece over an eligible placeholder makes that placeholder pulse brightly in its translucent family colour.
+- Releasing while that placeholder is pulsing snaps the piece precisely into the slot.
+- Wrong-shape placeholders do not activate.
+- Occupied placeholders do not activate.
+- Dropping away from an eligible placeholder returns the piece to its prior Board location or keeps it in the Rack.
+- No Guide mode retains free board placement and standard Sudoku-only validation.
+
+## v2.2.5 placeholder pulse refinement
+- Increased the guide-hover pulse visibility by roughly 15%.
+- Active placeholders now glow slightly more strongly, with a brighter translucent fill, a clearer coloured rim, and a stronger pulse animation.
+- Behaviour is otherwise unchanged from v2.2.4.
+
+## v2.2.6 landscape fit-to-height
+- Landscape mode now sizes the Board/Rack area from the actual browser viewport height.
+- The Board remains perfectly square but will shrink vertically when needed, so normal 100% browser zoom should show the full Board.
+- Board and Rack still share the same outer height in landscape.
+- Landscape controls are slightly more compact to reserve maximum height for gameplay.
+- Very short landscape windows receive an additional compact-layout adjustment.
+- Portrait/mobile behaviour is unchanged.
+
+## v2.2.7 minimum sensible landscape height
+- Refined the landscape fit-to-height behaviour so SuJi no longer keeps shrinking indefinitely as the browser window becomes shorter.
+- The Board/Rack area now shrinks dynamically only down to a sensible minimum size.
+- Once that minimum is reached, the page becomes vertically scrollable instead of making the Board smaller and smaller.
+- This preserves the normal 100% zoom landscape experience while avoiding an over-compressed game board in very short browser windows.
+
+## v2.2.8 landscape threshold and roomy rack
+- Changed the landscape vertical-fit threshold to 1000px high.
+- If the browser viewport is 1000px high or more, SuJi continues to fit vertically.
+- If the browser viewport drops below 1000px high, SuJi stops shrinking further and the page becomes vertically scrollable instead.
+- On wide landscape screens, the Rack now receives more horizontal space.
+- Very wide screens give even more width to the Rack, helping the piece packer enlarge pieces and reduce wasted beige space.
+
+## v2.2.9 landscape threshold refinement
+- Reduced the landscape scroll cutoff from the previous 1000px rule to a more realistic desktop/laptop threshold.
+- SuJi now keeps shrinking-to-fit on normal landscape desktop windows like the one shown in the user screenshot.
+- Vertical scrolling only begins once the browser height becomes genuinely short (below roughly 860px).
+- The Board/Rack area still stops shrinking beyond a sensible minimum when the window becomes very short.
+
+## v2.2.10 footer breathing room
+- Added a clean footer area below the Board/Rack, approximately the height of one 1x1 SuJi tile.
+- Landscape fit-to-height maths now reserves that footer space before sizing the Board/Rack pair.
+- This prevents the puzzle frame from sitting flush against the bottom edge of the browser.
+- The footer is intentionally quiet and minimal so it acts primarily as visual breathing room.
+
+## v2.2.11 pinned starting pieces
+- System-given starting pieces now display a small pin badge.
+- They also have a subtle cyan halo so they read as fixed/system-provided without looking like errors.
+- Added a tiny Board note: “Pinned pieces were given to you at the start.”
+- The visual treatment is deliberately lightweight so players understand the distinction immediately without adding another large UI panel.
+
+## v2.2.12 starting-piece styling change
+- Removed the pin badge from system-given starting pieces.
+- Starting pieces are now indicated with a dark grey border treatment instead.
+- Updated the small Board legend so it explains that dark-bordered pieces were given at the start.
+- This keeps the meaning clear while looking calmer and more integrated into the puzzle UI.
+
+## v2.2.13 clarity refinement
+- Made the system-given starting pieces more clearly identifiable by strengthening the dark-grey border treatment.
+- Added a clearer dark outer contour around the whole anchored tetromino, not just subtle internal cell edging.
+- Improved the small Board legend sample so it matches the stronger anchored-piece visual language.
+- Fixed the board layering so the heavy 3x3 quadrant lines now sit underneath tetromino pieces, where they belong as part of the board.
+- Guides remain above the board, and placed/dragged pieces remain above the guides.
+
+## v2.2.14 anchored-piece border refinement
+- Moved the system-piece border treatment inside the tetromino bounds instead of outside.
+- This ensures the marker remains visible even when another tetromino is directly adjacent.
+- Softened the dark-grey styling slightly so it remains clear without looking too heavy.
+- Updated the small legend sample to match the refined anchored-piece appearance.
+
+## v2.2.15 anchored-piece marker experiment
+- Removed the anchored-piece border treatment.
+- Added a small centered padlock on system-given starting pieces instead.
+- Updated the small Board legend so it now explains that locked pieces were given to you at the start.
+- This keeps the piece art clean while testing whether a simple lock marker communicates the meaning more clearly.
+
+## v2.2.16 shadow-first markers
+- Replaced the white circular plate under the padlock with a shadow-only lock treatment.
+- Replaced the filled number circles with shadow-style numbers, so the tile art and colours remain visible underneath.
+- The numbers now rely on layered text shadow / drop shadow for contrast instead of a solid badge.
+- Reinforced the opening-hint rule: 1x1 pieces are never selected as the initial free hints.
+
+## v2.2.17 locked-piece interaction feedback
+- Increased the size of the central padlock slightly.
+- Locked starter pieces now respond when the user tries to drag them.
+- A blocked drag attempt makes the lock flash and the piece shake briefly, clearly communicating that the piece is locked and cannot be moved.
+- All other behaviour remains unchanged.
+
+## v2.2.18 number contrast and conflict persistence
+- Thickened the contrast edge around numbers using a stronger white stroke so digits stay readable even on dark picture areas.
+- Fixed the conflict styling so it also applies clearly to the initial system-given / locked hint tetrominoes.
+- Collision cells now flash first, then remain slightly lighter/backlit while the conflict still exists, together with the red border.
+- Reconfirmed the opening-hint rule: 1x1 pieces are never chosen as the free initial hints.
+
+## v3.0.0 — Checkpoint #3 begins
+- Checkpoint #2 (v2.2.18) remains frozen as the protected baseline.
+- First Checkpoint #3 fix: No Guide mode now correctly allows free placement anywhere on the Board, subject only to board boundaries and overlap rules.
+- Pieces dropped in a valid free position no longer bounce back to the Rack when guides are disabled.
+
+## v3.0.1 — No-Guide placement and mode-control correction
+- Fixed the root persistence issue: older boolean strings such as "false" are now correctly interpreted as OFF after a reload.
+- Picture and Guides settings are now persisted explicitly as "on"/"off".
+- Guides OFF uses a completely separate free-placement path and never consults placeholder hover/pulse/snap logic.
+- In Guides OFF mode, a piece can be placed anywhere it geometrically fits inside the 9x9 board without overlap.
+- Replaced the two Show Fits / No Guide buttons with a single two-state slider control labelled Guides ON / Guides OFF.
+- Increased game-mode and option text sizes for easier reading.
+
+## v3.0.2 — clearer faint Sudoku cell lines
+- Strengthened the faint 1x1 board grid lines so each 3x3 quadrant clearly shows its 9 individual cells.
+- Kept these lines subtle, so they stay lighter than the heavy 3x3 quadrant separators.
+- This makes the empty board read more immediately like a Sudoku grid without overpowering the tetrominoes or guides.
+
+## v3.0.3 — dedicated faint Sudoku cell grid
+- Added a separate thin 9x9 cell-grid overlay instead of relying only on borders inside the underlying Board cells.
+- The faint 1x1 Sudoku lines now render above translucent guide placeholders, so they remain visible when Guides are ON.
+- The thin grid still renders below actual tetromino pieces.
+- Heavy 3x3 quadrant lines remain visually stronger than the faint 1x1 cell grid.
+
+## v3.0.4 — unified mode sliders
+- Replaced Picture / No Picture with a single Picture ON / Picture OFF slider toggle, matching the Guides control.
+- Replaced the three separate Start Hints buttons with a three-stop slider.
+- Hint stops show 1, 2, or 3 lightbulbs.
+- The hint track uses a red-to-amber-to-green gradient: one hint is visually red, three hints visually green.
+- Selecting a stop still uses the existing progress-protection/restart logic.
+- All three game-mode controls now share a more consistent, readable UX.
+
+## v3.0.5 — toggle visual fix and mode icons
+- Fixed the Picture ON/OFF slider thumb so ON visibly slides the knob to the right, matching the Guides toggle.
+- Unified the slider mechanics for Picture and Guides.
+- Added a clear visual icon to every mode section:
+  - Picture: smiley/image cue
+  - Start Hints: lightbulb cue
+  - Guides: guide/diamond cue
+- Added small icons inside the Picture and Guides controls so the mode panel feels less text-heavy and bland.
+
+## v3.0.6 — tighter top control layout
+- Removed the repeated Picture title above the Picture slider to save vertical space.
+- Redesigned the Start Hints control into a single compact horizontal slider.
+- The left side now reads "Starting Hints".
+- A larger lightbulb icon sits on the far right for visual balance.
+- The slider thumb now contains a white circular badge with a black border and a black number showing the active hint count (1, 2, or 3).
+- Retained the three-stop slider behaviour and colour gradient from red (1 hint) to green (3 hints).
+
+## v3.0.7 — draggable Start Hints slider
+- Removed the translucent circular hint-stop buttons completely.
+- The user now changes Start Hints by physically dragging the white numbered slider ball left or right.
+- The ball follows the pointer/finger during the drag and snaps to the nearest of three values on release.
+- Added three small permanent triangle markers to indicate the available snap positions.
+- The ball continues to show the current value (1, 2, or 3) as a black number inside a white circle with a dark border.
+- Existing restart/progress-confirmation logic still applies after the drag selects a new value.
+
+## v3.0.8 — compact Guides control
+- Removed the redundant "Guides" heading above the Guides ON/OFF slider.
+- The slider itself remains labelled Guides ON / Guides OFF, saving vertical space and matching the compact Picture control style.
+
+## v3.0.9 — portrait Starting Hints relocation
+- Fixed the cramped Starting Hints control in portrait mode.
+- In portrait/mobile, Starting Hints now moves into the Level navigation panel on a full-width second row.
+- This gives the draggable 3-stop hint slider enough horizontal room for its label, gradient track, numbered thumb, stop markers, and lightbulb.
+- Picture and Guides then share the game-options row equally in portrait.
+- In landscape, Starting Hints automatically moves back between Picture and Guides, preserving the accepted wide-screen layout.
+- The control is physically moved in the DOM rather than duplicated, so its drag logic and state remain the same.
+
+## v4.0.0 — Checkpoint #4 begins
+- Renamed the current accepted working build from Checkpoint #3 / v3.0.9 to Checkpoint #4 / v4.0.0.
+- No gameplay or UI behaviour has been changed in this rename-only release.
+- v4.0.0 is the starting baseline for all further Checkpoint #4 development.
+
+## v4.0.1 — Starting Hints inline with Level in portrait
+- Moved the Starting Hints selector onto the same line as the Level controls in portrait mode.
+- Portrait level-row now lays out as: Previous / Level / Starting Hints / Next / Restart.
+- Compressed the portrait hint slider slightly so it fits neatly inline while staying readable.
+- Landscape behaviour remains unchanged.
+
+## v4.0.2 — simplified Locked Hints selector
+- Replaced the old Starting Hints slider with a simpler control:
+  - label: "Locked Hints :"
+  - left arrow to decrease
+  - bracketed current value, e.g. [1], [2], [3]
+  - right arrow to increase
+- Moved this Locked Hints selector back underneath the Level row in all layouts.
+- Removed the inline portrait version and the previous draggable hint slider.
+- Game options row now focuses only on Picture and Guides.
+- Existing restart/progress-confirmation logic for hint changes remains intact.
+
+## v4.0.3 — grouped one-line Level and Locked Hints controls
+- Replaced the previous second-row Locked Hints stepper with a one-line grouped control.
+- The main selector line now reads visually like:
+  - < Level 0001 >
+  - < Locked Hints 2 >
+- Styled both Level and Locked Hints as matching grouped controls with left/right arrows and centered text.
+- Kept Restart as a separate button on the same line.
+- The Picture and Guides row remains below as a clean two-option layout.
+
+## v4.0.4 — portrait fix for Level / Locked Hints row
+- Fixed the portrait/mobile bug where the new one-line Level + Locked Hints layout was breaking.
+- Added explicit portrait overrides so the old experimental portrait CSS no longer damages the row.
+- In portrait, Level, Locked Hints, and Restart now remain visible and aligned on one line.
+- Reduced arrow/button widths and font sizes slightly in portrait to preserve the intended grouped-control look without overlap.
+
+## v4.0.5 — narrow portrait label refinement
+- On very narrow portrait screens, the Locked Hints control now switches its label from "Locked Hints" to "Hints".
+- This preserves useful meaning instead of truncating to just "Locked ...".
+- Normal-width screens still show the full "Locked Hints" label.
+
+## v4.0.6 — compact Hints label
+- Replaced the truncated "Locked Hints" wording with a simpler compact label:
+  - "Hints 🔒"
+- This keeps the meaning clear even on very narrow portrait screens.
+- The small lock communicates that these are locked/free starting hints.
+
+## v4.0.7 — Hints label lock refinement
+- Moved the lock icon to the front of the Hints label.
+- Increased the lock icon slightly so it more closely matches the padlock style used on pinned tetromino hints.
+- The label now reads visually as: 🔒 Hints 3
+
+## v4.0.8 — faster locked-hint entry + rapid level-change race fix
+- Made the opening locked-hint placement animation noticeably faster:
+  - flight duration reduced from about 760 ms to about 520 ms
+  - stagger reduced from 80 ms to 45 ms
+  - pause after each arrival reduced from 120 ms to 55 ms
+- Added a reset-generation token so animations and asynchronous image lookups from an old level cannot update a newer level.
+- Changing levels now immediately cancels and removes any locked-hint flight still in progress.
+- The Board/Rack state is cleared and rebuilt for the new level immediately, before asynchronous image loading completes.
+- Rapidly clicking Previous/Next can no longer merge locked pieces from one level into the next level.
+
+
+## v5.0.2 — Checkpoint #5 onboarding, based directly on protected v4.0.8
+- Preserves the original multi-file PWA structure: index.html, styles.css, app.js, manifest.webmanifest, icons/, resources/.
+- Preserves Checkpoint 4 board/rack layout, adaptive rack packing, controls, watermark, guides, drag/drop, responsive layout and locked-hint behaviour.
+- Adds five gentle onboarding levels:
+  - Level 1: picture-first jigsaw, very faint numbers.
+  - Level 2: picture-first jigsaw, clearer numbers.
+  - Level 3: German flag horizontal stripes + an easy left-to-right Sudoku pattern.
+  - Level 4: French flag vertical stripes + the transposed easy top-to-bottom Sudoku pattern.
+  - Level 5: less positional abstract image + normal Sudoku logic.
+- Adds contextual Sudoku teaching without modal overlays. Messages live below the Board so they never cover gameplay on mobile.
+- When teaching a row/column/3x3-box error, the complete relevant region is highlighted yellow while the exact duplicate cells remain red.
+- Each rule is taught at most three times, with a per-rule “Don’t show this kind of Sudoku tip again” option.
+- Tutorial artwork remains in resources/ and is loaded through the existing Picture Mode resource mechanism.
+
+
+## v5.0.2 correction
+- Strong red outline on exact duplicate cells, including Picture mode and locked hints.
+- Entire offending row/column/3x3 region receives a visible yellow teaching tint.
+- Error teaching reduced to one compact line; on mobile it sits at the bottom of the screen.
+- Removed “SuJi Says” from error messages.
+- Selecting “Don’t show” immediately closes the message and removes the yellow teaching region.
+- Tutorial message counters use a new v5.0.2 namespace so this corrected behaviour can be tested cleanly.
+
+
+Checkpoint 5 v5.0.4 changes
+- Level 1 intro: "Solve the Jigsaw - Take care of the Sudoku numbers".
+- A single translucent yellow teaching stripe spans the full offending row/column (or box).
+- The stripe remains after the popup is closed and disappears only when that exact conflict is resolved.
+- Stripe is pointer-events:none and never blocks dragging.
+- Conflict popup is triggered only by a conflict involving the most recently dropped piece.
+- Existing unrelated board conflicts never generate a new popup.
+
+
+Checkpoint #5 v5.0.5
+----------------------
+- Tutorial/error modal backdrop is fully transparent: no dimming and no blur, so the board remains sharp and readable while the message is shown.
+- Persistent teaching region is substantially stronger and immediately eye-catching.
+- Row conflicts highlight the complete 9-cell row edge-to-edge.
+- Column conflicts highlight the complete 9-cell column edge-to-edge.
+- Box conflicts highlight the complete 3x3 quadrant.
+- Attention region pulses once when triggered, then stays steadily visible until that exact conflict is resolved.
+- Teaching overlay remains pointer-events:none and cannot interfere with drag/drop after the modal is closed.
+
+
+## v5.0.6
+- Strengthened the red highlighting of the exact cells in conflict while a tutorial yellow row/column/box band is visible.
+- Added thicker red outline, stronger glow and slightly higher contrast for the active conflicting cells.
+
+
+## v5.0.7
+- Increased the visibility of the exact conflicting numbers inside the active teaching conflict.
+- Added stronger white edge, slightly larger number rendering, and a subtle light plate behind the number so it remains readable over the yellow band.
+
+
+## v5.0.8
+- The yellow tutorial row/column/box band now continuously fades out for one second and fades back in for one second while the active conflict remains.
+- Red conflict borders and the conflicting numbers do not fade, making them much easier to inspect whenever the yellow band recedes.
+- The breathing animation ends automatically when the highlighted conflict is resolved because the stripe is removed by the existing conflict lifecycle.
+
+
+## v5.0.9
+- First startup tutorial message is now a centered classic modal with blurred/dimmed backdrop and an OK button.
+- Later teaching/error messages remain as discreet bottom modal bars with only a close × and no blur.
+- Strengthened red conflict borders so the exact clashing cells stand out more clearly.
+
+
+## v5.0.10
+- Reset Checkpoint 5 tutorial display counters for this build so the Level 1 central introduction is shown again during testing.
+- Beautified the bottom teaching/error modal while keeping it compact and one-line.
+- Refined the Level 1 central introduction styling and message.
+
+
+## Checkpoint 6 v6.0.1
+- The actively reported colliding numbers now pulse/zoom so they pop out more clearly while the yellow teaching band breathes.
+- Tutorial number visibility is no longer faded: numbers are clearly visible from Level 1 onward.
+- Tutorial message storage key bumped so the intro/tutorial messages can be retested cleanly.
+
+
+## Checkpoint 6 v6.0.3
+- Fixed tutorial artwork loading for local file use. Levels 1–5 now map directly to their resource images instead of relying on a HEAD request that can fail under file://.
+- Level 2 cat, Level 3 German flag, Level 4 French flag, and Level 5 dog now display reliably when opening the package locally.
+
+
+## Checkpoint 6 v6.0.4
+- Changed all non-error informational tutorial messages (such as the level teaching intros) to centered, blurred-background super messages with OK buttons.
+- Error-related teaching remains as the discreet bottom modal bar.
+- Bumped tutorial storage key so the informational popups can be tested cleanly again.
+
+
+## Checkpoint 6 v6.0.5
+- Added completed-picture preview system. On level entry, the solved picture is shown centered, then zooms/fades into a picture-icon button.
+- Added reusable picture preview button so the completed image can be reopened at any time.
+- The picture preview can be closed with an × in the top-right corner or by pressing Escape/clicking outside.
+
+
+## Checkpoint 6 v6.0.6
+- Level-start sequence corrected: intro super-message appears first; only after OK does the completed-picture preview appear.
+- The player cannot begin play until the picture preview is closed; closing it shrinks it into the picture icon.
+- Picture preview restyled as a white-bordered printed polaroid / photo card.
+
+
+## Checkpoint 6 v6.0.7
+- Fixed missing picture-preview overlay markup, which prevented both level-start picture display and the picture button from working.
+- Updated visible title/header to Checkpoint #6 · Version 6.0.7.
+- Replaced monochrome picture symbol with an original coloured SuJi landscape/photo SVG icon.
+
+
+## Checkpoint 6 v6.0.8
+- Picture preview redesigned as a centered framed puzzle window.
+- Added a compact top title bar with level-specific title and close ×.
+- Reduced surrounding white area to approximately 5mm and removed the large polaroid bottom margin.
+- Level 3 title is 'Flag of Germany Puzzle'.
+
+
+## Checkpoint 6 v6.0.9
+- Standardised Sudoku conflict messages to the 'Illegal Move' wording for row, column, and 3×3 box conflicts.
+
+
+## Checkpoint 6 v6.0.10
+- Slowed and smoothed the completed-picture shrink animation so it zooms out more gracefully.
+- Removed the old minimum shrink cap so the preview now collapses down to approximately the same size as the picture icon.
+- Increased title bar contrast and added a bold black border around the entire picture preview window.
+- Updated visible build label to Checkpoint #6 · Version 6.0.10.
+
+
+## Checkpoint 6 v6.0.11
+- Added a true icon-to-preview opening animation. The completed picture now grows from the picture icon's exact position and size into the full centered frame over ~1 second.
+- Closing continues to animate in reverse back into the icon.
+- Updated visible build label to Checkpoint #6 · Version 6.0.11.
+
+
+## Checkpoint 6 v6.0.12
+- Fixed picture zoom animation so the complete framed preview window animates as one object.
+- Title bar, X, white picture border, image and bold black outer border now grow/shrink together continuously.
+- Updated visible build label to Checkpoint #6 · Version 6.0.12.
+
+
+## Checkpoint 6 v6.0.13
+- Replaced cloned-preview zoom with direct animation of the real complete preview window.
+- Opening now starts at picture-icon size/position and reaches nearly full phone width in about 0.7 seconds.
+- Removed the final visual hand-off that caused the animation to skip/chop at the end.
+- Closing uses the reverse direct animation back to the icon.
+
+
+## Checkpoint 6 v6.0.14
+- Rebuilt zoom-in to remove jerking: the image is decoded before animation begins.
+- Removed the old CSS pop animation that was competing with the Web Animations transform.
+- Zoom-in now uses a single compositor translate+scale from the picture icon to the full-width centered window in ~0.56 seconds.
+- Phone preview now expands to virtually the full screen width.
+- Updated visible build label to Checkpoint #6 · Version 6.0.14.
+
+
+## Checkpoint 6 v6.0.15
+- Limited the picture-preview zoom-in and zoom-out animation to Levels 1–5 only.
+- From Level 6 onward the completed-picture reference still opens and closes, but without the zoom animation.
+- Updated visible build label to Checkpoint #6 · Version 6.0.15.
+
+
+## Checkpoint 7 v7.0.0
+- Frozen Checkpoint #7 baseline created from the accepted Checkpoint #6 v6.0.15 state.
+- No gameplay behaviour changed during this checkpoint save/rename.
+- Future Checkpoint #7 development should branch from this exact v7.0.0 baseline.
+
+
+## Checkpoint 7 v7.0.1
+- Levels 1–5 are now mandatory guided-picture levels: Picture and Guides are forced ON.
+- Picture ON/OFF and Guides ON/OFF controls are completely hidden in Levels 1–5.
+- From Level 6 onward both controls reappear and the player's saved Picture/Guides preferences are restored.
+
+## Checkpoint 7 v7.0.2
+- Yellow row, column, and 3×3 error-region highlighting now remains active on every level.
+- From Level 6 onward there is no Illegal Move teaching popup; only the visual cue remains.
+- Active conflicting numbers now pulse larger and use a subtle shimmer for improved visibility.
+- Visible version updated to Checkpoint #7 · Version 7.0.2.
+
+
+## Checkpoint 9 v8.0.0
+- Checkpoint #9 frozen baseline, created from the accepted Checkpoint #7 v7.0.2 build.
+- No gameplay, tutorial, animation, layout, or visual behaviour was changed in this freeze/rename step.
+- This is the protected starting point for future Checkpoint #9 work.
+
+
+## v8.0.2 changes
+- Current level is shown without a padlock in the 100-level selector.
+- On level entry/restart, the picture preview waits 1 second before zooming in.
+- Added a discreet live digital attempt timer. It resets for every new or restarted level.
+- Completion time is recorded locally only after a fully correct solution; slower replays do not replace the best time.
+
+
+## Checkpoint #9 v8.0.7
+- Level selector uses larger cards and a five-across mobile grid with vertical scrolling through each 100-level page.
+- Completed cards show level, best time, moves and 1–3 stars.
+- Static rating formula: 60% speed and 40% move efficiency; 2:00 and 25 moves are the current perfect targets.
+- Win screen shows stars, time and moves with Replay and OK/Next Level choices.
+- Start-of-level picture preview is delayed until at least two seconds after entering the level.
+
+
+Checkpoint #9 v9.0.1 change
+----------------------------
+- Sudoku collision messages are no longer limited to three displays.
+- Every active collision is shown as a non-modal warning in the Board heading.
+- The warning is centered between the Board title and the Picture/Guides summary.
+- A warning triangle and subtle pulse draw attention without blocking play.
+- The warning disappears immediately when the conflict is fixed.
+- Large informational/tutorial modals are unchanged.
+
+## Checkpoint #11 v11.0.1 — Active Pieces Guide
+
+The guide system is now contextual rather than permanently colouring the board. With **Show Pieces Guide** enabled, picking up a piece illuminates and shimmers every currently empty predefined destination that has the same exact fixed-orientation silhouette. The player can drop only into one of those illuminated homes. With the guide disabled, no destination shimmer is shown and the piece may be placed anywhere it geometrically fits without overlapping another piece.
