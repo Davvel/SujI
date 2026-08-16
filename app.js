@@ -2057,3 +2057,66 @@ window.addEventListener('keydown',e=>{ if(e.key==='Escape'){ requestClosePicture
 window.addEventListener('resize',()=>{ updateResponsiveLayout(); setHintModeClass(); updateHintViewportMetrics(); updateStats(); renderAll(false); });
 updateResponsiveLayout(); buildBoard(); resetLevel(true);
 })();
+
+// Snapshot 15.0.1 — Progressive Web App install + offline support.
+(() => {
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').catch(err => console.warn('SuJi service worker registration failed:', err));
+    }, { once:true });
+  }
+
+  const promptEl = document.getElementById('pwaInstallPrompt');
+  const installBtn = document.getElementById('pwaInstallBtn');
+  const dismissBtn = document.getElementById('pwaInstallDismiss');
+  const titleEl = document.getElementById('pwaInstallTitle');
+  const textEl = document.getElementById('pwaInstallText');
+  if (!promptEl || !installBtn || !dismissBtn) return;
+
+  const standalone = () => window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  const isiOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  let deferredInstallPrompt = null;
+  const dismissedKey = 'suji_pwa_install_dismissed_v15';
+
+  const showPrompt = () => {
+    if (standalone() || sessionStorage.getItem(dismissedKey) === '1') return;
+    promptEl.hidden = false;
+  };
+  const hidePrompt = () => { promptEl.hidden = true; };
+
+  window.addEventListener('beforeinstallprompt', event => {
+    event.preventDefault();
+    deferredInstallPrompt = event;
+    promptEl.classList.remove('is-ios');
+    titleEl.textContent = 'Install SuJi';
+    textEl.textContent = 'Add SuJi to your Home Screen and play it like a normal app.';
+    showPrompt();
+  });
+
+  installBtn.addEventListener('click', async () => {
+    if (!deferredInstallPrompt) return;
+    hidePrompt();
+    deferredInstallPrompt.prompt();
+    try { await deferredInstallPrompt.userChoice; } catch (_) {}
+    deferredInstallPrompt = null;
+  });
+
+  dismissBtn.addEventListener('click', () => {
+    hidePrompt();
+    try { sessionStorage.setItem(dismissedKey, '1'); } catch (_) {}
+  });
+
+  window.addEventListener('appinstalled', () => {
+    deferredInstallPrompt = null;
+    hidePrompt();
+    try { sessionStorage.removeItem(dismissedKey); } catch (_) {}
+  });
+
+  // iPhone/iPad Safari has no beforeinstallprompt event, so provide the native Add-to-Home-Screen route.
+  if (isiOS && !standalone()) {
+    promptEl.classList.add('is-ios');
+    titleEl.textContent = 'Install SuJi';
+    textEl.textContent = 'Tap Share, then “Add to Home Screen” to install SuJi.';
+    window.setTimeout(showPrompt, 1400);
+  }
+})();

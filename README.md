@@ -1,13 +1,39 @@
-# SuJi — Snapshot #15 v15.0.0
+# SuJi — Snapshot #15 v15.0.1
 
-## Snapshot 15 baseline
+## v15.0.1 — True Progressive Web App
 
-- Snapshot #15 is created directly from the accepted Snapshot #14 v14.2.4 build.
+- SuJi is now installable as a real Progressive Web App when served over HTTPS (including GitHub Pages).
+- Added a Service Worker (`sw.js`) so the application shell, puzzle patterns, images and icons are cached for reliable offline reopening after the first successful load.
+- Added a mobile install offer using the browser's native PWA install flow when available.
+- Added iPhone/iPad guidance for Safari's **Share → Add to Home Screen** installation route.
+- Upgraded the Web App Manifest with app identity, scope, categories, standalone display mode, and dedicated maskable icon support.
+- Added a new SuJi app icon family: 192px, 512px, 512px maskable, and 180px Apple Touch icon, plus an SVG source.
+- Added Apple mobile-web-app metadata and Home Screen icon linkage.
+- Existing Snapshot 15 gameplay, Hint Mode, Sudoku feedback, levels, pictures and drag behaviour are unchanged.
+
+## Deployment note
+
+For installability, publish the package through HTTPS. GitHub Pages already provides HTTPS, so no special server configuration is required beyond publishing these files together at the site root.
+
+---
+
+## v15.0.0 — Protected Snapshot 15 baseline
+
+Snapshot 15.0.0 froze the accepted v14.2.4 gameplay state, including the orange↔purple Hint Mode guidance borders, immediate press-and-drag touch behaviour, nearby drag guidance bubble, shimmering hint destinations, and the accepted non-modal locked-shape feedback.
+
+# SuJi — Snapshot #14 v14.2.4
+
+## Snapshot 14 baseline
+
+- Snapshot #14 is created directly from the accepted Checkpoint #13 v13.0.4 build.
 - No gameplay behaviour is changed by this snapshot creation.
-- This is the protected starting baseline for Snapshot #15.
-- Version for this frozen baseline is **v15.0.0**.
+- This is the protected starting baseline for Snapshot #14.
+- New versioning convention begins here: **v1.14.0**.
+  - `1` = first major release line.
+  - `14` = Snapshot / checkpoint number.
+  - `0` = no minor revision has yet been made within Snapshot 14.
+- Future minor revisions within this snapshot should increment the final component: v1.14.1, v1.14.2, and so on.
 
-## What Snapshot #15 inherits from accepted Snapshot #14
 
 ## v14.2.4 — guided area glow + one-touch Hint drag
 - Entering Hint Mode now gives the **Rack Area** an animated shimmering border that cycles from orange to purple, clearly indicating where the player should choose a shape.

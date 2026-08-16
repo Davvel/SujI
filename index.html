@@ -4,9 +4,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#121826">
-  <title>SuJi — Snapshot #15 v15.0.0</title>
+  <meta name="application-name" content="SuJi">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="SuJi">
+  <title>SuJi — Snapshot #15 v15.0.1</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -18,7 +23,7 @@
       </div>
       <div>
         <h1>SuJi</h1>
-        <p>Snapshot #15 · Version 15.0.0</p>
+        <p>Snapshot #15 · Version 15.0.1</p>
       </div>
     </div>
     <button id="helpBtn" class="icon-btn settings-btn" title="Settings" aria-label="Settings">⚙</button>
@@ -240,6 +245,19 @@
       </div>
     </div>
   </div>
+
+
+  <aside id="pwaInstallPrompt" class="pwa-install-prompt" hidden aria-live="polite">
+    <img class="pwa-install-icon" src="icons/icon-192.png" alt="" aria-hidden="true">
+    <div class="pwa-install-copy">
+      <strong id="pwaInstallTitle">Install SuJi</strong>
+      <span id="pwaInstallText">Add SuJi to your Home Screen and play like a normal app.</span>
+    </div>
+    <div class="pwa-install-actions">
+      <button id="pwaInstallBtn" class="pwa-install-btn" type="button">Install</button>
+      <button id="pwaInstallDismiss" class="pwa-install-dismiss" type="button" aria-label="Dismiss install suggestion">×</button>
+    </div>
+  </aside>
 
   <script src="patterns.js"></script>
   <script src="app.js"></script>
