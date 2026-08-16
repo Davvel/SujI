@@ -6000,3 +6000,370 @@ body.portrait-ui.placement-hint-mode .hint-instruction{
   .pwa-install-prompt:not([hidden]){animation:pwaInstallIn .34s cubic-bezier(.2,.8,.2,1)}
   @keyframes pwaInstallIn{from{opacity:0;transform:translateY(22px) scale(.97)}to{opacity:1;transform:none}}
 }
+
+
+/* === SuJi Checkpoint #16 v16.1.0: local Sudoku conflict bubble ===
+   Sudoku-rule text is intentionally attached to the active offending cell instead
+   of living in the Board heading. This stays non-modal and never blocks dragging. */
+.conflict-bubble{
+  position:absolute;
+  z-index:50;
+  display:flex;
+  align-items:center;
+  gap:7px;
+  width:max-content;
+  max-width:min(290px,72%);
+  min-height:34px;
+  padding:7px 11px 7px 9px;
+  border:1px solid rgba(190,80,59,.52);
+  border-radius:13px;
+  background:linear-gradient(180deg,rgba(255,247,210,.98),rgba(255,221,123,.98));
+  color:#653315;
+  box-shadow:0 8px 20px rgba(65,34,13,.24),0 2px 6px rgba(65,34,13,.12);
+  font:850 clamp(11px,1.15vw,14px)/1.25 Inter,ui-sans-serif,system-ui,sans-serif;
+  text-align:left;
+  pointer-events:none;
+  box-sizing:border-box;
+}
+.conflict-bubble[hidden]{display:none !important}
+.conflict-bubble-icon{
+  display:grid;
+  place-items:center;
+  flex:0 0 auto;
+  width:22px;
+  height:22px;
+  border-radius:50%;
+  background:#d84b3f;
+  color:#fff;
+  font:950 15px/1 Inter,ui-sans-serif,system-ui,sans-serif;
+  box-shadow:0 2px 5px rgba(110,26,20,.25);
+}
+.conflict-bubble-text{min-width:0}
+.conflict-bubble::after{
+  content:"";
+  position:absolute;
+  left:50%;
+  width:12px;
+  height:12px;
+  background:#ffdf7f;
+  border-color:rgba(190,80,59,.52);
+  transform:translateX(-50%) rotate(45deg);
+}
+.conflict-bubble.conflict-bubble-below-target::after{
+  top:100%;
+  margin-top:-6px;
+  border-right:1px solid rgba(190,80,59,.52);
+  border-bottom:1px solid rgba(190,80,59,.52);
+}
+.conflict-bubble.conflict-bubble-above-target::after{
+  bottom:100%;
+  margin-bottom:-6px;
+  border-left:1px solid rgba(190,80,59,.52);
+  border-top:1px solid rgba(190,80,59,.52);
+}
+@media (max-width:760px){
+  .conflict-bubble{
+    max-width:min(230px,76%);
+    min-height:30px;
+    padding:6px 9px 6px 7px;
+    gap:6px;
+    border-radius:11px;
+    font-size:11.5px;
+  }
+  .conflict-bubble-icon{width:19px;height:19px;font-size:13px}
+}
+@media (prefers-reduced-motion:no-preference){
+  .conflict-bubble:not([hidden]){animation:sujiConflictBubbleIn .18s ease-out}
+  @keyframes sujiConflictBubbleIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+}
+
+/* === SuJi Checkpoint #16 v16.1.2: clearer Hint destinations ===
+   Every compatible destination stays visible in Hint Mode, even if temporarily
+   covered by another board shape. Occupied destinations float above the blocker
+   as a translucent silver stencil. The active snap target is intentionally a
+   much stronger red/coral lock-on cue: release = snap here. */
+.guide-piece.hint-destination.hint-occupied-destination{
+  z-index:7 !important;
+  filter:drop-shadow(0 0 5px rgba(218,225,233,.75)) !important;
+}
+.guide-piece.hint-destination.hint-occupied-destination .guide-tile{
+  opacity:.62 !important;
+  background:linear-gradient(135deg,
+    rgba(246,249,252,.76) 0%,
+    rgba(195,203,212,.70) 48%,
+    rgba(237,241,246,.78) 100%) !important;
+  border:2px dashed rgba(104,116,129,.96) !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.42),
+    0 0 8px rgba(228,234,241,.74),
+    0 0 13px rgba(115,128,143,.34) !important;
+}
+.guide-piece.guide-compatible.guide-hover{
+  z-index:8 !important;
+  filter:drop-shadow(0 0 8px rgba(218,66,66,.72)) !important;
+}
+.guide-piece.guide-compatible.guide-hover .guide-tile,
+.guide-piece.hint-destination.guide-hover .guide-tile{
+  opacity:1 !important;
+  background:linear-gradient(145deg,
+    rgba(255,220,216,.99) 0%,
+    rgba(244,151,145,.99) 36%,
+    rgba(224,91,86,.99) 68%,
+    rgba(194,58,58,.99) 100%) !important;
+  border:2.5px solid rgba(167,45,45,1) !important;
+  box-shadow:
+    inset 1px 1px 0 rgba(255,255,255,.64),
+    inset -2px -2px 4px rgba(112,28,28,.24),
+    0 0 8px rgba(255,221,215,.92),
+    0 0 18px rgba(234,86,78,.84),
+    0 0 28px rgba(201,45,45,.58) !important;
+  filter:brightness(1.05) saturate(1.18) !important;
+  animation:none !important;
+}
+
+/* === SuJi Checkpoint #17 v17.0.1: portrait single-screen play ===
+   Normal portrait play is treated as one game surface rather than a stacked web page.
+   Board stays square and visible; Rack becomes a bounded bottom tray. */
+body.portrait-ui{
+  overflow:hidden;
+  min-height:100dvh;
+}
+body.portrait-ui .app{
+  height:calc(100dvh - var(--suji-topbar-h, 0px));
+  padding:6px 7px max(5px,env(safe-area-inset-bottom));
+  overflow:hidden;
+}
+body.portrait-ui .compact-status-strip{
+  margin-bottom:5px;
+}
+body.portrait-ui .play-layout{
+  height:var(--portrait-play-height, calc(100dvh - 132px));
+  min-height:0;
+  display:grid !important;
+  grid-template-rows:minmax(0,1fr) clamp(145px,24%,205px);
+  gap:6px;
+  overflow:hidden;
+}
+body.portrait-ui .play-layout .board-section,
+body.portrait-ui .play-layout .rack-section{
+  margin-top:0 !important;
+  min-height:0;
+  overflow:hidden;
+}
+body.portrait-ui .board-section{
+  padding:7px 8px 8px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  border-radius:15px;
+}
+body.portrait-ui .board-section .board-section-heading{
+  width:100%;
+  flex:0 0 auto;
+  min-height:34px;
+  margin:0 0 5px;
+  align-items:center;
+}
+body.portrait-ui .board-title-block h2{
+  font-size:18px;
+}
+body.portrait-ui .board-heading-tools{
+  position:relative;
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+body.portrait-ui .board-wrap{
+  flex:0 1 auto;
+  width:min(100%, calc(var(--portrait-play-height, 100dvh) - 190px)) !important;
+  max-width:100%;
+  max-height:calc(100% - 39px);
+  aspect-ratio:1 / 1;
+  align-self:center;
+}
+/* The old Board taskbar is landscape-only now. */
+body.portrait-ui .board-taskbar{
+  display:none !important;
+  margin:0 !important;
+  min-height:0 !important;
+  height:0 !important;
+  padding:0 !important;
+  border:0 !important;
+}
+/* Hint bulb lives beside the Picture button in portrait. */
+body.portrait-ui .board-heading-tools .placement-hint-btn{
+  width:44px;
+  height:38px;
+  border-radius:12px;
+  flex:0 0 44px;
+}
+body.portrait-ui .board-heading-tools .placement-hint-icon{
+  font-size:23px;
+}
+body.portrait-ui .board-heading-tools .placement-hint-count{
+  right:-5px;
+  bottom:-5px;
+  min-width:20px;
+  height:20px;
+  font-size:11px;
+}
+body.portrait-ui .board-heading-tools .hint-instruction{
+  left:auto;
+  right:0;
+  bottom:auto;
+  top:calc(100% + 8px);
+}
+body.portrait-ui .board-heading-tools .hint-instruction::after{
+  left:auto;
+  right:16px;
+  top:auto;
+  bottom:100%;
+  transform:translateY(7px) rotate(225deg);
+}
+body.portrait-ui .picture-preview-btn{
+  width:44px;
+  height:44px;
+}
+body.portrait-ui .rack-section{
+  padding:5px 7px 7px;
+  border-radius:15px;
+  display:flex;
+  flex-direction:column;
+}
+/* Rack is visually obvious in portrait; spend the title row on puzzle space instead. */
+body.portrait-ui .rack-section > .section-heading{
+  display:none !important;
+}
+body.portrait-ui .rack-shell{
+  flex:1 1 auto;
+  height:100% !important;
+  min-height:0 !important;
+  margin:0;
+  border-width:5px;
+  border-radius:16px;
+}
+body.portrait-ui .game-footer{
+  display:none !important;
+}
+
+@media (max-width:520px) and (orientation:portrait){
+  body.portrait-ui .topbar{padding-top:5px;padding-bottom:5px}
+  body.portrait-ui .brand-mark{width:31px;height:31px}
+  body.portrait-ui .brand h1{font-size:19px}
+  body.portrait-ui .brand p{font-size:9px}
+  body.portrait-ui .compact-status-strip{padding:5px 6px;gap:5px}
+  body.portrait-ui .compact-level-label{min-height:32px}
+  body.portrait-ui .compact-level-btn{height:32px;width:32px;min-width:32px}
+  body.portrait-ui .compact-metric{min-height:30px;padding:0 6px}
+  body.portrait-ui .compact-reset-btn{height:32px;width:32px;min-width:32px}
+  body.portrait-ui .play-layout{grid-template-rows:minmax(0,1fr) clamp(135px,23%,185px)}
+  body.portrait-ui .board-wrap{width:min(100%, calc(var(--portrait-play-height, 100dvh) - 174px)) !important}
+  body.portrait-ui .board-section{padding:6px}
+  body.portrait-ui .rack-section{padding:4px 5px 5px}
+}
+
+/* Keep the same single-screen geometry while Hint Mode is active. */
+body.portrait-ui.placement-hint-mode .play-layout{
+  height:var(--portrait-play-height, calc(100dvh - 132px)) !important;
+  grid-template-rows:minmax(0,1fr) clamp(135px,22%,185px) !important;
+  gap:6px !important;
+}
+body.portrait-ui.placement-hint-mode .board-section{
+  width:100% !important;
+  min-width:0 !important;
+  max-width:100% !important;
+  margin-top:0 !important;
+  padding:7px 8px 8px !important;
+}
+body.portrait-ui.placement-hint-mode .board-taskbar{display:none !important}
+body.portrait-ui.placement-hint-mode .rack-section{margin-top:0 !important;padding:5px 7px 7px !important}
+body.portrait-ui.placement-hint-mode .rack-section .section-heading{display:none !important}
+body.portrait-ui.placement-hint-mode .rack-shell{height:100% !important;min-height:0 !important}
+
+/* === SuJi Checkpoint #17 v17.0.2: reclaim portrait board whitespace ===
+   Keep the Board content-sized instead of stretching its panel to consume the
+   first grid row. The Rack receives the reclaimed height. Hint sits immediately
+   left of Picture while Picture remains the far-right control. */
+body.portrait-ui .play-layout{
+  grid-template-rows:auto minmax(0,1fr) !important;
+}
+body.portrait-ui .board-section{
+  align-self:start;
+}
+body.portrait-ui .board-wrap{
+  flex:0 0 auto;
+}
+body.portrait-ui .board-heading-tools .placement-hint-btn{
+  order:1;
+}
+body.portrait-ui .board-heading-tools .picture-preview-btn{
+  order:2;
+}
+body.portrait-ui .board-heading-tools .hint-instruction{
+  order:3;
+}
+
+@media (max-width:520px) and (orientation:portrait){
+  body.portrait-ui .play-layout{
+    grid-template-rows:auto minmax(0,1fr) !important;
+  }
+}
+
+body.portrait-ui.placement-hint-mode .play-layout{
+  grid-template-rows:auto minmax(0,1fr) !important;
+}
+\n\n/* === SuJi Checkpoint #17 v17.0.3: top Hint control in both orientations ===\n   Retire the lower Board taskbar everywhere. Hint stays immediately left of\n   Picture, and the recovered Board height is used for the puzzle itself. */\n.board-taskbar{\n  display:none !important;\n  height:0 !important;\n  min-height:0 !important;\n  margin:0 !important;\n  padding:0 !important;\n  border:0 !important;\n}\n.board-heading-tools{\n  position:relative;\n  display:flex;\n  align-items:center;\n  gap:6px;\n  flex:0 0 auto;\n}\n.board-heading-tools .placement-hint-btn{\n  order:1;\n  width:44px;\n  height:40px;\n  flex:0 0 44px;\n  border-radius:12px;\n}\n.board-heading-tools .placement-hint-icon{font-size:24px;}\n.board-heading-tools .placement-hint-count{\n  right:-5px;\n  bottom:-5px;\n  min-width:20px;\n  height:20px;\n  font-size:11px;\n}\n.board-heading-tools .picture-preview-btn{order:2;}\n.board-heading-tools .hint-instruction{\n  left:auto;\n  right:0;\n  bottom:auto;\n  top:calc(100% + 8px);\n  z-index:30;\n}\n.board-heading-tools .hint-instruction::after{\n  left:auto;\n  right:16px;\n  top:auto;\n  bottom:100%;\n  transform:translateY(7px) rotate(225deg);\n}\n/* Landscape previously reserved vertical room for the retired taskbar.\n   Let the square Board consume that recovered height. */\nbody.landscape-ui .board-wrap{\n  max-height:calc(100% - 39px) !important;\n}\nbody.landscape-ui .board-section{\n  padding-bottom:8px;\n}\n
+/* === SuJi Checkpoint #17 v17.0.4: edge-aware Hint speech bubbles ===
+   Keep useful text width near viewport edges. When the source sits at the
+   right edge, the bubble opens left and its pointer moves to the right side. */
+.hint-instruction{
+  width:max-content;
+  min-width:min(210px, calc(100vw - 28px));
+  max-width:min(270px, calc(100vw - 28px));
+}
+.hint-instruction.hint-anchor-right::after{
+  left:auto !important;
+  right:22px !important;
+}
+.board-heading-tools .hint-instruction{
+  left:auto !important;
+  right:0 !important;
+  width:min(250px, calc(100vw - 28px));
+  min-width:min(220px, calc(100vw - 28px));
+  max-width:min(250px, calc(100vw - 28px));
+}
+.board-heading-tools .hint-instruction::after{
+  left:auto !important;
+  right:16px !important;
+}
+@media (max-width:420px){
+  .hint-instruction{
+    min-width:min(190px, calc(100vw - 24px));
+    max-width:min(235px, calc(100vw - 24px));
+  }
+  .board-heading-tools .hint-instruction{
+    width:min(225px, calc(100vw - 24px));
+    min-width:min(200px, calc(100vw - 24px));
+    max-width:min(225px, calc(100vw - 24px));
+  }
+}
+
+
+/* === SuJi Checkpoint #17 v17.0.5: selected-shape Hint bubble anchoring ===
+   Once a Rack shape is selected, the second Hint instruction follows that
+   actual shape rather than inheriting the Board-heading popup coordinates. */
+.board-heading-tools .hint-instruction.hint-follow-piece{
+  position:fixed !important;
+  width:max-content;
+  min-width:min(210px, calc(100vw - 24px));
+  max-width:min(250px, calc(100vw - 24px));
+  z-index:60;
+}
+
+
+/* === SuJi Checkpoint #17 v17.0.6: cleaner Hint bubbles ===
+   Remove the decorative diamond/pointer from Hint instruction bubbles. */
+.hint-instruction::after{
+  display:none !important;
+  content:none !important;
+}

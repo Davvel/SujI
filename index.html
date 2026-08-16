@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="SuJi">
-  <title>SuJi — Snapshot #15 v15.0.1</title>
+  <title>SuJi — Checkpoint #18 v18.0.0</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/icon-192.png">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -23,7 +23,7 @@
       </div>
       <div>
         <h1>SuJi</h1>
-        <p>Snapshot #15 · Version 15.0.1</p>
+        <p>Checkpoint #18 · Version 18.0.0</p>
       </div>
     </div>
     <button id="helpBtn" class="icon-btn settings-btn" title="Settings" aria-label="Settings">⚙</button>
@@ -67,7 +67,16 @@
             <span class="hint-alert-icon" aria-hidden="true">💡</span>
             <span id="conflictAlertText" class="conflict-alert-text"></span>
           </div>
-          <div class="board-heading-tools"><button id="picturePreviewBtn" class="picture-preview-btn" type="button" title="Show completed picture" aria-label="Show completed picture">
+          <div class="board-heading-tools">
+            <button id="placementHintBtn" class="placement-hint-btn" type="button" aria-label="Use placement hint" title="Show where the next piece can fit">
+              <span class="placement-hint-icon" aria-hidden="true">💡</span>
+              <span id="placementHintCount" class="placement-hint-count">5</span>
+            </button>
+            <div id="hintInstruction" class="hint-instruction" role="status" aria-live="polite" hidden>
+              <span class="hint-instruction-icon" aria-hidden="true">💡</span>
+              <span id="hintInstructionText">Tap a shape to reveal where it belongs.</span>
+            </div>
+            <button id="picturePreviewBtn" class="picture-preview-btn" type="button" title="Show completed picture" aria-label="Show completed picture">
   <svg class="picture-preview-icon" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
     <defs>
       <linearGradient id="sujiPicSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#62d8ff"/><stop offset="1" stop-color="#7c8dff"/></linearGradient>
@@ -80,26 +89,20 @@
     <path d="M9 34 L17 27 L21 30 L25 27 L31 33 L40 29 L40 36 L8 36 Z" fill="#f5bd35" opacity=".92"/>
     <circle cx="11.5" cy="12.5" r="2.2" fill="#ff5c83"/>
   </svg>
-</button></div>
+            </button>
+          </div>
         </div>
         <div id="boardWrap" class="board-wrap">
           <div id="board" class="board" aria-label="9 by 9 SuJi board"></div>
+          <div id="conflictBubble" class="conflict-bubble" role="status" aria-live="assertive" hidden>
+            <span class="conflict-bubble-icon" aria-hidden="true">!</span>
+            <span id="conflictBubbleText" class="conflict-bubble-text"></span>
+          </div>
           <div id="tutorialStripe" class="tutorial-stripe" hidden aria-hidden="true"></div>
           <div class="suji-watermark" aria-hidden="true"><span>SuJi</span></div>
           <div class="sudoku-cell-grid" aria-hidden="true"></div>
           <div class="sudoku-lines" aria-hidden="true"></div>
         </div>
-        <div class="board-taskbar" aria-label="Board tools">
-          <button id="placementHintBtn" class="placement-hint-btn" type="button" aria-label="Use placement hint" title="Show where the next piece can fit">
-            <span class="placement-hint-icon" aria-hidden="true">💡</span>
-            <span id="placementHintCount" class="placement-hint-count">5</span>
-          </button>
-          <div id="hintInstruction" class="hint-instruction" role="status" aria-live="polite" hidden>
-            <span class="hint-instruction-icon" aria-hidden="true">💡</span>
-            <span id="hintInstructionText">Tap a shape to reveal where it belongs.</span>
-          </div>
-        </div>
-
       </section>
 
       <section class="rack-section">

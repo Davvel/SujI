@@ -1,4 +1,83 @@
-# SuJi — Snapshot #15 v15.0.1
+# SuJi — Checkpoint #18 v18.0.0
+
+## v17.0.4 — Edge-aware Hint speech bubbles
+
+- Hint speech bubbles now keep a readable width near screen edges.
+- When the originating shape/control is near the right edge, the bubble automatically opens to the left.
+- In that flipped state, the speech-bubble pointer moves to the right side so it still points back to the originating object.
+- PWA cache namespace updated to v17.0.4.
+
+
+## v17.0.3 — Hint permanently in Board heading
+- Placement Hint bulb now remains in the Board heading in both portrait and landscape, immediately to the left of the Picture button.
+- Picture remains the far-right Board control in both orientations.
+- The old lower Board Hint taskbar is retired entirely in both orientations.
+- Landscape now gives the recovered vertical space back to the square Board instead of reserving space beneath it.
+- Portrait keeps the compact no-scroll layout introduced in v17.0.1/v17.0.2.
+- PWA cache namespace updated to v17.0.3.
+
+## v17.0.2 — Portrait whitespace reclamation
+- Portrait Board panel now sizes to its actual Board content instead of stretching vertically, removing the unused white area below the square Board.
+- The reclaimed vertical space is given to the Rack, keeping the single-screen portrait play goal.
+- In portrait, the Hint bulb is immediately to the left of the Picture button; Picture remains the far-right top control.
+- Landscape/desktop presentation remains unchanged.
+- PWA cache namespace updated to v17.0.2.
+
+## v17.0.1 — Portrait no-scroll normal play
+
+- Portrait normal play is now sized to the visible viewport so the Board and Rack remain on screen together without page scrolling.
+- The former Board taskbar is removed from portrait layout and the placement Hint bulb is moved beside the Picture button in the Board heading.
+- The Rack title is hidden in portrait because the tray itself is visually self-explanatory; landscape keeps the Rack heading and existing Board taskbar.
+- Portrait Board padding, headings, gaps, and Rack framing are tightened to reclaim vertical space while keeping the Board square and playable.
+- The portrait Rack is a bounded bottom tray and no longer grows vertically to enlarge pieces; its packing adapts to the available tray instead.
+- Landscape/desktop gameplay layout remains unchanged.
+- PWA cache namespace updated to v17.0.1.
+
+## v17.0.0 — Protected Checkpoint 17 baseline
+
+Checkpoint 17 freezes the accepted Checkpoint 16 v16.1.2 state as the protected deployment and rollback baseline. No gameplay or UX behavior changed during the checkpoint save.
+
+---
+
+# SuJi — Checkpoint #16 v16.1.2
+
+
+
+## v16.1.2 — Hint destination visibility and snap cue
+
+- Hint Mode now reveals every matching destination for the selected shape, including destinations temporarily covered by another board shape.
+- Covered destinations are shown as a translucent silver/dashed stencil above the blocking shape so the player can still see that the hinted shape belongs there.
+- A movable board shape covering one of those revealed destinations may be dragged away while Hint Mode remains active. Locked starting shapes remain immovable.
+- Occupied hint destinations cannot accept the hinted shape until the blocker is moved.
+- When the selected hinted shape locks onto a free compatible destination, that target now changes to a strong red/coral tint and glow to clearly communicate that releasing will snap the shape there.
+- Normal play outside Hint Mode is unchanged.
+- Portrait normal-play redesign is intentionally not included in this release.
+- PWA cache namespace updated to v16.1.2.
+
+## v16.1.1 — Locked-shape bubble refinement
+
+- Locked starting-shape feedback now uses the same local non-modal bubble treatment as Sudoku conflicts.
+- Message shortened to **“Locked Shapes cannot be moved.”**
+- The bubble is positioned beside the locked shape the player tried to move.
+- The bubble clears when the player grabs a movable shape.
+- Existing locked-shape bump/flash feedback and all gameplay rules remain unchanged.
+- PWA cache namespace updated to v16.1.1 so installed/offline clients receive the refinement.
+
+## v16.1.0 — Sudoku conflict UX cleanup
+
+- Removed the `Sudoku Rule,` prefix from Sudoku conflict messages.
+- Simplified conflict wording to forms such as `2 cannot be twice in a row.`, `6 cannot be twice in a column.`, and `5 cannot be twice in a 3 by 3 area.`
+- Moved Sudoku conflict text from the Board heading into a compact non-modal bubble positioned beside the active offending tile.
+- The bubble follows the currently focused conflict and repositions responsively without blocking drag/drop.
+- Existing red conflict cells, yellow row/column/3×3 rule-region highlighting, conflict shaking, and locked/pinned-shape behavior are retained.
+- PWA cache namespace updated so installed/offline clients receive the v16.1.0 files.
+
+
+## v16.0.0 — Protected Checkpoint 16 baseline
+
+Checkpoint 16 freezes the accepted Snapshot 15 v15.0.1 PWA build as the new protected rollback reference. No gameplay behavior has been changed. This baseline includes the full installable PWA setup, offline service worker/cache, manifest, mobile install experience, SuJi app icons, Hint Mode refinements, immediate press-and-drag touch behavior, and all previously accepted Sudoku/gameplay behavior.
+
+---
 
 ## v15.0.1 — True Progressive Web App
 
@@ -997,3 +1076,30 @@ Checkpoint #9 v9.0.1 change
 ## Checkpoint #11 v11.0.1 — Active Pieces Guide
 
 The guide system is now contextual rather than permanently colouring the board. With **Show Pieces Guide** enabled, picking up a piece illuminates and shimmers every currently empty predefined destination that has the same exact fixed-orientation silhouette. The player can drop only into one of those illuminated homes. With the guide disabled, no destination shimmer is shown and the piece may be placed anywhere it geometrically fits without overlapping another piece.
+
+
+## v17.0.5 UX refinement
+- In Hint Mode, after a Rack shape is selected, the instruction “Drag the selected Shape onto the board.” is anchored beside that selected Rack shape.
+- The selected-shape speech bubble retains the v17.0.4 edge-aware left/right flipping and pointer direction.
+- No gameplay rules changed.
+
+
+## v17.0.6 UX / Hint Mode bug fix
+- Removed the decorative diamond / pointer from Hint instruction bubbles.
+- A movable board shape that is allowed to move because it blocks a revealed Hint destination remains movable for the rest of that active Hint session, even if it is dropped into another incorrect Sudoku position.
+- Unrelated Rack shapes and unrelated board shapes remain protected from accidental Hint Mode interaction.
+- Locked starting shapes remain immovable.
+- PWA cache namespace updated to v17.0.6.
+
+
+## v18.0.0 — Checkpoint 18 baseline
+
+Checkpoint 18 starts directly from the accepted Checkpoint 17 v17.0.6 state and adds one simplifying Hint-availability rule.
+
+- The placement Hint button is greyed out and disabled whenever the Rack is empty.
+- The placement Hint button is greyed out and disabled whenever a pending Sudoku conflict is showing on the Board.
+- Once the Sudoku conflict is resolved, Hint automatically becomes available again provided Rack shapes and Hint uses remain.
+- The Hint action also guards these states internally, so it cannot be started through an alternate input path while unavailable.
+- An already-active Hint session can still be cancelled normally.
+- All accepted Checkpoint 17 gameplay, portrait/landscape layout, local bubbles, PWA behavior, and Hint guidance behavior are otherwise retained.
+- PWA cache namespace updated to v18.0.0.

@@ -165,7 +165,7 @@ const state = {
   picture: readToggle('suji.picture', true),
   hints: clamp(parseInt(localStorage.getItem('suji.hints') || '3',10),1,3),
   guides: false,
-  hintRemaining: 0, hintArmed: false, hintInUse: false, hintSelectedId: null, hintBubbleDismissed: false,
+  hintRemaining: 0, hintArmed: false, hintInUse: false, hintSelectedId: null, hintBubbleDismissed: false, hintMovablePieceIds: new Set(),
   pieces: [], placed: new Map(), anchors: new Set(), manualMoves: 0,
   sudoku: null, imageURL: null, pendingChange: null,
   tutorialRule: null, lastTipSignature: null, activeTipSignature: null,
@@ -198,32 +198,85 @@ const TUTORIAL_LEVELS = {
   5:'Level 5, Use the picture and all Sudoku rules together.'
 };
 const RULE_COPY = {
-  row:{text:n=>`Sudoku Rule, ${n} cannot be in the same row twice.`},
-  col:{text:n=>`Sudoku Rule, ${n} cannot be in the same column twice.`},
-  box:{text:n=>`Sudoku Rule, ${n} cannot be in the same 3×3 box twice.`}
+  row:{text:n=>`${n} cannot be twice in a row.`},
+  col:{text:n=>`${n} cannot be twice in a column.`},
+  box:{text:n=>`${n} cannot be twice in a 3 by 3 area.`}
 };
+
+function findConflictCellElement(cellInfo){
+  if(!cellInfo) return null;
+  const pel=[...document.querySelectorAll('.piece.board-piece')].find(el=>Number(el.dataset.id)===cellInfo.id);
+  if(!pel) return null;
+  return [...pel.querySelectorAll('.piece-cell')].find(el=>Number(el.dataset.dr)===cellInfo.dr && Number(el.dataset.dc)===cellInfo.dc) || null;
+}
+
+function updateConflictBubble(rule){
+  const bubble=$('#conflictBubble');
+  const text=$('#conflictBubbleText');
+  const wrap=$('#boardWrap');
+  if(!bubble || !text || !wrap) return;
+
+  if(!rule || !RULE_COPY[rule.type]){
+    bubble.hidden=true;
+    bubble.dataset.conflictIdentity='';
+    text.textContent='';
+    return;
+  }
+
+  const identity=conflictIdentity(rule);
+  text.textContent=RULE_COPY[rule.type].text(rule.n);
+  bubble.hidden=false;
+  bubble.dataset.conflictIdentity=identity;
+
+  // Prefer the piece that caused this conflict. If ownership is unavailable,
+  // anchor to an uncertain/movable participant before falling back to any cell.
+  const ownerId=state.conflictShakeOwners.get(identity);
+  const targetInfo=rule.cells.find(x=>x.id===ownerId)
+    || rule.cells.find(x=>!pieceIsConflictShakeProtected(x.id))
+    || rule.cells[rule.cells.length-1];
+  const target=findConflictCellElement(targetInfo);
+  if(!target) return;
+
+  requestAnimationFrame(()=>{
+    if(bubble.hidden || bubble.dataset.conflictIdentity!==identity) return;
+    const wrapRect=wrap.getBoundingClientRect();
+    const targetRect=target.getBoundingClientRect();
+    const bubbleRect=bubble.getBoundingClientRect();
+    const gap=12;
+    const pad=6;
+    const centerX=targetRect.left-wrapRect.left+(targetRect.width/2);
+    let left=centerX-(bubbleRect.width/2);
+    left=Math.max(pad,Math.min(left,wrapRect.width-bubbleRect.width-pad));
+
+    const roomAbove=targetRect.top-wrapRect.top;
+    const roomBelow=wrapRect.bottom-targetRect.bottom;
+    const placeAbove=roomAbove>=bubbleRect.height+gap || roomAbove>=roomBelow;
+    let top=placeAbove
+      ? targetRect.top-wrapRect.top-bubbleRect.height-gap
+      : targetRect.bottom-wrapRect.top+gap;
+    top=Math.max(pad,Math.min(top,wrapRect.height-bubbleRect.height-pad));
+
+    bubble.style.left=`${left}px`;
+    bubble.style.top=`${top}px`;
+    bubble.classList.toggle('conflict-bubble-below-target',placeAbove);
+    bubble.classList.toggle('conflict-bubble-above-target',!placeAbove);
+  });
+}
 
 function updateConflictAlert(rule){
   const alert=$('#conflictAlert');
   const text=$('#conflictAlertText');
-  if(!alert || !text) return;
 
-  alert.classList.remove('hint-alert-mode');
-  if(!rule || !RULE_COPY[rule.type]){
+  // v16.1.0: Sudoku-rule text now lives beside the offending board cells.
+  // The heading alert remains available for non-Sudoku feedback such as a
+  // pinned starting shape, but Sudoku errors no longer make the player look up.
+  if(alert && text){
     alert.hidden=true;
     text.textContent='';
     alert.dataset.conflictIdentity='';
-    return;
+    alert.classList.remove('conflict-alert-pulse','hint-alert-mode');
   }
-  text.textContent=RULE_COPY[rule.type].text(rule.n);
-  alert.hidden=false;
-  const identity=conflictIdentity(rule);
-  if(alert.dataset.conflictIdentity!==identity){
-    alert.dataset.conflictIdentity=identity;
-    alert.classList.remove('conflict-alert-pulse');
-    void alert.offsetWidth;
-    alert.classList.add('conflict-alert-pulse');
-  }
+  updateConflictBubble(rule);
 }
 
 function updatePlacementHintButton(){
@@ -233,7 +286,11 @@ function updatePlacementHintButton(){
   if(!btn) return;
   const active=state.hintArmed || state.hintInUse;
   const rackHasMovableShapes=state.pieces.some(p=>!state.placed.has(p.id));
-  const disabled=((state.hintRemaining<=0) || !rackHasMovableShapes) && !active;
+  const hasPendingSudokuError=!!state.activeTeachingConflict;
+  // Checkpoint 18: keep Hint unavailable while there is unfinished Sudoku
+  // housekeeping on the Board, or when there is nothing left in the Rack.
+  // An already-active Hint session may still be cancelled normally.
+  const disabled=!active && ((state.hintRemaining<=0) || !rackHasMovableShapes || hasPendingSudokuError);
   btn.disabled=disabled;
   btn.classList.toggle('hint-disabled',disabled);
   btn.classList.toggle('hint-active',active);
@@ -244,6 +301,9 @@ function updatePlacementHintButton(){
   } else if(state.hintInUse){
     btn.title='Exit hint guidance';
     btn.setAttribute('aria-label', `Hint revealed. Tap to exit guidance. ${state.hintRemaining} remaining`);
+  } else if(hasPendingSudokuError){
+    btn.title='Fix the Sudoku error first';
+    btn.setAttribute('aria-label', 'Hint unavailable while a Sudoku error is showing on the Board');
   } else if(!rackHasMovableShapes){
     btn.title='No rack shapes available';
     btn.setAttribute('aria-label', 'Hint unavailable because the Rack is empty');
@@ -276,21 +336,40 @@ function placeHintBubbleNearSelectedPiece(box){
   const piece=document.querySelector(`.rack .piece[data-id="${state.hintSelectedId}"]`) || document.querySelector(`.piece[data-id="${state.hintSelectedId}"]`);
   if(!piece) return false;
   box.classList.add('hint-follow-piece');
-  box.classList.remove('hint-below-piece');
+  box.classList.remove('hint-below-piece','hint-anchor-right');
   box.style.left='0px';
   box.style.top='0px';
   const pr=piece.getBoundingClientRect();
   const margin=10;
   const br=box.getBoundingClientRect();
-  let left=pr.left + Math.max(6, Math.min(pr.width*0.55, pr.width-8));
-  left=Math.max(margin, Math.min(left, window.innerWidth - br.width - margin));
-  let top=pr.top - br.height - 14;
+
+  // Bubble direction follows available screen space. A shape near the right edge
+  // makes the bubble open to the left, with its pointer on the bubble's right.
+  const roomRight=window.innerWidth-pr.right-margin;
+  const roomLeft=pr.left-margin;
+  const openLeft=(roomRight < br.width*0.72 && roomLeft > roomRight) || pr.right > window.innerWidth*0.72;
+  let left;
+  if(openLeft){
+    left=pr.right-br.width-Math.max(6,Math.min(pr.width*0.35,pr.width-8));
+    box.classList.add('hint-anchor-right');
+  } else {
+    left=pr.left+Math.max(6,Math.min(pr.width*0.55,pr.width-8));
+  }
+  left=Math.max(margin,Math.min(left,window.innerWidth-br.width-margin));
+
+  let top=pr.top-br.height-14;
   if(top < margin){
-    top=Math.min(window.innerHeight - br.height - margin, pr.bottom + 14);
+    top=Math.min(window.innerHeight-br.height-margin,pr.bottom+14);
     box.classList.add('hint-below-piece');
   }
-  box.style.left=`${Math.round(left)}px`;
-  box.style.top=`${Math.round(top)}px`;
+  // The Hint instruction element lives inside the Board heading, whose normal
+  // edge-aware CSS uses !important positioning.  When following a selected Rack
+  // shape, explicitly override those heading coordinates so the speech bubble is
+  // physically anchored beside the selected shape itself.
+  box.style.setProperty('left',`${Math.round(left)}px`,'important');
+  box.style.setProperty('right','auto','important');
+  box.style.setProperty('top',`${Math.round(top)}px`,'important');
+  box.style.setProperty('bottom','auto','important');
   return true;
 }
 
@@ -321,9 +400,11 @@ function updateHintInstruction(){
   if(!box || !text) return;
   const active=state.hintArmed || state.hintInUse;
   box.hidden=!active;
-  box.classList.remove('hint-follow-piece','hint-below-piece');
-  box.style.left='';
-  box.style.top='';
+  box.classList.remove('hint-follow-piece','hint-below-piece','hint-anchor-right');
+  box.style.removeProperty('left');
+  box.style.removeProperty('right');
+  box.style.removeProperty('top');
+  box.style.removeProperty('bottom');
   if(!active) return;
   if(state.hintArmed){
     text.textContent='Tap a shape from the Rack Area to Reveal where it can fit.';
@@ -336,7 +417,7 @@ function updateHintInstruction(){
   }
   box.hidden=false;
   if(!placeHintBubbleNearSelectedPiece(box)){
-    box.classList.remove('hint-follow-piece','hint-below-piece');
+    box.classList.remove('hint-follow-piece','hint-below-piece','hint-anchor-right');
   }
 }
 
@@ -344,6 +425,8 @@ function armPlacementHint(){
   if(state.hintArmed){ finishPlacementHint(); renderAll(false); return; }
   if(state.hintInUse){ finishPlacementHint(); renderAll(false); return; }
   if(state.hintRemaining<=0) return;
+  if(state.activeTeachingConflict) return;
+  if(!state.pieces.some(p=>!state.placed.has(p.id))) return;
   state.hintArmed=true;
   state.hintSelectedId=null;
   state.hintBubbleDismissed=false;
@@ -382,6 +465,7 @@ function finishPlacementHint(){
   state.hintInUse=false;
   state.hintSelectedId=null;
   state.hintBubbleDismissed=false;
+  state.hintMovablePieceIds.clear();
   clearCompatiblePieceGuides();
   renderGuides();
   setHintModeClass();
@@ -675,6 +759,31 @@ function updateResponsiveLayout(){
   document.body.classList.toggle('landscape-ui', landscape);
   document.body.classList.toggle('portrait-ui', !landscape);
   updateHintControlLocation();
+  updatePlacementHintLocation(landscape);
+  updatePortraitPlayHeight(landscape);
+}
+
+function updatePlacementHintLocation(landscape){
+  const btn=document.getElementById('placementHintBtn');
+  const instruction=document.getElementById('hintInstruction');
+  const headingTools=document.querySelector('.board-heading-tools');
+  if(!btn || !instruction || !headingTools) return;
+  // Checkpoint 17.0.3: Hint permanently belongs in the Board heading in every orientation.
+  if(btn.parentElement!==headingTools) headingTools.insertBefore(btn, headingTools.firstChild);
+  if(instruction.parentElement!==headingTools) headingTools.appendChild(instruction);
+}
+
+function updatePortraitPlayHeight(landscape){
+  const play=document.querySelector('.play-layout');
+  if(!play) return;
+  if(landscape){
+    play.style.removeProperty('--portrait-play-height');
+    return;
+  }
+  const top=play.getBoundingClientRect().top;
+  const visualHeight=window.visualViewport?.height || window.innerHeight;
+  const available=Math.max(320, Math.floor(visualHeight-top-8));
+  play.style.setProperty('--portrait-play-height', `${available}px`);
 }
 
 function updateHintControlLocation(){
@@ -774,23 +883,47 @@ function activateCompatiblePieceGuides(){
   const selectedPiece=state.pieces.find(x=>x.id===state.hintSelectedId);
   const wantedShape=selectedPiece ? shapeKey(selectedPiece) : null;
   $$('.guide-piece').forEach(el=>{
-    el.classList.remove('guide-compatible','guide-hover','hint-destination');
+    el.classList.remove('guide-compatible','guide-hover','hint-destination','hint-occupied-destination');
     if(!state.hintInUse || state.hintSelectedId==null || !wantedShape) return;
     if(el.dataset.shapeKey!==wantedShape) return;
     const targetId=+el.dataset.guideId;
     const targetPiece=state.pieces.find(x=>x.id===targetId);
     if(!targetPiece) return;
-    if(placeholderOccupied(targetPiece,state.hintSelectedId)) return;
+
+    // Checkpoint 16 v16.1.2: Hint Mode reveals every matching home, even when
+    // another board shape is currently covering it. Occupied homes are visibly
+    // marked but remain unavailable for snap until the blocking shape is moved.
+    const occupied=placeholderOccupied(targetPiece,state.hintSelectedId);
     el.classList.add('guide-compatible','hint-destination');
+    if(occupied) el.classList.add('hint-occupied-destination');
   });
 }
 
 function clearCompatiblePieceGuides(){
-  $$('.guide-piece.guide-compatible, .guide-piece.guide-hover, .guide-piece.hint-destination').forEach(el=>{
-    el.classList.remove('guide-compatible','guide-hover','hint-destination');
+  $$('.guide-piece.guide-compatible, .guide-piece.guide-hover, .guide-piece.hint-destination, .guide-piece.hint-occupied-destination').forEach(el=>{
+    el.classList.remove('guide-compatible','guide-hover','hint-destination','hint-occupied-destination');
   });
   $('#boardWrap')?.classList.remove('guide-focus-active');
   if(drag) drag.guideTarget=null;
+}
+
+function pieceBlocksVisibleHintDestination(pieceId,pos){
+  if(!state.hintInUse || state.hintSelectedId==null || !pos) return false;
+  const selectedPiece=state.pieces.find(x=>x.id===state.hintSelectedId);
+  const movingPiece=state.pieces.find(x=>x.id===pieceId);
+  if(!selectedPiece || !movingPiece) return false;
+
+  const wantedShape=shapeKey(selectedPiece);
+  const occupiedCells=new Set(
+    movingPiece.cells.map(([dr,dc])=>`${pos.r+dr}:${pos.c+dc}`)
+  );
+
+  return state.pieces.some(targetPiece=>{
+    if(shapeKey(targetPiece)!==wantedShape) return false;
+    return targetPiece.cells.some(([dr,dc])=>
+      occupiedCells.has(`${targetPiece.home.r+dr}:${targetPiece.home.c+dc}`)
+    );
+  });
 }
 
 function findGuideTargetForDrag(left, top){
@@ -1032,11 +1165,12 @@ function renderAll(animateAnchors=false){
   let rackRect=rack.getBoundingClientRect();
 
   if(!landscape){
-    // Start compact, then grow only if needed to fit at a useful size.
-    // Height is based on rack width so the Rack scales naturally with the Board.
+    // Checkpoint 17.0.1: portrait Rack is a bounded bottom tray. Never let it
+    // grow the page vertically; packing adapts to the tray instead.
+    const playHeight=document.querySelector('.play-layout')?.getBoundingClientRect().height || window.innerHeight;
     const targetMin=compactHintRack
-      ? Math.max(135, Math.min(window.innerHeight*0.22, 185))
-      : Math.max(210, Math.min(window.innerHeight*0.58, rackRect.width*0.72));
+      ? Math.max(118, Math.min(playHeight*0.20, 160))
+      : Math.max(145, Math.min(playHeight*0.25, 205));
     rackShell.style.height=targetMin+'px';
     rackShell.style.minHeight='0px';
   } else {
@@ -1055,17 +1189,8 @@ function renderAll(animateAnchors=false){
     compactHintRack ? 12 : 18
   );
 
-  // In portrait, if the best-fit cell is still too small, grow the rack vertically
-  // until pieces can be shown at a comfortable size.
-  if(!landscape && !compactHintRack && layout.cell < 30){
-    let h=rackRect.height;
-    while(layout.cell < 30 && h < window.innerHeight*0.82){
-      h += 40;
-      rackShell.style.height=h+'px';
-      rackRect=rack.getBoundingClientRect();
-      layout=buildRackLayout(rackPieces,rackRect.width,rackRect.height,false);
-    }
-  }
+  // Portrait deliberately does not grow the Rack vertically. A smaller packed
+  // cell is preferable to forcing the player to scroll between Board and Rack.
 
   rackPieces.forEach((p)=>{
     const pos=layout.map.get(p.id);
@@ -1185,20 +1310,51 @@ function showLockedFeedback(e){
   el.classList.add('locked-bump');
   setTimeout(()=>el.classList.remove('locked-bump'), 650);
 
-  // Snapshot #14 v1.14.1: pinned-shape feedback is an ordinary non-modal
-  // warning in the Board heading, just like Sudoku-rule errors. It stays visible
-  // until another warning replaces it or the player grabs any movable shape.
+  // Checkpoint 16 v16.1.1: locked-shape feedback uses the same local,
+  // non-modal bubble treatment as Sudoku conflicts. Keep it beside the shape
+  // the player actually tried to move instead of sending their eyes elsewhere.
   const alert=$('#conflictAlert');
-  const text=$('#conflictAlertText');
-  if(alert && text){
-    alert.classList.remove('hint-alert-mode');
-    text.textContent='Pinned shape, starting shapes cannot be moved.';
-    alert.hidden=false;
-    alert.dataset.conflictIdentity='pinned-shape';
-    alert.classList.remove('conflict-alert-pulse');
-    void alert.offsetWidth;
-    alert.classList.add('conflict-alert-pulse');
+  const alertText=$('#conflictAlertText');
+  if(alert && alertText){
+    alert.hidden=true;
+    alertText.textContent='';
+    alert.dataset.conflictIdentity='';
+    alert.classList.remove('conflict-alert-pulse','hint-alert-mode');
   }
+
+  const bubble=$('#conflictBubble');
+  const text=$('#conflictBubbleText');
+  const wrap=$('#boardWrap');
+  if(!bubble || !text || !wrap) return;
+
+  text.textContent='Locked Shapes cannot be moved.';
+  bubble.hidden=false;
+  bubble.dataset.conflictIdentity='locked-shape';
+
+  requestAnimationFrame(()=>{
+    if(bubble.hidden || bubble.dataset.conflictIdentity!=='locked-shape') return;
+    const wrapRect=wrap.getBoundingClientRect();
+    const targetRect=el.getBoundingClientRect();
+    const bubbleRect=bubble.getBoundingClientRect();
+    const gap=12;
+    const pad=6;
+    const centerX=targetRect.left-wrapRect.left+(targetRect.width/2);
+    let left=centerX-(bubbleRect.width/2);
+    left=Math.max(pad,Math.min(left,wrapRect.width-bubbleRect.width-pad));
+
+    const roomAbove=targetRect.top-wrapRect.top;
+    const roomBelow=wrapRect.bottom-targetRect.bottom;
+    const placeAbove=roomAbove>=bubbleRect.height+gap || roomAbove>=roomBelow;
+    let top=placeAbove
+      ? targetRect.top-wrapRect.top-bubbleRect.height-gap
+      : targetRect.bottom-wrapRect.top+gap;
+    top=Math.max(pad,Math.min(top,wrapRect.height-bubbleRect.height-pad));
+
+    bubble.style.left=`${left}px`;
+    bubble.style.top=`${top}px`;
+    bubble.classList.toggle('conflict-bubble-below-target',placeAbove);
+    bubble.classList.toggle('conflict-bubble-above-target',!placeAbove);
+  });
 }
 
 
@@ -1210,10 +1366,10 @@ function startDrag(e){
   const id = +source.dataset.id;
   if(state.anchors.has(id)) return;
 
-  // Grabbing any movable shape clears the pinned-shape warning. If a Sudoku
+  // Grabbing any movable shape clears the locked-shape bubble. If a Sudoku
   // conflict is still active, validation will surface that rule again as needed.
-  const conflictAlert=$('#conflictAlert');
-  if(conflictAlert?.dataset.conflictIdentity==='pinned-shape') updateConflictAlert(null);
+  const conflictBubble=$('#conflictBubble');
+  if(conflictBubble?.dataset.conflictIdentity==='locked-shape') updateConflictAlert(null);
 
   const p = state.pieces.find(x=>x.id===id);
   const oldPos = state.placed.get(id) ? {...state.placed.get(id)} : null;
@@ -1227,13 +1383,21 @@ function startDrag(e){
     source.classList.add('hint-selected-piece');
   }
 
-  // Once a hint is revealed it is locked to that one shape. Trying any other
-  // movable shape behaves like a temporary locked warning and redirects attention
-  // back to the selected hinted shape.
+  // Checkpoint 17 v17.0.6: while a hint is active, a movable board shape that
+  // blocks one of the revealed destinations may be moved out of the way. Once
+  // the player has moved that blocker, keep that same shape movable for the rest
+  // of the active Hint session even if it is dropped into another wrong place.
+  // This prevents a Sudoku-conflicting relocation from becoming temporarily locked.
   if(state.hintInUse && state.hintSelectedId!==id){
-    bumpWrongHintPiece(source);
-    pulseHintSelectedPiece();
-    return;
+    const isPreviouslyReleasedBlocker=state.hintMovablePieceIds.has(id);
+    const blocksHintDestination=!!oldPos && pieceBlocksVisibleHintDestination(id,oldPos);
+    const mayMoveDuringHint=!!oldPos && (blocksHintDestination || isPreviouslyReleasedBlocker);
+    if(!mayMoveDuringHint){
+      bumpWrongHintPiece(source);
+      pulseHintSelectedPiece();
+      return;
+    }
+    if(blocksHintDestination) state.hintMovablePieceIds.add(id);
   }
 
   const draggingHintedPiece=state.hintInUse && state.hintSelectedId===id;
@@ -2058,7 +2222,7 @@ window.addEventListener('resize',()=>{ updateResponsiveLayout(); setHintModeClas
 updateResponsiveLayout(); buildBoard(); resetLevel(true);
 })();
 
-// Snapshot 15.0.1 — Progressive Web App install + offline support.
+// Checkpoint 16 v16.1.0 — UX/UI refinement: local Sudoku conflict bubbles.
 (() => {
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
@@ -2120,3 +2284,8 @@ updateResponsiveLayout(); buildBoard(); resetLevel(true);
     window.setTimeout(showPrompt, 1400);
   }
 })();
+
+// Keep the local Sudoku callout attached to its conflict after responsive layout changes.
+window.addEventListener('resize',()=>{
+  if(state.activeTeachingConflict) updateConflictBubble(state.activeTeachingConflict);
+});
