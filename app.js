@@ -1051,7 +1051,21 @@ function showLockedFeedback(e){
   void el.offsetWidth;
   el.classList.add('locked-bump');
   setTimeout(()=>el.classList.remove('locked-bump'), 650);
-  if(tutorialActive()) openTutorialModal('pinned','Pinned piece, starting pieces cannot be moved.');
+
+  // Snapshot #14 v1.14.1: pinned-shape feedback is an ordinary non-modal
+  // warning in the Board heading, just like Sudoku-rule errors. It stays visible
+  // until another warning replaces it or the player grabs any movable shape.
+  const alert=$('#conflictAlert');
+  const text=$('#conflictAlertText');
+  if(alert && text){
+    alert.classList.remove('hint-alert-mode');
+    text.textContent='Pinned shape, starting shapes cannot be moved.';
+    alert.hidden=false;
+    alert.dataset.conflictIdentity='pinned-shape';
+    alert.classList.remove('conflict-alert-pulse');
+    void alert.offsetWidth;
+    alert.classList.add('conflict-alert-pulse');
+  }
 }
 
 
@@ -1062,6 +1076,11 @@ function startDrag(e){
   const source = e.currentTarget;
   const id = +source.dataset.id;
   if(state.anchors.has(id)) return;
+
+  // Grabbing any movable shape clears the pinned-shape warning. If a Sudoku
+  // conflict is still active, validation will surface that rule again as needed.
+  const conflictAlert=$('#conflictAlert');
+  if(conflictAlert?.dataset.conflictIdentity==='pinned-shape') updateConflictAlert(null);
 
   const p = state.pieces.find(x=>x.id===id);
   const oldPos = state.placed.get(id) ? {...state.placed.get(id)} : null;

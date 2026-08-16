@@ -1,4 +1,4 @@
-# SuJi — Snapshot #14 v1.14.0
+# SuJi — Snapshot #14 v1.14.1
 
 ## Snapshot 14 baseline
 
@@ -10,6 +10,12 @@
   - `14` = Snapshot / checkpoint number.
   - `0` = no minor revision has yet been made within Snapshot 14.
 - Future minor revisions within this snapshot should increment the final component: v1.14.1, v1.14.2, and so on.
+
+## v1.14.1 — Non-modal pinned-shape warning
+- Trying to move a locked starting shape now uses the same non-modal Board warning area as Sudoku-rule errors; it no longer opens the bottom tutorial modal.
+- Warning text changed to: **“Pinned shape, starting shapes cannot be moved.”**
+- The pinned-shape warning remains visible until another warning replaces it or the player grabs any movable shape.
+- No gameplay is blocked by this warning.
 
 ## Inherited accepted behaviour
 
