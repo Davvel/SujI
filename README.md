@@ -1,15 +1,57 @@
-# SuJi — Snapshot #14 v1.14.1
+# SuJi — Snapshot #15 v15.0.0
 
-## Snapshot 14 baseline
+## Snapshot 15 baseline
 
-- Snapshot #14 is created directly from the accepted Checkpoint #13 v13.0.4 build.
+- Snapshot #15 is created directly from the accepted Snapshot #14 v14.2.4 build.
 - No gameplay behaviour is changed by this snapshot creation.
-- This is the protected starting baseline for Snapshot #14.
-- New versioning convention begins here: **v1.14.0**.
-  - `1` = first major release line.
-  - `14` = Snapshot / checkpoint number.
-  - `0` = no minor revision has yet been made within Snapshot 14.
-- Future minor revisions within this snapshot should increment the final component: v1.14.1, v1.14.2, and so on.
+- This is the protected starting baseline for Snapshot #15.
+- Version for this frozen baseline is **v15.0.0**.
+
+## What Snapshot #15 inherits from accepted Snapshot #14
+
+## v14.2.4 — guided area glow + one-touch Hint drag
+- Entering Hint Mode now gives the **Rack Area** an animated shimmering border that cycles from orange to purple, clearly indicating where the player should choose a shape.
+- Once a Rack shape is selected, the Rack emphasis stops and the **Board Area** receives the animated shimmering border instead.
+- Fixed the mobile touch flow so pressing a Rack shape can immediately continue into dragging that same shape in one continuous gesture; lifting the finger and pressing again is no longer required.
+- The selected-shape bubble still appears beside the chosen shape while the finger is initially resting there.
+- As soon as the pointer/finger moves the selected shape away from its starting position, the bubble disappears automatically.
+- Existing silver shimmering fit areas, wrong-shape lock wiggle, and selected-shape attention pulse are preserved.
+
+## v14.2.3 — clearer Rack wording + safe empty-Rack hint disable
+- The Hint bubble wording is now: **“Tap a shape from the Rack Area to Reveal where it can fit.”**
+- If the Rack is empty, the Hint bulb is now automatically disabled so the player cannot try to use Hint when there is no selectable Rack shape.
+- The disabled Hint bulb also exposes clearer accessibility text explaining that the Rack is empty.
+
+## v14.2.2 — larger mobile message text
+- Increased the font size of the main gameplay messages to improve readability on mobile.
+- This includes the Hint speech bubble, the top non-modal Sudoku / pinned-shape warning strip, and the compact bottom tutorial/information messages.
+- The first-game intro modal text was also increased slightly for consistency.
+
+## v14.2.1 — follow-the-selected-shape guidance
+- After a shape is selected for a Hint, the **“Drag the selected Shape onto the board.”** bubble moves away from the bulb and appears **right beside that selected shape** so the player’s attention stays on the correct piece.
+- As soon as the player starts dragging the selected shape, that bubble disappears.
+- While a Hint is active, trying to drag any other movable shape now behaves like a temporary locked attempt: the wrong shape wiggles and does not start dragging.
+- At the same time, the correct selected shape performs a stronger zoom pulse to say **“drag me.”**
+- The silver shimmering fit areas remain visible as before.
+
+## v14.2.0 — stronger placement Hint guidance
+- After a Hint selects a Rack shape, **all currently free same-shape fit areas** on the Board are shown in **solid silver** rather than only one destination.
+- These silver fit areas now have a soft shimmer and gentle wiggle so they are much easier to notice on mobile.
+- The selected Rack shape also performs a subtle wiggle, reinforcing which shape the player should drag.
+- The instructional message is no longer separated from the bulb; it now appears as a **non-modal cartoon speech bubble** directly above the Hint bulb.
+- The active Hint message text is now: **“Drag the selected Shape onto the board.”**
+- Pressing the bulb still does not consume a hint by itself; the hint is consumed only when the player taps a Rack shape and the guidance is revealed.
+
+## v14.1.0 — Mobile-first placement Hint UX
+- Placement Hint no longer consumes a hint when the bulb is pressed. The bulb first enters **Hint Mode**.
+- In portrait mobile Hint Mode, the Board is compacted and the Rack becomes a compact visible tray so both remain on screen together without requiring the player to scroll between them.
+- The first tap on a Rack shape selects it and reveals that shape's exact canonical destination; the player may release their finger immediately.
+- The hint is consumed at the instant the destination is revealed, preventing free reveal-and-cancel abuse.
+- The selected shape and its destination remain highlighted until the player places it correctly or explicitly exits the already-consumed hint guidance.
+- Releasing the selected shape back into the Rack does not consume another hint and does not erase the revealed destination.
+- Before any shape is selected/revealed, tapping the active Hint bulb cancels Hint Mode for free.
+- A single hint is locked to one selected shape and cannot reveal additional destinations.
+- Existing Sudoku, pinned-shape, picture, guide, scoring and level behaviour is otherwise preserved.
 
 ## v1.14.1 — Non-modal pinned-shape warning
 - Trying to move a locked starting shape now uses the same non-modal Board warning area as Sudoku-rule errors; it no longer opens the bottom tutorial modal.

@@ -165,7 +165,7 @@ const state = {
   picture: readToggle('suji.picture', true),
   hints: clamp(parseInt(localStorage.getItem('suji.hints') || '3',10),1,3),
   guides: false,
-  hintRemaining: 0, hintArmed: false, hintInUse: false,
+  hintRemaining: 0, hintArmed: false, hintInUse: false, hintSelectedId: null, hintBubbleDismissed: false,
   pieces: [], placed: new Map(), anchors: new Set(), manualMoves: 0,
   sudoku: null, imageURL: null, pendingChange: null,
   tutorialRule: null, lastTipSignature: null, activeTipSignature: null,
@@ -208,16 +208,6 @@ function updateConflictAlert(rule){
   const text=$('#conflictAlertText');
   if(!alert || !text) return;
 
-  // A placement hint uses the same message position as Sudoku warnings,
-  // but with a yellow bulb instead of the warning triangle.
-  if(state.hintArmed || state.hintInUse){
-    text.textContent='Pick any shape and we will reveal where it can fit.';
-    alert.hidden=false;
-    alert.classList.add('hint-alert-mode','conflict-alert-pulse');
-    alert.dataset.conflictIdentity='placement-hint';
-    return;
-  }
-
   alert.classList.remove('hint-alert-mode');
   if(!rule || !RULE_COPY[rule.type]){
     alert.hidden=true;
@@ -241,27 +231,163 @@ function updatePlacementHintButton(){
   const count=$('#placementHintCount');
   if(count) count.textContent=String(state.hintRemaining);
   if(!btn) return;
-  const disabled=state.hintRemaining<=0 || state.hintArmed || state.hintInUse;
+  const active=state.hintArmed || state.hintInUse;
+  const rackHasMovableShapes=state.pieces.some(p=>!state.placed.has(p.id));
+  const disabled=((state.hintRemaining<=0) || !rackHasMovableShapes) && !active;
   btn.disabled=disabled;
   btn.classList.toggle('hint-disabled',disabled);
-  btn.setAttribute('aria-label', state.hintRemaining>0 ? `Use placement hint, ${state.hintRemaining} remaining` : 'No placement hints remaining');
+  btn.classList.toggle('hint-active',active);
+  btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+  if(state.hintArmed){
+    btn.title='Cancel hint';
+    btn.setAttribute('aria-label', `Hint active. Tap to cancel. ${state.hintRemaining} remaining`);
+  } else if(state.hintInUse){
+    btn.title='Exit hint guidance';
+    btn.setAttribute('aria-label', `Hint revealed. Tap to exit guidance. ${state.hintRemaining} remaining`);
+  } else if(!rackHasMovableShapes){
+    btn.title='No rack shapes available';
+    btn.setAttribute('aria-label', 'Hint unavailable because the Rack is empty');
+  } else {
+    btn.title='Show where a shape belongs';
+    btn.setAttribute('aria-label', state.hintRemaining>0 ? `Use placement hint, ${state.hintRemaining} remaining` : 'No placement hints remaining');
+  }
+}
+
+
+function pulseHintSelectedPiece(){
+  if(state.hintSelectedId==null) return;
+  $$(`.piece[data-id="${state.hintSelectedId}"]`).forEach(el=>{
+    el.classList.remove('hint-reminder-pulse');
+    void el.offsetWidth;
+    el.classList.add('hint-reminder-pulse');
+    setTimeout(()=>el.classList.remove('hint-reminder-pulse'),720);
+  });
+}
+
+function bumpWrongHintPiece(el){
+  if(!el) return;
+  el.classList.remove('hint-blocked-bump');
+  void el.offsetWidth;
+  el.classList.add('hint-blocked-bump');
+  setTimeout(()=>el.classList.remove('hint-blocked-bump'),500);
+}
+
+function placeHintBubbleNearSelectedPiece(box){
+  const piece=document.querySelector(`.rack .piece[data-id="${state.hintSelectedId}"]`) || document.querySelector(`.piece[data-id="${state.hintSelectedId}"]`);
+  if(!piece) return false;
+  box.classList.add('hint-follow-piece');
+  box.classList.remove('hint-below-piece');
+  box.style.left='0px';
+  box.style.top='0px';
+  const pr=piece.getBoundingClientRect();
+  const margin=10;
+  const br=box.getBoundingClientRect();
+  let left=pr.left + Math.max(6, Math.min(pr.width*0.55, pr.width-8));
+  left=Math.max(margin, Math.min(left, window.innerWidth - br.width - margin));
+  let top=pr.top - br.height - 14;
+  if(top < margin){
+    top=Math.min(window.innerHeight - br.height - margin, pr.bottom + 14);
+    box.classList.add('hint-below-piece');
+  }
+  box.style.left=`${Math.round(left)}px`;
+  box.style.top=`${Math.round(top)}px`;
+  return true;
+}
+
+function updateHintViewportMetrics(){
+  if(!document.body.classList.contains('portrait-ui') || !(state.hintArmed || state.hintInUse)) return;
+  const play=document.querySelector('.play-layout');
+  if(!play) return;
+  const top=Math.max(0,play.getBoundingClientRect().top);
+  const available=Math.max(360,window.innerHeight-top-4);
+  const rackShellH=Math.max(135,Math.min(window.innerHeight*0.22,185));
+  const rackChrome=58; // Rack heading + Hint instruction + panel padding.
+  const boardChrome=88; // Board heading + Hint taskbar + panel padding.
+  const boardSize=Math.max(185,Math.min(window.innerWidth-30,available-rackShellH-rackChrome-boardChrome-8));
+  document.documentElement.style.setProperty('--hint-play-height',`${available}px`);
+  document.documentElement.style.setProperty('--hint-board-size',`${boardSize}px`);
+}
+
+function setHintModeClass(){
+  document.body.classList.toggle('placement-hint-mode', state.hintArmed || state.hintInUse);
+  document.body.classList.toggle('hint-awaiting-selection', state.hintArmed);
+  document.body.classList.toggle('hint-shape-selected', state.hintInUse);
+  updateHintViewportMetrics();
+}
+
+function updateHintInstruction(){
+  const box=$('#hintInstruction');
+  const text=$('#hintInstructionText');
+  if(!box || !text) return;
+  const active=state.hintArmed || state.hintInUse;
+  box.hidden=!active;
+  box.classList.remove('hint-follow-piece','hint-below-piece');
+  box.style.left='';
+  box.style.top='';
+  if(!active) return;
+  if(state.hintArmed){
+    text.textContent='Tap a shape from the Rack Area to Reveal where it can fit.';
+    return;
+  }
+  text.textContent='Drag the selected Shape onto the board.';
+  if(state.hintBubbleDismissed){
+    box.hidden=true;
+    return;
+  }
+  box.hidden=false;
+  if(!placeHintBubbleNearSelectedPiece(box)){
+    box.classList.remove('hint-follow-piece','hint-below-piece');
+  }
 }
 
 function armPlacementHint(){
-  if(state.hintRemaining<=0 || state.hintArmed || state.hintInUse) return;
-  state.hintRemaining--;
+  if(state.hintArmed){ finishPlacementHint(); renderAll(false); return; }
+  if(state.hintInUse){ finishPlacementHint(); renderAll(false); return; }
+  if(state.hintRemaining<=0) return;
   state.hintArmed=true;
+  state.hintSelectedId=null;
+  state.hintBubbleDismissed=false;
+  setHintModeClass();
+  updateHintInstruction();
   updatePlacementHintButton();
   updateConflictAlert(null);
+  renderAll(false);
+}
+
+function revealPlacementHintForPiece(id,{deferRender=false}={}){
+  if(!state.hintArmed || state.hintRemaining<=0) return false;
+  const p=state.pieces.find(x=>x.id===id);
+  if(!p || state.anchors.has(id) || state.placed.has(id)) return false;
+  state.hintArmed=false;
+  state.hintInUse=true;
+  state.hintSelectedId=id;
+  state.hintBubbleDismissed=false;
+  state.hintRemaining--;
+  setHintModeClass();
+  renderGuides();
+  activateCompatiblePieceGuides();
+  updatePlacementHintButton();
+  updateConflictAlert(null);
+  if(deferRender){
+    updateHintInstruction();
+  } else {
+    renderAll(false);
+  }
+  return true;
 }
 
 function finishPlacementHint(){
   if(!state.hintArmed && !state.hintInUse) return;
   state.hintArmed=false;
   state.hintInUse=false;
+  state.hintSelectedId=null;
+  state.hintBubbleDismissed=false;
   clearCompatiblePieceGuides();
   renderGuides();
+  setHintModeClass();
+  updateHintInstruction();
   updatePlacementHintButton();
+  updateConflictAlert(null);
 }
 
 function clearPicturePreviewTimer(){
@@ -645,30 +771,30 @@ function clearGuideHover(){
 // Pieces Guide is ON. Guides OFF continues to use unrestricted geometric placement.
 function activateCompatiblePieceGuides(){
   $('#boardWrap')?.classList.remove('guide-focus-active');
+  const selectedPiece=state.pieces.find(x=>x.id===state.hintSelectedId);
+  const wantedShape=selectedPiece ? shapeKey(selectedPiece) : null;
   $$('.guide-piece').forEach(el=>{
-    el.classList.remove('guide-compatible','guide-hover');
-    if(!state.hintInUse || !drag) return;
-
+    el.classList.remove('guide-compatible','guide-hover','hint-destination');
+    if(!state.hintInUse || state.hintSelectedId==null || !wantedShape) return;
+    if(el.dataset.shapeKey!==wantedShape) return;
     const targetId=+el.dataset.guideId;
     const targetPiece=state.pieces.find(x=>x.id===targetId);
     if(!targetPiece) return;
-
-    const sameShape=el.dataset.shapeKey===shapeKey(drag.p);
-    const free=!placeholderOccupied(targetPiece,drag.id);
-    if(sameShape && free) el.classList.add('guide-compatible');
+    if(placeholderOccupied(targetPiece,state.hintSelectedId)) return;
+    el.classList.add('guide-compatible','hint-destination');
   });
 }
 
 function clearCompatiblePieceGuides(){
-  $$('.guide-piece.guide-compatible, .guide-piece.guide-hover').forEach(el=>{
-    el.classList.remove('guide-compatible','guide-hover');
+  $$('.guide-piece.guide-compatible, .guide-piece.guide-hover, .guide-piece.hint-destination').forEach(el=>{
+    el.classList.remove('guide-compatible','guide-hover','hint-destination');
   });
   $('#boardWrap')?.classList.remove('guide-focus-active');
   if(drag) drag.guideTarget=null;
 }
 
 function findGuideTargetForDrag(left, top){
-  if(!state.hintInUse || !drag) return null;
+  if(!state.hintInUse || !drag || state.hintSelectedId!==drag.id) return null;
 
   const ghostW=drag.ghost.getBoundingClientRect().width;
   const ghostH=drag.ghost.getBoundingClientRect().height;
@@ -858,13 +984,13 @@ function tryPackRack(pieces, W, H, cell, gap){
   return best;
 }
 
-function buildRackLayout(pieces, W, H, landscape){
+function buildRackLayout(pieces, W, H, landscape, minCell=18){
   const gap = landscape ? 8 : 6;
 
   // Find the largest readable piece cell size that actually fits this rack.
   // Unlike the previous conservative slot system, this allows pieces to grow
   // aggressively whenever the user gives the rack more space.
-  let low=18, high=72, best=null;
+  let low=minCell, high=72, best=null;
 
   while(low<=high){
     const mid=Math.floor((low+high)/2);
@@ -879,7 +1005,7 @@ function buildRackLayout(pieces, W, H, landscape){
 
   // Safety fallback.
   if(!best){
-    best=tryPackRack(pieces,W,H,18,4) || {placed:[],usedH:H};
+    best=tryPackRack(pieces,W,H,minCell,4) || {placed:[],usedH:H};
   }
 
   const map=new Map();
@@ -899,6 +1025,7 @@ function renderAll(animateAnchors=false){
   const rackSection=document.querySelector('.rack-section');
   let rackPieces=state.pieces.filter(p=>!state.placed.has(p.id));
   const landscape=document.body.classList.contains('landscape-ui');
+  const compactHintRack=!landscape && (state.hintArmed || state.hintInUse);
 
   // In landscape, CSS gives Rack exactly the same frame height as Board.
   // In portrait, Rack takes the full available width and grows only as tall as needed.
@@ -907,7 +1034,9 @@ function renderAll(animateAnchors=false){
   if(!landscape){
     // Start compact, then grow only if needed to fit at a useful size.
     // Height is based on rack width so the Rack scales naturally with the Board.
-    const targetMin=Math.max(210, Math.min(window.innerHeight*0.58, rackRect.width*0.72));
+    const targetMin=compactHintRack
+      ? Math.max(135, Math.min(window.innerHeight*0.22, 185))
+      : Math.max(210, Math.min(window.innerHeight*0.58, rackRect.width*0.72));
     rackShell.style.height=targetMin+'px';
     rackShell.style.minHeight='0px';
   } else {
@@ -922,12 +1051,13 @@ function renderAll(animateAnchors=false){
     rackPieces,
     Math.max(80,rackRect.width),
     Math.max(120,rackRect.height),
-    landscape
+    landscape,
+    compactHintRack ? 12 : 18
   );
 
   // In portrait, if the best-fit cell is still too small, grow the rack vertically
   // until pieces can be shown at a comfortable size.
-  if(!landscape && layout.cell < 30){
+  if(!landscape && !compactHintRack && layout.cell < 30){
     let h=rackRect.height;
     while(layout.cell < 30 && h < window.innerHeight*0.82){
       h += 40;
@@ -941,6 +1071,7 @@ function renderAll(animateAnchors=false){
     const pos=layout.map.get(p.id);
     if(!pos) return;
     const el=pieceElement(p,pos.cell,'rack');
+    if(state.hintInUse && state.hintSelectedId===p.id) el.classList.add('hint-selected-piece');
     el.style.left=pos.x+'px';
     el.style.top=pos.y+'px';
     el.style.transform='none';
@@ -953,6 +1084,8 @@ function renderAll(animateAnchors=false){
     if(animateAnchors && state.anchors.has(id)) el.classList.add('anchor-arrive');
     board.parentElement.appendChild(el);
   }
+  if(state.hintInUse) activateCompatiblePieceGuides();
+  updateHintInstruction();
   const conflictCount=validate();
   updateStats();
   if(conflictCount===0) checkForLevelCompletion();
@@ -1085,6 +1218,26 @@ function startDrag(e){
   const p = state.pieces.find(x=>x.id===id);
   const oldPos = state.placed.get(id) ? {...state.placed.get(id)} : null;
 
+  // Snapshot #14 v14.2.4: the first press in Hint Mode selects the rack shape
+  // and reveals its compatible homes, but the SAME pointer gesture may continue
+  // immediately into a drag. The player is no longer forced to lift and press again.
+  if(state.hintArmed && !oldPos){
+    const revealed=revealPlacementHintForPiece(id,{deferRender:true});
+    if(!revealed) return;
+    source.classList.add('hint-selected-piece');
+  }
+
+  // Once a hint is revealed it is locked to that one shape. Trying any other
+  // movable shape behaves like a temporary locked warning and redirects attention
+  // back to the selected hinted shape.
+  if(state.hintInUse && state.hintSelectedId!==id){
+    bumpWrongHintPiece(source);
+    pulseHintSelectedPiece();
+    return;
+  }
+
+  const draggingHintedPiece=state.hintInUse && state.hintSelectedId===id;
+
   // If the player grabs the piece that caused the active Sudoku conflict,
   // stop its reminder shake immediately. It will resume after the drop only
   // if that new placement still creates a Sudoku-rule conflict.
@@ -1123,19 +1276,18 @@ function startDrag(e){
     dx: (e.clientX - sourceRect.left) * (boardCell / sourceCell),
     dy: (e.clientY - sourceRect.top) * (boardCell / sourceCell),
     pointerId: e.pointerId,
+    startClientX:e.clientX,
+    startClientY:e.clientY,
     wasHintCorrect
   };
 
-  if(state.hintArmed){
-    state.hintArmed=false;
-    state.hintInUse=true;
-    renderGuides();
-    updatePlacementHintButton();
-    updateConflictAlert(null);
+  // Keep the selected-shape bubble visible while the finger is still resting on
+  // the shape. It disappears only after the shape actually starts moving away.
+  if(draggingHintedPiece){
+    state.hintBubbleDismissed=false;
+    updateHintInstruction();
+    activateCompatiblePieceGuides();
   }
-
-  // While a placement hint is active, reveal every available matching destination.
-  activateCompatiblePieceGuides();
   moveGhost(e);
   try{ source.setPointerCapture(e.pointerId); }catch(_){}
 
@@ -1153,7 +1305,15 @@ function moveGhost(e){
   const top=e.clientY-drag.dy;
   drag.ghost.style.transform = `translate3d(${left}px,${top}px,0)`;
 
-  if(!state.hintInUse){
+  if(state.hintInUse && state.hintSelectedId===drag.id && !state.hintBubbleDismissed){
+    const moved=Math.hypot(e.clientX-drag.startClientX,e.clientY-drag.startClientY);
+    if(moved>=7){
+      state.hintBubbleDismissed=true;
+      updateHintInstruction();
+    }
+  }
+
+  if(!state.hintInUse || state.hintSelectedId!==drag.id){
     clearGuideHover();
     return;
   }
@@ -1188,10 +1348,12 @@ function endDrag(e){
   if(pointInRack){
     state.lastDroppedId=drag.id;
     if(drag.oldPos) state.manualMoves++;
-    const usedHint=state.hintInUse;
+    const usedHint=state.hintInUse && state.hintSelectedId===drag.id;
     clearCompatiblePieceGuides();
     cleanupDrag();
-    if(usedHint) finishPlacementHint();
+    // Releasing the hinted shape back in the rack does not waste the revealed guidance.
+    // The destination remains visible so the player can grab it again when ready.
+    if(usedHint){ renderGuides(); activateCompatiblePieceGuides(); }
     renderAll(false);
     return;
   }
@@ -1201,7 +1363,7 @@ function endDrag(e){
   // Do NOT re-test the pointer-derived row/column on pointerup: the mouse/finger may
   // drift slightly after lock-on. Releasing while the target is still locked commits
   // the piece to the exact highlighted home position, subject only to the normal fit check.
-  if(state.hintInUse){
+  if(state.hintInUse && state.hintSelectedId===drag.id){
     const target=drag.guideTarget;
     if(target && fits(drag.p,target.home.r,target.home.c,drag.id)){
       state.placed.set(drag.id,{r:target.home.r,c:target.home.c});
@@ -1230,7 +1392,7 @@ function endDrag(e){
     if(drag.wasHintCorrect) state.hintCorrectPieces.add(drag.id);
   }
 
-  const usedHint=state.hintInUse;
+  const usedHint=state.hintInUse && state.hintSelectedId===drag.id;
   clearCompatiblePieceGuides();
   cleanupDrag();
   if(usedHint) finishPlacementHint();
@@ -1243,10 +1405,10 @@ function cancelDrag(){
     state.placed.set(drag.id, drag.oldPos);
     if(drag.wasHintCorrect) state.hintCorrectPieces.add(drag.id);
   }
-  const usedHint=state.hintInUse;
+  const usedHint=state.hintInUse && state.hintSelectedId===drag.id;
   clearCompatiblePieceGuides();
   cleanupDrag();
-  if(usedHint) finishPlacementHint();
+  if(usedHint){ renderGuides(); activateCompatiblePieceGuides(); }
   renderAll(false);
 }
 
@@ -1465,6 +1627,10 @@ async function resetLevel(animate=true){
   state.hintRemaining=5;
   state.hintArmed=false;
   state.hintInUse=false;
+  state.hintSelectedId=null;
+  state.hintBubbleDismissed=false;
+  setHintModeClass();
+  updateHintInstruction();
   state.activeTeachingConflict=null;
   state.conflictShakePieceIds.clear();
   state.conflictShakeOwners.clear();
@@ -1888,6 +2054,6 @@ const picturePreviewOverlay=$('#picturePreviewOverlay');
 if(picturePreviewOverlay) picturePreviewOverlay.addEventListener('click',e=>{ if(e.target===picturePreviewOverlay) requestClosePicturePreview(); });
 window.addEventListener('keydown',e=>{ if(e.key==='Escape'){ requestClosePicturePreview(); } });
 
-window.addEventListener('resize',()=>{ updateResponsiveLayout(); updateStats(); renderAll(false); });
+window.addEventListener('resize',()=>{ updateResponsiveLayout(); setHintModeClass(); updateHintViewportMetrics(); updateStats(); renderAll(false); });
 updateResponsiveLayout(); buildBoard(); resetLevel(true);
 })();

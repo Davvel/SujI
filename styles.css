@@ -1789,7 +1789,7 @@ body.landscape-ui .guide-toggle{
 }
 
 .hint-number{
-  font-size:11px;
+  font-size:13px;
   line-height:1;
 }
 
@@ -2082,7 +2082,7 @@ body.landscape-ui .hint-number{
     gap:10px;
     padding:8px 12px;
   }
-  .hint-side-label{ font-size:11px; }
+  .hint-side-label{ font-size:13px; }
   .hint-side-icon{ font-size:22px; }
 }
 
@@ -3258,7 +3258,7 @@ dialog.tutorial-modal.tutorial-modal-bottom .tutorial-modal-line::before{
   box-shadow:0 0 10px rgba(123,103,243,.20);
 }
 dialog.tutorial-modal.tutorial-modal-bottom .tutorial-modal-line>span{
-  font-size:13px !important;
+  font-size:15px !important;
   line-height:1.15 !important;
   letter-spacing:.01em;
   font-weight:900 !important;
@@ -3308,7 +3308,7 @@ dialog.tutorial-modal.tutorial-modal-intro .tutorial-modal-inner::before{
 }
 dialog.tutorial-modal.tutorial-modal-intro .tutorial-modal-line>span{
   color:#19263a;
-  font-size:23px !important;
+  font-size:24px !important;
   line-height:1.25 !important;
   font-weight:950 !important;
   text-shadow:0 1px 0 rgba(255,255,255,.75);
@@ -3324,9 +3324,9 @@ dialog.tutorial-modal.tutorial-modal-intro .tutorial-ok{
     padding:4px 5px 4px 11px;
     gap:7px;
   }
-  dialog.tutorial-modal.tutorial-modal-bottom .tutorial-modal-line>span{font-size:11px !important}
+  dialog.tutorial-modal.tutorial-modal-bottom .tutorial-modal-line>span{font-size:13px !important}
   dialog.tutorial-modal.tutorial-modal-bottom .tutorial-close{width:28px;height:28px;flex-basis:28px;font-size:20px}
-  dialog.tutorial-modal.tutorial-modal-intro .tutorial-modal-line>span{font-size:19px !important}
+  dialog.tutorial-modal.tutorial-modal-intro .tutorial-modal-line>span{font-size:20px !important}
 }
 
 
@@ -4539,7 +4539,7 @@ body.landscape-ui .app{min-width:900px}
   background:rgba(255,224,119,.72);
   border:1px solid rgba(205,143,0,.38);
   box-shadow:0 3px 10px rgba(74,48,0,.10);
-  font:800 clamp(10px,1.05vw,14px)/1.18 Inter,ui-sans-serif,system-ui,sans-serif;
+  font:800 clamp(12px,1.18vw,16px)/1.22 Inter,ui-sans-serif,system-ui,sans-serif;
   text-align:center;
   white-space:normal;
   pointer-events:none;
@@ -4565,7 +4565,7 @@ body.landscape-ui .app{min-width:900px}
     max-width:none;
     padding:5px 7px;
     gap:4px;
-    font-size:9.5px;
+    font-size:12.5px;
     border-radius:8px;
   }
   .conflict-alert-icon{font-size:1.08em}
@@ -5606,6 +5606,7 @@ body.landscape-ui .app{min-width:900px}
 .mode-summary{display:none !important;}
 
 .board-taskbar{
+  position:relative;
   margin-top:10px;
   min-height:54px;
   display:flex;
@@ -5616,6 +5617,7 @@ body.landscape-ui .app{min-width:900px}
   background:linear-gradient(180deg,rgba(16,27,48,.96),rgba(10,20,37,.98));
   border:1px solid rgba(109,133,174,.34);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 5px 14px rgba(6,13,26,.18);
+  overflow:visible;
 }
 .placement-hint-btn{
   position:relative;
@@ -5689,4 +5691,268 @@ body.landscape-ui .app{min-width:900px}
 @media (prefers-reduced-motion:reduce){
   .conflict-alert.hint-alert-mode .hint-alert-icon,
   .conflict-alert.hint-alert-mode .conflict-alert-text{animation:none}
+}
+
+/* === SuJi Snapshot #14 v14.2.4: stronger guided Hint presentation === */
+.placement-hint-btn.hint-active{
+  filter:none;
+  opacity:1;
+  border-color:#ffe46b;
+  background:linear-gradient(180deg,#66531c,#3e3517);
+  box-shadow:0 0 0 2px rgba(255,222,75,.24),0 0 18px rgba(255,211,47,.34),inset 0 1px 0 rgba(255,255,255,.16);
+}
+.placement-hint-btn.hint-active .placement-hint-icon{
+  filter:drop-shadow(0 0 7px rgba(255,224,75,.9));
+}
+.rack .piece.hint-selected-piece{
+  z-index:12;
+  filter:drop-shadow(0 0 5px #fff) drop-shadow(0 0 10px rgba(255,211,61,.95)) drop-shadow(0 5px 4px #0005);
+  animation:sujiHintSelectedWiggle 1.12s ease-in-out infinite;
+  transform-origin:center center;
+}
+.rack .piece.hint-selected-piece::after{
+  content:"";
+  position:absolute;
+  inset:-5px;
+  border:3px solid #ffd83d;
+  border-radius:10px;
+  pointer-events:none;
+  animation:sujiHintSelectedPulse 1.1s ease-in-out infinite;
+}
+.piece.hint-reminder-pulse{
+  animation:sujiHintSelectedAttention .72s ease-in-out 3 !important;
+  transform-origin:center center;
+}
+.piece.hint-blocked-bump{
+  animation:sujiLockShake .46s ease-in-out;
+}
+.guide-piece.hint-destination{
+  opacity:1 !important;
+  transform-origin:center center;
+  animation:sujiHintDestinationWiggle 1.18s ease-in-out infinite;
+  filter:drop-shadow(0 0 8px rgba(214,221,230,.76));
+}
+.guide-piece.hint-destination .guide-tile,
+.guide-piece.hint-destination::before{
+  opacity:1 !important;
+  background:linear-gradient(135deg,
+    rgba(245,248,251,.98) 0%,
+    rgba(208,214,221,.98) 28%,
+    rgba(186,193,201,.98) 48%,
+    rgba(235,239,244,.99) 62%,
+    rgba(179,187,195,.98) 100%) !important;
+  background-size:220% 220% !important;
+  border:1.5px solid rgba(137,147,158,.98) !important;
+  box-shadow:
+    inset 1px 1px 0 rgba(255,255,255,.60),
+    inset -2px -2px 3px rgba(96,105,114,.18),
+    0 0 7px rgba(205,212,220,.42),
+    0 0 14px rgba(247,249,252,.40) !important;
+  animation:sujiSilverGuideShimmer 1.18s linear infinite;
+  will-change:transform,background-position,filter;
+}
+.guide-piece.guide-compatible.guide-hover .guide-tile{
+  background:linear-gradient(135deg,
+    rgba(255,255,255,.99) 0%,
+    rgba(224,230,236,.99) 34%,
+    rgba(200,208,216,.99) 52%,
+    rgba(250,252,254,.99) 68%,
+    rgba(188,196,205,.99) 100%) !important;
+  border-color:rgba(124,134,145,1) !important;
+  box-shadow:
+    inset 1px 1px 0 rgba(255,255,255,.78),
+    inset -2px -2px 3px rgba(91,99,107,.14),
+    0 0 10px rgba(233,238,243,.66),
+    0 0 18px rgba(255,255,255,.55) !important;
+}
+@keyframes sujiHintSelectedPulse{
+  0%,100%{opacity:.78;transform:scale(1)}
+  50%{opacity:1;transform:scale(1.035)}
+}
+@keyframes sujiHintSelectedWiggle{
+  0%,100%{transform:translateY(0) rotate(0deg)}
+  20%{transform:translateY(-1px) rotate(-1.2deg)}
+  40%{transform:translateY(0) rotate(1.2deg)}
+  60%{transform:translateY(-1px) rotate(-.9deg)}
+  80%{transform:translateY(0) rotate(.9deg)}
+}
+@keyframes sujiHintDestinationWiggle{
+  0%,100%{transform:translateY(0) scale(1)}
+  25%{transform:translateY(-1px) scale(1.01)}
+  50%{transform:translateY(0) scale(1.02)}
+  75%{transform:translateY(-1px) scale(1.01)}
+}
+@keyframes sujiHintSelectedAttention{
+  0%,100%{transform:scale(1)}
+  25%{transform:scale(1.07)}
+  50%{transform:scale(1.12)}
+  75%{transform:scale(1.07)}
+}
+@keyframes sujiSilverGuideShimmer{
+  0%{background-position:0% 50%;filter:brightness(.98)}
+  50%{background-position:100% 50%;filter:brightness(1.11)}
+  100%{background-position:0% 50%;filter:brightness(.98)}
+}
+/* Hint focus flow: first the Rack invites selection; after selection the Board
+   becomes the visual target. The animated border cycles between warm orange and
+   SuJi purple like a soft travelling light. */
+body.hint-awaiting-selection .rack-shell{
+  animation:sujiHintAreaGlow 1.35s ease-in-out infinite;
+}
+body.hint-shape-selected .board-wrap{
+  animation:sujiHintAreaGlow 1.35s ease-in-out infinite;
+}
+@keyframes sujiHintAreaGlow{
+  0%,100%{
+    border-color:#f39a34;
+    box-shadow:inset 0 0 0 3px rgba(243,154,52,.45),0 0 10px rgba(243,154,52,.58),0 0 22px rgba(243,154,52,.24);
+  }
+  50%{
+    border-color:#8d63f6;
+    box-shadow:inset 0 0 0 3px rgba(141,99,246,.48),0 0 12px rgba(141,99,246,.68),0 0 26px rgba(141,99,246,.30);
+  }
+}
+
+/* In portrait Hint Mode, keep the Board and a compact Rack visible together.
+   The player must never have to scroll down to choose a shape and then back up
+   to understand the revealed destination. */
+body.portrait-ui.placement-hint-mode{
+  overflow:hidden;
+}
+body.portrait-ui.placement-hint-mode .app{
+  padding-bottom:4px;
+}
+body.portrait-ui.placement-hint-mode .play-layout{
+  height:var(--hint-play-height,calc(100dvh - 122px));
+  min-height:0;
+  display:grid !important;
+  grid-template-rows:minmax(0,1fr) auto;
+  gap:5px;
+  overflow:hidden;
+}
+body.portrait-ui.placement-hint-mode .board-section{
+  width:min(100%, var(--hint-board-size,360px));
+  min-width:205px;
+  max-width:100%;
+  justify-self:center;
+  margin-top:4px;
+  padding:7px;
+  min-height:0;
+}
+body.portrait-ui.placement-hint-mode .board-section .section-heading{
+  margin-bottom:5px;
+}
+body.portrait-ui.placement-hint-mode .board-section .section-heading h2{
+  font-size:17px;
+}
+body.portrait-ui.placement-hint-mode .board-taskbar{
+  margin-top:5px;
+  min-height:42px;
+  padding:3px 6px;
+}
+body.portrait-ui.placement-hint-mode .rack-section{
+  width:100%;
+  margin-top:0;
+  padding:5px 7px 7px;
+  min-height:0;
+}
+body.portrait-ui.placement-hint-mode .rack-section .section-heading{
+  margin:0 1px 4px;
+}
+body.portrait-ui.placement-hint-mode .rack-section .section-heading h2{
+  font-size:16px;
+}
+body.portrait-ui.placement-hint-mode .rack-shell{
+  min-height:0 !important;
+  border-width:4px;
+  border-radius:14px;
+}
+body.portrait-ui.placement-hint-mode .game-footer{
+  display:none;
+}
+
+@media (max-height:700px) and (orientation:portrait){
+  body.portrait-ui.placement-hint-mode .board-section{min-width:185px}
+  body.portrait-ui.placement-hint-mode .board-taskbar{min-height:36px}
+}
+@media (prefers-reduced-motion:reduce){
+  .rack .piece.hint-selected-piece::after,
+  .guide-piece.hint-destination{animation:none}
+}
+
+/* Hint instructions belong directly on the bulb as a non-modal cartoon popup. */
+.hint-instruction{
+  position:absolute;
+  left:-2px;
+  bottom:calc(100% + 10px);
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  gap:7px;
+  min-height:36px;
+  max-width:min(270px, calc(100vw - 44px));
+  padding:8px 12px;
+  border-radius:14px;
+  background:linear-gradient(180deg,#fff4b3,#ffe274);
+  border:1px solid rgba(190,139,0,.52);
+  color:#5a4300;
+  font:800 15px/1.28 Inter,ui-sans-serif,system-ui,sans-serif;
+  text-align:left;
+  box-shadow:0 8px 18px rgba(19,28,43,.22),0 2px 8px rgba(91,67,0,.12);
+  z-index:20;
+}
+.hint-instruction::after{
+  content:"";
+  position:absolute;
+  left:18px;
+  top:100%;
+  width:14px;
+  height:14px;
+  background:linear-gradient(180deg,#ffe274,#f4cf59);
+  border-right:1px solid rgba(190,139,0,.52);
+  border-bottom:1px solid rgba(190,139,0,.52);
+  transform:translateY(-7px) rotate(45deg);
+}
+.hint-instruction[hidden]{display:none !important}
+.hint-instruction.hint-follow-piece{
+  position:fixed;
+  bottom:auto;
+  max-width:min(250px, calc(100vw - 24px));
+}
+.hint-instruction.hint-follow-piece::after{
+  left:22px;
+}
+.hint-instruction.hint-follow-piece.hint-below-piece::after{
+  top:auto;
+  bottom:100%;
+  transform:translateY(7px) rotate(225deg);
+}
+.hint-instruction-icon{font-size:22px;line-height:1;flex:0 0 auto}
+body.portrait-ui.placement-hint-mode .hint-instruction{
+  bottom:calc(100% + 7px);
+  max-width:min(250px, calc(100vw - 36px));
+  min-height:34px;
+  padding:7px 10px;
+  font-size:13px;
+}
+@media (max-width:760px){
+  .hint-instruction{
+    max-width:min(240px, calc(100vw - 30px));
+    padding:7px 10px;
+    font-size:13px;
+  }
+  .hint-instruction::after{left:16px}
+}
+@media (prefers-reduced-motion:reduce){
+  .rack .piece.hint-selected-piece,
+  .rack .piece.hint-selected-piece::after,
+  .piece.hint-reminder-pulse,
+  .piece.hint-blocked-bump,
+  .guide-piece.hint-destination,
+  .guide-piece.hint-destination .guide-tile{animation:none !important}
+}
+
+@media (prefers-reduced-motion:reduce){
+  body.hint-awaiting-selection .rack-shell{animation:none !important;border-color:#f39a34 !important;box-shadow:inset 0 0 0 3px rgba(243,154,52,.45),0 0 12px rgba(243,154,52,.45) !important}
+  body.hint-shape-selected .board-wrap{animation:none !important;border-color:#8d63f6 !important;box-shadow:inset 0 0 0 3px rgba(141,99,246,.45),0 0 12px rgba(141,99,246,.48) !important}
 }
