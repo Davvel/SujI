@@ -1,4 +1,4 @@
-# SuJi — Checkpoint #18 v18.0.0
+# SuJi — Checkpoint #19 v19.0.0
 
 ## v17.0.4 — Edge-aware Hint speech bubbles
 
@@ -1103,3 +1103,23 @@ Checkpoint 18 starts directly from the accepted Checkpoint 17 v17.0.6 state and 
 - An already-active Hint session can still be cancelled normally.
 - All accepted Checkpoint 17 gameplay, portrait/landscape layout, local bubbles, PWA behavior, and Hint guidance behavior are otherwise retained.
 - PWA cache namespace updated to v18.0.0.
+
+
+## v18.2.0 — Rack locked while a Sudoku error is active
+
+- Starting from the Checkpoint 18 v18.0.0 baseline, a pending Sudoku conflict now temporarily locks Rack -> Board dragging.
+- While the conflict remains, the entire Rack is visibly greyed out to communicate that no new Rack shape may be introduced.
+- Shapes already on the Board remain movable and may still be dropped back into the Rack, allowing the player to resolve the conflict by removing or repositioning a Board shape.
+- As soon as the Sudoku conflict is resolved, the Rack automatically returns to its normal appearance and Rack -> Board dragging becomes available again.
+- Existing Checkpoint 18 Hint disabling during Sudoku conflicts remains unchanged.
+- PWA cache namespace updated to v18.2.0.
+
+## v19.0.0 — Checkpoint 19 protected baseline
+
+- Checkpoint 19 is frozen directly from the accepted Checkpoint 18 v18.2.0 state.
+- No gameplay, UI, Hint, Sudoku-conflict, Rack-lock, pattern, PWA-install, or drag-and-drop behavior changed during this checkpoint save.
+- The Checkpoint 18.2.0 rule remains protected: while a Sudoku conflict is active, the Rack is visually greyed out and Rack -> Board dragging cannot start, while Board -> Rack remains allowed so the player can resolve the conflict.
+- Existing Hint disabling during Sudoku conflicts remains protected.
+- Visible application version updated to 19.0.0.
+- PWA cache namespace updated to v19.0.0.
+- Treat this exact package as the protected rollback baseline for all future Checkpoint 19 development.

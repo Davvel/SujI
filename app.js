@@ -279,6 +279,15 @@ function updateConflictAlert(rule){
   updateConflictBubble(rule);
 }
 
+function updateRackConflictLock(){
+  const rackShell=document.querySelector('.rack-shell');
+  if(!rackShell) return;
+  const locked=!!state.activeTeachingConflict;
+  rackShell.classList.toggle('rack-conflict-locked',locked);
+  rackShell.setAttribute('aria-disabled', locked ? 'true' : 'false');
+  rackShell.dataset.conflictLocked=locked ? 'true' : 'false';
+}
+
 function updatePlacementHintButton(){
   const btn=$('#placementHintBtn');
   const count=$('#placementHintCount');
@@ -1374,6 +1383,15 @@ function startDrag(e){
   const p = state.pieces.find(x=>x.id===id);
   const oldPos = state.placed.get(id) ? {...state.placed.get(id)} : null;
 
+  // Checkpoint 18.2.0: while a Sudoku conflict is active, do not allow a new
+  // shape to leave the Rack. Board shapes remain fully movable, including back
+  // into the Rack, so the player can resolve the conflict by removing/repositioning
+  // a placed shape. This guard is behavioral; the Rack also receives a visual
+  // greyed-out state from updateRackConflictLock().
+  if(!oldPos && state.activeTeachingConflict){
+    return;
+  }
+
   // Snapshot #14 v14.2.4: the first press in Hint Mode selects the rack shape
   // and reveals its compatible homes, but the SAME pointer gesture may continue
   // immediately into a drag. The player is no longer forced to lift and press again.
@@ -1744,6 +1762,7 @@ function validate(){
   for(const key of state.conflictShakeOwners.keys()) if(!liveIds.has(key)) state.conflictShakeOwners.delete(key);
 
   applyConflictPieceShake();
+  updateRackConflictLock();
   return badKeys.size;
 }
 function updateStats(){
