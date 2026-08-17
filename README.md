@@ -1397,3 +1397,14 @@ This release promotes the accepted v1.19.x refinement line to a new stable v1.20
 - Guide hover classes are updated only when the active destination changes.
 - Drag ghost dimensions are cached and the ghost receives compositor hints (`will-change`, `translate3d`, containment) to improve mobile smoothness.
 - Visible application version and PWA cache namespace updated to **v1.24.1**.
+
+
+## v1.24.2 — deeper mobile drag optimisation
+
+- Continues from **v1.24.1** with no placement-rule, Rack-sizing, Board-sizing, Sudoku, Hint-count, or level-content changes.
+- Mobile pointer movement now uses a passive listener because piece gestures already use `touch-action:none`; this avoids a browser scroll-blocking path on every pointer update.
+- A short-lived `suji-drag-active` rendering mode gives the moving shape priority while the pointer is down.
+- Non-essential pulses and jiggles are temporarily paused during dragging and automatically resume on release.
+- The moving ghost removes expensive drop-shadow, per-cell shadow, and soft-light blend decoration while preserving its shape, colours, picture and numbers.
+- Hint-mode Board greying is rendered as one inexpensive solid dimming layer during the gesture instead of grayscale/brightness filters across many Board elements. Hint destinations remain vivid and above the dimmer.
+- Visible application version and PWA cache namespace updated to **v1.24.2**.

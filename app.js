@@ -2009,8 +2009,13 @@ function startDrag(e){
   moveGhost(e);
   try{ source.setPointerCapture(e.pointerId); }catch(_){}
 
+  // v1.24.2: mark the short drag gesture so CSS can suspend non-essential
+  // animation/repaint work and dedicate the frame budget to the moving piece.
+  document.body.classList.add('suji-drag-active');
   document.body.style.overflow = 'hidden';
-  window.addEventListener('pointermove', moveGhost, {passive:false});
+  // touch-action:none on .piece already owns the gesture, so pointermove does not
+  // need to be a blocking/non-passive listener on mobile browsers.
+  window.addEventListener('pointermove', moveGhost, {passive:true});
   window.addEventListener('pointerup', endDrag, {once:true});
   window.addEventListener('pointercancel', cancelDrag, {once:true});
 }
@@ -2058,7 +2063,6 @@ function renderDragFrame(){
 
 function moveGhost(e){
   if(!drag) return;
-  e.preventDefault();
 
   // v1.24.1 performance: pointer events may arrive much faster than the display
   // can paint. Keep only the newest position and render once per animation frame.
@@ -2168,6 +2172,7 @@ function cancelDrag(){
 function cleanupDrag(){
   window.removeEventListener('pointermove', moveGhost);
   document.body.classList.remove('hint-dragging-selected');
+  document.body.classList.remove('suji-drag-active');
   if(drag?.rafId) cancelAnimationFrame(drag.rafId);
   if(drag?.hoverEl) drag.hoverEl.classList.remove('guide-hover');
   $('#boardWrap')?.classList.remove('guide-focus-active');
