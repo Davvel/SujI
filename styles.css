@@ -7188,3 +7188,61 @@ body.hint-shape-selected .board-wrap{
 @media (prefers-reduced-motion:reduce){
   .hint-blocked-shape-tile,.hint-blocked-shape-tile::after{animation:none !important}
 }
+
+/* === SuJi v1.21.1: mobile-safe Hint dimming layers ===
+   Mobile browsers can place filtered/pseudo-element descendants into separate
+   compositing layers during the portrait Hint layout. Use real DOM scrims on
+   compact/touch layouts so the focus mask is deterministic, while preserving
+   the accepted v1.21.0 desktop presentation. */
+.hint-board-dim-layer,
+.hint-rack-dim-layer{
+  display:none;
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  border-radius:inherit;
+}
+
+@media (max-width:760px), (hover:none) and (pointer:coarse){
+  /* Step 1: hide/de-emphasise the Board while the player chooses from Rack. */
+  body.hint-awaiting-selection .board-wrap{
+    filter:none !important;
+    isolation:isolate;
+  }
+  body.hint-awaiting-selection .board-wrap::after{
+    display:none !important;
+    content:none !important;
+  }
+  body.hint-awaiting-selection .board-wrap > .hint-board-dim-layer{
+    display:block !important;
+    z-index:90 !important;
+    background:rgba(83,87,94,.64);
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);
+  }
+
+  /* Step 2: grey the Rack but leave the selected hinted shape above the mask. */
+  body.hint-shape-selected .rack-shell{
+    isolation:isolate;
+  }
+  body.hint-shape-selected .rack-shell::before{
+    display:none !important;
+    content:none !important;
+  }
+  body.hint-shape-selected .rack-shell > .hint-rack-dim-layer{
+    display:block !important;
+    z-index:12 !important;
+    background:rgba(91,95,102,.58);
+    box-shadow:inset 0 0 0 999px rgba(208,212,218,.10), inset 0 0 0 1px rgba(255,255,255,.16);
+  }
+  body.hint-shape-selected .rack .piece:not(.hint-selected-piece){
+    filter:grayscale(.94) saturate(.14) brightness(.66) contrast(.92) !important;
+    opacity:.38 !important;
+    z-index:8 !important;
+  }
+  body.hint-shape-selected .rack .piece.hint-selected-piece{
+    position:relative !important;
+    z-index:22 !important;
+    opacity:1 !important;
+    filter:none !important;
+  }
+}

@@ -1234,3 +1234,13 @@ This release promotes the accepted v1.19.x refinement line to a new stable v1.20
 - Visible application version updated to **1.21.0**.
 - PWA cache namespace updated to **v1.21.0**.
 
+
+
+## v1.21.1 — mobile Hint focus-mask fix
+
+- Fixed Hint Mode dimming on mobile/portrait layouts.
+- Hint Step 1 now uses a dedicated mobile-safe Board scrim instead of relying on a filtered pseudo-element.
+- Hint Step 2 uses a dedicated Rack scrim while keeping the selected hinted shape fully visible above it.
+- Desktop v1.21.0 Hint presentation and the accepted blocked-destination/jiggle/red lock-on behaviour are unchanged.
+- Visible application version updated to **1.21.1**.
+- PWA cache namespace updated to **v1.21.1**.

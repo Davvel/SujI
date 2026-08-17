@@ -440,7 +440,25 @@ function updateHintViewportMetrics(){
   document.documentElement.style.setProperty('--hint-board-size',`${boardSize}px`);
 }
 
+function ensureHintDimLayers(){
+  const boardWrap=$('#boardWrap');
+  if(boardWrap && !boardWrap.querySelector(':scope > .hint-board-dim-layer')){
+    const layer=document.createElement('div');
+    layer.className='hint-board-dim-layer';
+    layer.setAttribute('aria-hidden','true');
+    boardWrap.appendChild(layer);
+  }
+  const rackShell=document.querySelector('.rack-shell');
+  if(rackShell && !rackShell.querySelector(':scope > .hint-rack-dim-layer')){
+    const layer=document.createElement('div');
+    layer.className='hint-rack-dim-layer';
+    layer.setAttribute('aria-hidden','true');
+    rackShell.appendChild(layer);
+  }
+}
+
 function setHintModeClass(){
+  ensureHintDimLayers();
   document.body.classList.toggle('placement-hint-mode', state.hintArmed || state.hintInUse);
   document.body.classList.toggle('hint-awaiting-selection', state.hintArmed);
   document.body.classList.toggle('hint-shape-selected', state.hintInUse);
