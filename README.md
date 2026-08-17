@@ -1,4 +1,4 @@
-# SuJi — Checkpoint 1.20.0
+# SuJi — Snapshot 1.22.0
 
 > **Checkpoint naming from v1.20.0 onward:** the checkpoint number is the full semantic version itself (`Major.Minor.Patch`). Therefore this release is **Checkpoint 1.20.0**, not Checkpoint 19.
 
@@ -1244,3 +1244,60 @@ This release promotes the accepted v1.19.x refinement line to a new stable v1.20
 - Desktop v1.21.0 Hint presentation and the accepted blocked-destination/jiggle/red lock-on behaviour are unchanged.
 - Visible application version updated to **1.21.1**.
 - PWA cache namespace updated to **v1.21.1**.
+
+
+## v1.21.2 — drag-only Hint Board dimming + stronger blocker jiggle
+
+- During active Hint guidance, the Board now stays in normal colour while the hinted shape is not being dragged, so the player can clearly find and move an incorrectly placed blocking shape.
+- The Board greys out only while the selected hinted shape is actively in hand/being dragged toward its revealed destinations.
+- Releasing or cancelling that drag immediately removes the Board grey-out.
+- Yellow/red Hint destinations and blocked-destination overlays remain visually above the temporary Board scrim.
+- Incorrect movable shapes that block a revealed Hint destination now jiggle more strongly and more frequently.
+- Visible application version updated to **1.21.2**.
+- PWA cache namespace updated to **v1.21.2**.
+- Packaging rule: project files are stored directly at ZIP root with no extra enclosing version folder.
+
+
+## v1.21.4 — corrected Hint drag dimming and foreground drag piece
+- Repaired malformed literal escaped-newline CSS left in the v1.21.2 append, which could prevent the drag-time Board dim rule from matching.
+- While the selected hinted shape is actively dragged, ordinary Board content now receives a strong grey focus scrim.
+- Hint destinations remain visible above the greyed Board.
+- The dragged shape is forced fully opaque and onto the highest document layer so destination overlays cannot cover it.
+- Releasing the hinted shape immediately removes the Board dimming so a misplaced blocking piece can be moved.
+- PWA cache namespace updated to v1.21.4.
+
+
+## v1.21.5 — deterministic Hint drag Board greying
+
+- During an active drag of the selected Hint shape, ordinary Board cells and placed Board pieces are now directly greyed/darkened instead of relying on a compositor-dependent overlay.
+- Yellow/valid Hint destinations remain fully bright and above the greyed Board.
+- The dragged shape remains fully vivid and above the Hint destinations.
+- Releasing the hinted shape immediately restores normal Board colours so blockers can be moved.
+- PWA cache namespace updated to v1.21.5.
+
+
+## v1.21.7 — vivid animated Hint destinations
+
+- Starts from the accepted v1.21.5 drag-time Board greying build.
+- Free Hint destination cells now continuously cycle through vivid yellow, orange and warm red, then back to yellow.
+- The existing solid-red guide-hover/lock-on state is preserved when the dragged hinted shape reaches a valid snap target.
+- Blocked marching-ants destinations and blocker-jiggle behaviour are unchanged.
+- PWA cache namespace updated to v1.21.7.
+
+
+## v1.21.8 — corrected animated Hint targets and drag ghost
+
+- Free Hint destination cells now visibly and continuously cycle yellow → orange → red → orange → yellow using a dedicated animated overlay, so legacy `background: ... !important` rules cannot freeze the colour.
+- The currently dragged hinted shape is explicitly exempt from Board greying/desaturation even when it was cloned from a Board piece.
+- Existing drag-only Board fade, lock-on red state, blocker movement/jiggle and Hint logic remain unchanged.
+- PWA cache namespace updated to v1.21.8.
+- Package remains rooted directly at the ZIP root with no extra parent folder.
+
+## v1.22.0 — protected Snapshot 22 baseline
+
+- Snapshot **1.22.0** freezes the accepted **v1.21.8** state as the new protected rollback baseline.
+- No gameplay, Hint, Board-dimming, animated-destination, blocker-jiggle, drag/drop, PWA-install or visual behavior changed during the snapshot save.
+- Visible application version updated to **1.22.0**.
+- PWA cache namespace updated to **v1.22.0**.
+- Package remains rooted directly at the ZIP root with no extra parent folder.
+

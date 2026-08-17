@@ -441,12 +441,18 @@ function updateHintViewportMetrics(){
 }
 
 function ensureHintDimLayers(){
+  const boardEl=$('#board');
   const boardWrap=$('#boardWrap');
-  if(boardWrap && !boardWrap.querySelector(':scope > .hint-board-dim-layer')){
+  // v1.21.4: the drag-focus scrim must live in the SAME stacking context as
+  // Board pieces and Hint guides. A wrapper-level scrim cannot sit between
+  // ordinary pieces and guide destinations because #board is itself a stacking
+  // context. Remove any legacy wrapper scrim and recreate it inside #board.
+  boardWrap?.querySelectorAll(':scope > .hint-board-dim-layer').forEach(el=>el.remove());
+  if(boardEl && !boardEl.querySelector(':scope > .hint-board-dim-layer')){
     const layer=document.createElement('div');
     layer.className='hint-board-dim-layer';
     layer.setAttribute('aria-hidden','true');
-    boardWrap.appendChild(layer);
+    boardEl.appendChild(layer);
   }
   const rackShell=document.querySelector('.rack-shell');
   if(rackShell && !rackShell.querySelector(':scope > .hint-rack-dim-layer')){
@@ -1645,6 +1651,10 @@ function startDrag(e){
   // Keep the selected-shape bubble visible while the finger is still resting on
   // the shape. It disappears only after the shape actually starts moving away.
   if(draggingHintedPiece){
+    // v1.21.3: dim the entire Board only while the selected Hint piece is physically
+    // being dragged. Releasing it immediately restores the normal Board so a
+    // misplaced blocker can be grabbed and moved before the next attempt.
+    document.body.classList.add('hint-dragging-selected');
     state.hintBubbleDismissed=false;
     updateHintInstruction();
     activateCompatiblePieceGuides();
@@ -1778,6 +1788,7 @@ function cancelDrag(){
 
 function cleanupDrag(){
   window.removeEventListener('pointermove', moveGhost);
+  document.body.classList.remove('hint-dragging-selected');
   if(drag?.ghost) drag.ghost.remove();
   if(drag?.source) drag.source.style.visibility = '';
   drag = null;
