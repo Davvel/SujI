@@ -1388,3 +1388,12 @@ This release promotes the accepted v1.19.x refinement line to a new stable v1.20
 - The accepted dynamic portrait geometry from v1.23.7 is retained: Rack height is resolved first, the final inner Rack dimensions are then measured, and shapes are packed at the largest fitting size for that actual Rack area.
 - Visible application version updated to **1.24.0**.
 - PWA cache namespace updated to **v1.24.0**.
+
+## v1.24.1 — drag performance refinement
+
+- Preserves the protected **v1.24.0** gameplay, Rack sizing, Board sizing, Hint behavior, visuals, and placement rules.
+- Drag rendering is now synchronized to `requestAnimationFrame`, preventing excessive pointer events from triggering more updates than the display can render.
+- Hint destination geometry is measured once at drag start and cached for the active gesture instead of repeatedly forcing layout reads.
+- Guide hover classes are updated only when the active destination changes.
+- Drag ghost dimensions are cached and the ghost receives compositor hints (`will-change`, `translate3d`, containment) to improve mobile smoothness.
+- Visible application version and PWA cache namespace updated to **v1.24.1**.

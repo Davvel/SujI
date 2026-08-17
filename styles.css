@@ -7766,3 +7766,12 @@ body.portrait-ui:not(.placement-hint-mode) .rack-shell{
 body.portrait-ui:not(.placement-hint-mode) .rack-shell{
   transition:none !important;
 }
+
+/* === SuJi v1.24.1: drag performance pass ===
+   Keep the drag ghost on its own compositor layer so transform-only movement
+   does not trigger unnecessary paint/layout work on mobile browsers. */
+.drag-ghost{
+  will-change:transform;
+  backface-visibility:hidden;
+  contain:layout paint style;
+}

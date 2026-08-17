@@ -1120,39 +1120,58 @@ function pieceBlocksVisibleHintDestination(pieceId,pos){
   });
 }
 
+function cacheGuideTargetsForDrag(){
+  if(!drag || !state.hintInUse || state.hintSelectedId!==drag.id){
+    if(drag) drag.guideTargetCache=[];
+    return;
+  }
+
+  const wantedShape=shapeKey(drag.p);
+  const piecesById=new Map(state.pieces.map(piece=>[piece.id,piece]));
+  drag.guideTargetCache=[];
+
+  // v1.24.1 performance: guide geometry is static for the duration of a drag.
+  // Measure it once instead of forcing layout reads on every pointermove.
+  for(const el of $$('.guide-piece.guide-compatible')){
+    if(el.dataset.shapeKey!==wantedShape) continue;
+    const targetPiece=piecesById.get(+el.dataset.guideId);
+    if(!targetPiece || placeholderOccupied(targetPiece,drag.id)) continue;
+    const r=el.getBoundingClientRect();
+    drag.guideTargetCache.push({
+      el,
+      targetPiece,
+      left:r.left,
+      top:r.top,
+      right:r.right,
+      bottom:r.bottom
+    });
+  }
+}
+
 function findGuideTargetForDrag(left, top){
   if(!state.hintInUse || !drag || state.hintSelectedId!==drag.id) return null;
 
-  const ghostW=drag.ghost.getBoundingClientRect().width;
-  const ghostH=drag.ghost.getBoundingClientRect().height;
+  const ghostW=drag.ghostW;
+  const ghostH=drag.ghostH;
   const gx1=left, gy1=top, gx2=left+ghostW, gy2=top+ghostH;
   const gArea=Math.max(1,ghostW*ghostH);
 
   let best=null;
   let bestScore=0;
-  const wantedShape=shapeKey(drag.p);
+  const targets=drag.guideTargetCache || [];
 
-  for(const el of $$('.guide-piece')){
-    if(!el.classList.contains('guide-compatible')) continue;
-    if(el.dataset.shapeKey!==wantedShape) continue;
-
-    const targetId=+el.dataset.guideId;
-    const targetPiece=state.pieces.find(x=>x.id===targetId);
-    if(!targetPiece) continue;
-    if(placeholderOccupied(targetPiece,drag.id)) continue;
-
-    const r=el.getBoundingClientRect();
-    const ix=Math.max(0,Math.min(gx2,r.right)-Math.max(gx1,r.left));
-    const iy=Math.max(0,Math.min(gy2,r.bottom)-Math.max(gy1,r.top));
+  for(const target of targets){
+    const ix=Math.max(0,Math.min(gx2,target.right)-Math.max(gx1,target.left));
+    const iy=Math.max(0,Math.min(gy2,target.bottom)-Math.max(gy1,target.top));
     const overlap=(ix*iy)/gArea;
 
     const gcx=(gx1+gx2)/2, gcy=(gy1+gy2)/2;
-    const centerInside=gcx>=r.left && gcx<=r.right && gcy>=r.top && gcy<=r.bottom;
+    const centerInside=gcx>=target.left && gcx<=target.right && gcy>=target.top && gcy<=target.bottom;
     const score=centerInside ? Math.max(.75,overlap) : overlap;
 
     if(score>bestScore && score>=.22){
       bestScore=score;
-      best={el,targetPiece};
+      best={el:target.el,targetPiece:target.targetPiece};
     }
   }
   return best;
@@ -1953,6 +1972,7 @@ function startDrag(e){
 
   source.style.visibility = 'hidden';
 
+  const bounds=pieceBounds(p);
   drag = {
     id,
     p,
@@ -1961,9 +1981,16 @@ function startDrag(e){
     oldPos,
     dx: (e.clientX - sourceRect.left) * (boardCell / sourceCell),
     dy: (e.clientY - sourceRect.top) * (boardCell / sourceCell),
+    ghostW:bounds.cols*boardCell,
+    ghostH:bounds.rows*boardCell,
     pointerId: e.pointerId,
     startClientX:e.clientX,
     startClientY:e.clientY,
+    lastClientX:e.clientX,
+    lastClientY:e.clientY,
+    rafId:0,
+    guideTargetCache:[],
+    hoverEl:null,
     wasHintCorrect
   };
 
@@ -1977,6 +2004,7 @@ function startDrag(e){
     state.hintBubbleDismissed=false;
     updateHintInstruction();
     activateCompatiblePieceGuides();
+    cacheGuideTargetsForDrag();
   }
   moveGhost(e);
   try{ source.setPointerCapture(e.pointerId); }catch(_){}
@@ -1987,16 +2015,18 @@ function startDrag(e){
   window.addEventListener('pointercancel', cancelDrag, {once:true});
 }
 
-function moveGhost(e){
+function renderDragFrame(){
   if(!drag) return;
-  e.preventDefault();
+  drag.rafId=0;
 
-  const left=e.clientX-drag.dx;
-  const top=e.clientY-drag.dy;
+  const clientX=drag.lastClientX;
+  const clientY=drag.lastClientY;
+  const left=clientX-drag.dx;
+  const top=clientY-drag.dy;
   drag.ghost.style.transform = `translate3d(${left}px,${top}px,0)`;
 
   if(state.hintInUse && state.hintSelectedId===drag.id && !state.hintBubbleDismissed){
-    const moved=Math.hypot(e.clientX-drag.startClientX,e.clientY-drag.startClientY);
+    const moved=Math.hypot(clientX-drag.startClientX,clientY-drag.startClientY);
     if(moved>=7){
       state.hintBubbleDismissed=true;
       updateHintInstruction();
@@ -2004,21 +2034,51 @@ function moveGhost(e){
   }
 
   if(!state.hintInUse || state.hintSelectedId!==drag.id){
-    clearGuideHover();
+    if(drag.hoverEl){
+      drag.hoverEl.classList.remove('guide-hover');
+      drag.hoverEl=null;
+    }
+    $('#boardWrap')?.classList.remove('guide-focus-active');
+    drag.guideTarget=null;
     return;
   }
 
-  clearGuideHover();
   const target=findGuideTargetForDrag(left,top);
-  if(target){
-    $('#boardWrap')?.classList.add('guide-focus-active');
-    target.el.classList.add('guide-hover');
-    drag.guideTarget=target.targetPiece;
+  const nextEl=target?.el || null;
+
+  // Only touch guide classes when the active destination actually changes.
+  if(nextEl!==drag.hoverEl){
+    if(drag.hoverEl) drag.hoverEl.classList.remove('guide-hover');
+    if(nextEl) nextEl.classList.add('guide-hover');
+    drag.hoverEl=nextEl;
+    $('#boardWrap')?.classList.toggle('guide-focus-active',!!nextEl);
   }
+  drag.guideTarget=target?.targetPiece || null;
+}
+
+function moveGhost(e){
+  if(!drag) return;
+  e.preventDefault();
+
+  // v1.24.1 performance: pointer events may arrive much faster than the display
+  // can paint. Keep only the newest position and render once per animation frame.
+  drag.lastClientX=e.clientX;
+  drag.lastClientY=e.clientY;
+  if(!drag.rafId) drag.rafId=requestAnimationFrame(renderDragFrame);
 }
 
 function endDrag(e){
   if(!drag) return;
+
+  // Flush the final pointer position before drop logic so the visual position and
+  // cached Hint destination always agree, even when pointerup lands between frames.
+  drag.lastClientX=e.clientX;
+  drag.lastClientY=e.clientY;
+  if(drag.rafId){
+    cancelAnimationFrame(drag.rafId);
+    drag.rafId=0;
+  }
+  renderDragFrame();
 
   const br = board.getBoundingClientRect();
   const cell = br.width / 9;
@@ -2108,6 +2168,9 @@ function cancelDrag(){
 function cleanupDrag(){
   window.removeEventListener('pointermove', moveGhost);
   document.body.classList.remove('hint-dragging-selected');
+  if(drag?.rafId) cancelAnimationFrame(drag.rafId);
+  if(drag?.hoverEl) drag.hoverEl.classList.remove('guide-hover');
+  $('#boardWrap')?.classList.remove('guide-focus-active');
   if(drag?.ghost) drag.ghost.remove();
   if(drag?.source) drag.source.style.visibility = '';
   drag = null;
