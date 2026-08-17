@@ -7578,3 +7578,191 @@ body.hint-dragging-selected > .piece.board-piece.drag-ghost .piece-cell{
     animation:sujiHintDestinationWash1218 1.25s linear infinite !important;
   }
 }
+
+/* === SuJi v1.23.0: adaptive portrait Rack + narrow-landscape fit fix === */
+
+/* Portrait gameplay can now grow vertically as needed so the Rack itself can
+   expand instead of forcing an inner scrollbar. Hint mode keeps its existing
+   focused single-screen geometry. */
+body.portrait-ui:not(.placement-hint-mode) .play-layout{
+  height:auto !important;
+  min-height:0 !important;
+  display:flex !important;
+  flex-direction:column;
+  gap:6px;
+  overflow:visible !important;
+}
+body.portrait-ui:not(.placement-hint-mode) .play-layout .board-section,
+body.portrait-ui:not(.placement-hint-mode) .play-layout .rack-section{
+  width:100%;
+  overflow:visible !important;
+}
+body.portrait-ui:not(.placement-hint-mode) .rack-section{
+  flex:0 0 auto;
+}
+body.portrait-ui .rack-shell{
+  transition:height .2s ease;
+}
+
+/* On narrow landscape screens (phones/tablets), remove legacy minimums that
+   could overflow the viewport and clip the Rack. Let both panels share the
+   width fluidly while preserving a square Board. */
+@media (orientation:landscape) and (max-width:1000px){
+  body.landscape-ui{
+    overflow-x:hidden !important;
+    overflow-y:auto !important;
+  }
+  body.landscape-ui .app{
+    width:100% !important;
+    max-width:none !important;
+    padding-left:6px;
+    padding-right:6px;
+  }
+  body.landscape-ui .play-layout{
+    height:auto !important;
+    min-height:0 !important;
+    grid-template-columns:minmax(0,1.14fr) minmax(0,.96fr) !important;
+    gap:10px !important;
+    align-items:start !important;
+  }
+  body.landscape-ui .board-section,
+  body.landscape-ui .rack-section{
+    min-width:0 !important;
+    overflow:hidden;
+  }
+  body.landscape-ui .board-wrap{
+    width:min(100%, calc(var(--landscape-play-height, 100dvh) - 54px)) !important;
+    max-width:100% !important;
+    max-height:none !important;
+    min-width:0 !important;
+    min-height:0 !important;
+    align-self:center;
+  }
+  body.landscape-ui .rack-shell{
+    min-height:0 !important;
+    width:100%;
+  }
+}
+
+@media (orientation:landscape) and (max-width:860px){
+  body.landscape-ui .play-layout{
+    grid-template-columns:minmax(0,1.08fr) minmax(0,.92fr) !important;
+    gap:8px !important;
+  }
+  body.landscape-ui .board-section,
+  body.landscape-ui .rack-section{
+    padding:8px;
+  }
+  body.landscape-ui .section-heading h2{
+    font-size:18px;
+  }
+}
+
+
+/* === SuJi v1.23.1: portrait Rack height correction ===
+   v1.23.0 introduced adaptive Rack sizing, but an older portrait rule forced
+   height:100% !important and could collapse the wooden tray to its borders.
+   The calculated height now owns the tray explicitly. */
+body.portrait-ui:not(.placement-hint-mode) .rack-section{
+  height:auto !important;
+  min-height:0 !important;
+  flex:0 0 auto !important;
+  overflow:visible !important;
+}
+body.portrait-ui:not(.placement-hint-mode) .rack-shell{
+  height:var(--portrait-rack-height, 180px) !important;
+  min-height:0 !important;
+  flex:0 0 auto !important;
+  overflow:hidden !important;
+}
+body.portrait-ui:not(.placement-hint-mode) .rack{
+  position:absolute;
+  inset:0;
+}
+
+/* === SuJi v1.23.2: readable adaptive portrait Rack ===
+   Height is now driven by app.js from a target readable piece-cell size.
+   Preserve smooth growth/shrink without changing the calculated geometry. */
+body.portrait-ui:not(.placement-hint-mode) .rack-shell{
+  transition:height .22s ease !important;
+}
+
+/* === SuJi v1.23.3: Board/Rack share portrait height ===
+   A crowded Rack now takes height from the Board. Both remain on one portrait
+   gameplay surface; as Rack pieces disappear the Board can grow back. */
+body.portrait-ui:not(.placement-hint-mode){
+  overflow:hidden !important;
+}
+body.portrait-ui:not(.placement-hint-mode) .app{
+  overflow:hidden !important;
+}
+body.portrait-ui:not(.placement-hint-mode) .play-layout{
+  height:var(--portrait-play-height, calc(100dvh - 132px)) !important;
+  min-height:0 !important;
+  display:grid !important;
+  grid-template-rows:auto minmax(0,1fr) !important;
+  gap:6px !important;
+  overflow:hidden !important;
+}
+body.portrait-ui:not(.placement-hint-mode) .board-section{
+  width:100% !important;
+  height:auto !important;
+  flex:0 0 auto !important;
+  overflow:hidden !important;
+}
+body.portrait-ui:not(.placement-hint-mode) .board-wrap{
+  width:var(--portrait-board-size, min(100%, 520px)) !important;
+  height:var(--portrait-board-size, auto) !important;
+  max-width:100% !important;
+  max-height:none !important;
+  flex:0 0 auto !important;
+}
+body.portrait-ui:not(.placement-hint-mode) .rack-section{
+  width:100% !important;
+  height:calc(var(--portrait-rack-height, 180px) + 12px) !important;
+  min-height:0 !important;
+  flex:0 0 auto !important;
+  overflow:hidden !important;
+}
+body.portrait-ui:not(.placement-hint-mode) .rack-shell{
+  height:var(--portrait-rack-height, 180px) !important;
+  min-height:0 !important;
+  flex:0 0 auto !important;
+  overflow:hidden !important;
+  transition:height .22s ease !important;
+}
+
+/* === SuJi v1.23.4: Rack panel follows tray + full-space piece distribution ===
+   The white Rack panel and wooden tray now share the same calculated portrait
+   geometry. This prevents the tray from overflowing a shorter white section. */
+body.portrait-ui:not(.placement-hint-mode) .play-layout{
+  grid-template-rows:
+    var(--portrait-board-section-height, auto)
+    var(--portrait-rack-section-height, 192px) !important;
+  align-content:start !important;
+}
+body.portrait-ui:not(.placement-hint-mode) .board-section{
+  height:var(--portrait-board-section-height, auto) !important;
+  min-height:0 !important;
+}
+body.portrait-ui:not(.placement-hint-mode) .rack-section{
+  height:var(--portrait-rack-section-height, 192px) !important;
+  min-height:var(--portrait-rack-section-height, 192px) !important;
+  box-sizing:border-box !important;
+  overflow:hidden !important;
+}
+body.portrait-ui:not(.placement-hint-mode) .rack-shell{
+  height:var(--portrait-rack-height, 180px) !important;
+  width:100% !important;
+  box-sizing:border-box !important;
+}
+
+
+/* === SuJi v1.23.7: dynamic Rack measurement synchronisation ===
+   Normal portrait Rack geometry is calculated and packed in one synchronous
+   pass. A height transition made getBoundingClientRect() report an intermediate
+   tray height, so pieces were sized for yesterday's/smaller Rack. Keep the
+   dynamic resize immediate; Hint-mode visuals remain untouched. */
+body.portrait-ui:not(.placement-hint-mode) .rack-shell{
+  transition:none !important;
+}

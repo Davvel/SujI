@@ -1,4 +1,4 @@
-# SuJi — Snapshot 1.22.0
+# SuJi — Snapshot 1.24.0
 
 > **Checkpoint naming from v1.20.0 onward:** the checkpoint number is the full semantic version itself (`Major.Minor.Patch`). Therefore this release is **Checkpoint 1.20.0**, not Checkpoint 19.
 
@@ -1301,3 +1301,90 @@ This release promotes the accepted v1.19.x refinement line to a new stable v1.20
 - PWA cache namespace updated to **v1.22.0**.
 - Package remains rooted directly at the ZIP root with no extra parent folder.
 
+
+
+## v1.23.0 — adaptive portrait Rack + landscape fit correction
+
+- Starting from **v1.22.0**, the portrait Rack now grows automatically when many shapes remain, up to a maximum height equal to the Board height.
+- As Rack shapes are used up, the Rack shrinks back down smoothly toward its normal compact height.
+- This adaptive Rack sizing applies only in **portrait** and avoids using an internal Rack scrollbar.
+- **Landscape** packing/layout math was relaxed for narrow screens so the Board/Rack pair no longer force oversized minimum widths that can clip the Rack on mobile landscape.
+- Visible application version updated to **1.23.0**.
+- PWA cache namespace updated to **v1.23.0**.
+
+
+## v1.23.2 — portrait Rack height correction
+
+- Fixes the portrait regression where the Rack could collapse into a thin wooden strip while leaving empty space below.
+- The JavaScript-calculated adaptive Rack height now overrides the legacy `height:100%` portrait rule correctly.
+- The Rack still grows only as required, never above the Board height, and shrinks again as shapes are removed.
+- Landscape corrections from v1.23.0 are retained.
+- Visible application version updated to **1.23.2** and PWA cache namespace updated accordingly.
+
+
+## v1.23.2 — readable adaptive portrait Rack
+
+- Corrects the remaining portrait Rack calculation from v1.23.1.
+- Rack growth now prioritizes a **readable piece size** based on the Board cell size, then calculates the minimum Rack height required to fit every remaining shape.
+- The Rack may grow up to the Board height when crowded and progressively shrinks as shapes leave the Rack.
+- Removed the feedback loop where the current Rack height influenced its own minimum-height calculation.
+- Landscape corrections from v1.23.x remain unchanged.
+- Visible application version and PWA cache namespace updated to **1.23.2**.
+
+
+## v1.23.3 — portrait Board/Rack shared-height rebalance
+
+- Portrait mode now treats Board and Rack as two consumers of the same visible gameplay height.
+- When many shapes remain, the Board automatically shrinks and the Rack grows using the recovered height.
+- The Rack is still capped so it never grows taller than the Board.
+- As shapes leave the Rack, the Rack contracts and the Board can grow back toward full width.
+- Rack packing now targets larger, more readable cells after the Rack has been given enough height.
+- Landscape behaviour remains separate and retains the v1.23.x narrow-landscape corrections.
+- Visible version and PWA cache namespace updated to **1.23.3**.
+
+
+## v1.23.4 — Rack panel sizing and full-space distribution
+
+- Portrait Rack white panel now grows to the same calculated height as the wooden Rack tray.
+- Fixes the v1.23.3 mismatch where the tray could visually overflow a shorter white Rack panel.
+- Rack shapes are no longer packed tightly into the top-left only; shelf rows are centred and distributed vertically across the available Rack area.
+- Board/Rack adaptive sharing from v1.23.3 remains in place.
+- Visible version and PWA cache namespace updated to **1.23.4**.
+
+
+## v1.23.5 — stronger crowded-Rack priority
+
+- Portrait Board minimum size is now dynamic according to the number of shapes remaining in the Rack.
+- When the Rack is heavily populated, the Board may shrink substantially more than in v1.23.4 so the Rack can claim more vertical space.
+- As the Rack empties, the Board progressively grows back toward its normal size.
+- Crowded Rack layouts also receive a small readability boost when choosing Rack piece size.
+- Landscape behaviour is unchanged from v1.23.4.
+- Visible application version updated to **1.23.5** and the PWA cache namespace to **v1.23.5**.
+
+
+## v1.23.6 — Rack-size-driven shape scaling
+
+- Portrait Rack shapes now scale from the **actual available Rack width and height**, rather than merely being spread farther apart when the Rack grows.
+- Added a denser two-dimensional Rack packing pass so enlarged Rack space can be converted into larger piece cells.
+- The packer searches for the largest cell size that genuinely fits every remaining Rack shape, then centres the packed result.
+- Removed the previous normal-portrait post-packing vertical distribution step, which could create large gaps while leaving the shapes unnecessarily small.
+- Board/Rack adaptive height sharing from v1.23.5 is retained.
+- Visible application version updated to **1.23.6** and the PWA cache namespace to **v1.23.6**.
+
+
+## v1.23.7 — dynamic Rack measurement synchronisation
+
+- Fixes portrait Rack piece sizing when the Rack changes height dynamically.
+- The packer now sizes against the resolved target Rack height and the actual inner `.rack` width after layout is committed, rather than reading an intermediate animated shell height.
+- Removed the normal-portrait Rack height transition that could make synchronous measurements stale.
+- Larger dynamic Rack dimensions now feed directly into the maximum piece-size calculation.
+- Visible version and PWA cache namespace updated to **1.23.7**.
+
+
+## v1.24.0 — protected Snapshot 24 baseline
+
+- Snapshot **1.24.0** freezes the accepted **v1.23.7** state as the new protected rollback baseline.
+- No gameplay, Rack sizing, Board sizing, portrait/landscape layout, Hint, Sudoku-conflict, PWA-install, drag-and-drop, pattern, or visual behaviour changed during this snapshot save.
+- The accepted dynamic portrait geometry from v1.23.7 is retained: Rack height is resolved first, the final inner Rack dimensions are then measured, and shapes are packed at the largest fitting size for that actual Rack area.
+- Visible application version updated to **1.24.0**.
+- PWA cache namespace updated to **v1.24.0**.
