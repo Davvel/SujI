@@ -1408,3 +1408,23 @@ This release promotes the accepted v1.19.x refinement line to a new stable v1.20
 - The moving ghost removes expensive drop-shadow, per-cell shadow, and soft-light blend decoration while preserving its shape, colours, picture and numbers.
 - Hint-mode Board greying is rendered as one inexpensive solid dimming layer during the gesture instead of grayscale/brightness filters across many Board elements. Hint destinations remain vivid and above the dimmer.
 - Visible application version and PWA cache namespace updated to **v1.24.2**.
+
+
+## v1.24.3 — normal-mode red landing target
+- Based directly on accepted v1.24.2.
+- When Hint Mode is OFF, dragging a shape over a valid Board placement highlights the exact destination cells in red.
+- The preview uses the same grid rounding as the actual drop logic, so it represents where the shape will lock if released.
+- If any target cell is outside the Board or occupied by another placed shape, no red landing preview is shown.
+- The preview uses a cached occupied-cell set and a small dedicated overlay to preserve the v1.24.x drag-performance improvements.
+- Hint Mode guidance and landing behavior are unchanged.
+- Visible version and PWA cache namespace updated to v1.24.3.
+
+
+## v1.24.4 — visible valid-drop light-red shadow
+
+- Fixed the normal-play landing preview that was invisible in v1.24.3 because the appended CSS contained literal escaped newline characters.
+- While Hint Mode is OFF, the exact Board cells that would receive the dragged shape if released now are filled with a translucent light red.
+- The preview is shown only when the complete shape is within the 9×9 Board and none of its target cells are occupied by another placed shape.
+- If the current release would be rejected and the shape would return to the Rack/previous position, no landing preview is displayed.
+- Existing v1.24.2 drag-performance optimisations remain in place.
+- Visible version and PWA cache namespace updated to v1.24.4.

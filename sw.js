@@ -1,4 +1,4 @@
-const CACHE_NAME = 'suji-v1-24-2';
+const CACHE_NAME = 'suji-v1-24-4';
 const PRECACHE = [
   "./index.html",
   "./README.md",

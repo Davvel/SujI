@@ -1991,6 +1991,15 @@ function startDrag(e){
     rafId:0,
     guideTargetCache:[],
     hoverEl:null,
+    landingPreview:null,
+    landingKey:'',
+    occupiedCells:new Set(
+      [...state.placed].flatMap(([placedId,pos])=>{
+        if(placedId===id) return [];
+        const placedPiece=state.pieces.find(piece=>piece.id===placedId);
+        return placedPiece ? placedPiece.cells.map(([dr,dc])=>`${pos.r+dr}:${pos.c+dc}`) : [];
+      })
+    ),
     wasHintCorrect
   };
 
@@ -2020,6 +2029,56 @@ function startDrag(e){
   window.addEventListener('pointercancel', cancelDrag, {once:true});
 }
 
+function clearLandingPreview(){
+  if(!drag) return;
+  if(drag.landingPreview){
+    drag.landingPreview.remove();
+    drag.landingPreview=null;
+  }
+  drag.landingKey='';
+}
+
+function updateLandingPreview(r,c,cell){
+  // v1.24.4: normal-play landing preview only. Hint Mode owns its own guidance.
+  if(!drag || state.hintArmed || state.hintInUse){
+    clearLandingPreview();
+    return;
+  }
+
+  const occupied=drag.occupiedCells || new Set();
+  const targetCells=[];
+  for(const [dr,dc] of drag.p.cells){
+    const rr=r+dr, cc=c+dc;
+    if(rr<0 || rr>8 || cc<0 || cc>8 || occupied.has(`${rr}:${cc}`)){
+      clearLandingPreview();
+      return;
+    }
+    targetCells.push([rr,cc]);
+  }
+
+  const key=targetCells.map(([rr,cc])=>`${rr}:${cc}`).join('|');
+  if(key===drag.landingKey) return;
+  drag.landingKey=key;
+
+  let overlay=drag.landingPreview;
+  if(!overlay){
+    overlay=document.createElement('div');
+    overlay.className='normal-landing-preview';
+    $('#boardWrap')?.appendChild(overlay);
+    drag.landingPreview=overlay;
+  }
+  overlay.replaceChildren();
+  for(const [rr,cc] of targetCells){
+    const tile=document.createElement('span');
+    tile.className='normal-landing-preview-cell';
+    tile.style.left=`${cc*cell}px`;
+    tile.style.top=`${rr*cell}px`;
+    tile.style.width=`${cell}px`;
+    tile.style.height=`${cell}px`;
+    overlay.appendChild(tile);
+  }
+}
+
 function renderDragFrame(){
   if(!drag) return;
   drag.rafId=0;
@@ -2029,6 +2088,18 @@ function renderDragFrame(){
   const left=clientX-drag.dx;
   const top=clientY-drag.dy;
   drag.ghost.style.transform = `translate3d(${left}px,${top}px,0)`;
+
+  // Match the exact grid rounding used by drop logic, so the highlighted red
+  // cells are precisely where this shape would lock if released now.
+  if(!state.hintArmed && !state.hintInUse){
+    const br=board.getBoundingClientRect();
+    const cell=br.width/9;
+    const c=Math.round((left-br.left)/cell);
+    const r=Math.round((top-br.top)/cell);
+    updateLandingPreview(r,c,cell);
+  } else {
+    clearLandingPreview();
+  }
 
   if(state.hintInUse && state.hintSelectedId===drag.id && !state.hintBubbleDismissed){
     const moved=Math.hypot(clientX-drag.startClientX,clientY-drag.startClientY);
@@ -2174,6 +2245,7 @@ function cleanupDrag(){
   document.body.classList.remove('hint-dragging-selected');
   document.body.classList.remove('suji-drag-active');
   if(drag?.rafId) cancelAnimationFrame(drag.rafId);
+  clearLandingPreview();
   if(drag?.hoverEl) drag.hoverEl.classList.remove('guide-hover');
   $('#boardWrap')?.classList.remove('guide-focus-active');
   if(drag?.ghost) drag.ghost.remove();
