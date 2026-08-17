@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="SuJi">
-  <title>SuJi — Checkpoint #19 v19.0.0</title>
+  <title>SuJi — Checkpoint 1.21.0</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/icon-192.png">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -23,7 +23,7 @@
       </div>
       <div>
         <h1>SuJi</h1>
-        <p>Version 19.0.0</p>
+        <p>Version 1.21.0</p>
       </div>
     </div>
     <button id="helpBtn" class="icon-btn settings-btn" title="Settings" aria-label="Settings">⚙</button>
@@ -54,7 +54,7 @@
       <section class="board-section">
         <div class="section-heading board-section-heading">
           <div class="board-title-block">
-            <h2>Board</h2>
+            <h2>SuJi Board</h2>
           </div>
           <div id="conflictAlert" class="conflict-alert" role="status" aria-live="assertive" hidden>
             <span class="conflict-alert-icon conflict-warning-icon" aria-hidden="true">
@@ -72,6 +72,7 @@
               <span class="placement-hint-icon" aria-hidden="true">💡</span>
               <span id="placementHintCount" class="placement-hint-count">5</span>
             </button>
+            <div id="hintCancelLabel" class="hint-cancel-label" role="status" aria-live="polite" hidden>Cancel</div>
             <div id="hintInstruction" class="hint-instruction" role="status" aria-live="polite" hidden>
               <span class="hint-instruction-icon" aria-hidden="true">💡</span>
               <span id="hintInstructionText">Tap a shape to reveal where it belongs.</span>

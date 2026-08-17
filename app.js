@@ -215,8 +215,7 @@ function updateConflictBubble(rule){
   const text=$('#conflictBubbleText');
   const wrap=$('#boardWrap');
   if(!bubble || !text || !wrap) return;
-
-  if(!rule || !RULE_COPY[rule.type]){
+  if(!rule || !RULE_COPY[rule.type] || !rule.cells?.length){
     bubble.hidden=true;
     bubble.dataset.conflictIdentity='';
     text.textContent='';
@@ -228,38 +227,85 @@ function updateConflictBubble(rule){
   bubble.hidden=false;
   bubble.dataset.conflictIdentity=identity;
 
-  // Prefer the piece that caused this conflict. If ownership is unavailable,
-  // anchor to an uncertain/movable participant before falling back to any cell.
+  // v1.20.0: pin the Sudoku message to one of the visibly jiggling culprit
+  // shapes. Prefer the shape recorded as causing the conflict, then any other
+  // currently shaking participant. Never choose a remote Board corner merely
+  // because it has more empty space.
   const ownerId=state.conflictShakeOwners.get(identity);
-  const targetInfo=rule.cells.find(x=>x.id===ownerId)
-    || rule.cells.find(x=>!pieceIsConflictShakeProtected(x.id))
-    || rule.cells[rule.cells.length-1];
-  const target=findConflictCellElement(targetInfo);
-  if(!target) return;
+  const candidateIds=[];
+  if(ownerId!=null) candidateIds.push(ownerId);
+  for(const cell of rule.cells){
+    if(state.conflictShakePieceIds.has(cell.id) && !candidateIds.includes(cell.id)) candidateIds.push(cell.id);
+  }
+  for(const cell of rule.cells){
+    if(!candidateIds.includes(cell.id)) candidateIds.push(cell.id);
+  }
+
+  let anchorElement=null;
+  for(const id of candidateIds){
+    const el=wrap.querySelector(`.piece.board-piece[data-id="${id}"]`);
+    if(el){ anchorElement=el; break; }
+  }
+  if(!anchorElement){
+    const targetInfo=rule.cells.find(x=>x.id===ownerId) || rule.cells[rule.cells.length-1];
+    const target=findConflictCellElement(targetInfo);
+    anchorElement=target?.closest('.piece') || target;
+  }
+  if(!anchorElement) return;
 
   requestAnimationFrame(()=>{
     if(bubble.hidden || bubble.dataset.conflictIdentity!==identity) return;
     const wrapRect=wrap.getBoundingClientRect();
-    const targetRect=target.getBoundingClientRect();
+    const anchorRect=anchorElement.getBoundingClientRect();
     const bubbleRect=bubble.getBoundingClientRect();
-    const gap=12;
+    const gap=7;
     const pad=6;
-    const centerX=targetRect.left-wrapRect.left+(targetRect.width/2);
-    let left=centerX-(bubbleRect.width/2);
-    left=Math.max(pad,Math.min(left,wrapRect.width-bubbleRect.width-pad));
+    const rel={
+      left:anchorRect.left-wrapRect.left,
+      top:anchorRect.top-wrapRect.top,
+      right:anchorRect.right-wrapRect.left,
+      bottom:anchorRect.bottom-wrapRect.top
+    };
+    const clampX=x=>Math.max(pad,Math.min(x,wrapRect.width-bubbleRect.width-pad));
+    const clampY=y=>Math.max(pad,Math.min(y,wrapRect.height-bubbleRect.height-pad));
 
-    const roomAbove=targetRect.top-wrapRect.top;
-    const roomBelow=wrapRect.bottom-targetRect.bottom;
-    const placeAbove=roomAbove>=bubbleRect.height+gap || roomAbove>=roomBelow;
-    let top=placeAbove
-      ? targetRect.top-wrapRect.top-bubbleRect.height-gap
-      : targetRect.bottom-wrapRect.top+gap;
-    top=Math.max(pad,Math.min(top,wrapRect.height-bubbleRect.height-pad));
+    // Only near-shape positions are considered. Above/below are preferred,
+    // then the nearest side. Slight overlap with unrelated pieces is preferable
+    // to detaching the message from the culprit.
+    const candidates=[
+      {side:'above', left:clampX(rel.left+(anchorRect.width-bubbleRect.width)/2), top:clampY(rel.top-bubbleRect.height-gap), pref:0},
+      {side:'below', left:clampX(rel.left+(anchorRect.width-bubbleRect.width)/2), top:clampY(rel.bottom+gap), pref:5},
+      {side:'left',  left:clampX(rel.left-bubbleRect.width-gap), top:clampY(rel.top+(anchorRect.height-bubbleRect.height)/2), pref:11},
+      {side:'right', left:clampX(rel.right+gap), top:clampY(rel.top+(anchorRect.height-bubbleRect.height)/2), pref:11}
+    ];
 
-    bubble.style.left=`${left}px`;
-    bubble.style.top=`${top}px`;
-    bubble.classList.toggle('conflict-bubble-below-target',placeAbove);
-    bubble.classList.toggle('conflict-bubble-above-target',!placeAbove);
+    const overlapArea=(a,b)=>Math.max(0,Math.min(a.right,b.right)-Math.max(a.left,b.left))*Math.max(0,Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top));
+    const anchorBox={left:rel.left,top:rel.top,right:rel.right,bottom:rel.bottom};
+    const pieces=[...wrap.querySelectorAll('.piece.board-piece')].map(el=>{
+      const r=el.getBoundingClientRect();
+      return {el,left:r.left-wrapRect.left,top:r.top-wrapRect.top,right:r.right-wrapRect.left,bottom:r.bottom-wrapRect.top};
+    });
+
+    let best=candidates[0], bestScore=Infinity;
+    for(const c of candidates){
+      const b={left:c.left,top:c.top,right:c.left+bubbleRect.width,bottom:c.top+bubbleRect.height};
+      let score=c.pref;
+      // Never cover the actual jiggling culprit if there is another nearby option.
+      score += overlapArea(b,anchorBox)*100;
+      // Avoid other pieces where practical, but closeness remains more important.
+      for(const pr of pieces){
+        if(pr.el===anchorElement) continue;
+        score += overlapArea(b,pr)*0.35;
+      }
+      const bx=c.left+bubbleRect.width/2, by=c.top+bubbleRect.height/2;
+      const ax=rel.left+anchorRect.width/2, ay=rel.top+anchorRect.height/2;
+      score += Math.hypot(bx-ax,by-ay)*0.01;
+      if(score<bestScore){bestScore=score;best=c;}
+    }
+
+    bubble.style.left=`${Math.round(best.left)}px`;
+    bubble.style.top=`${Math.round(best.top)}px`;
+    bubble.classList.remove('conflict-bubble-below-target','conflict-bubble-above-target');
   });
 }
 
@@ -350,34 +396,32 @@ function placeHintBubbleNearSelectedPiece(box){
   box.style.top='0px';
   const pr=piece.getBoundingClientRect();
   const margin=10;
+  const gap=12;
   const br=box.getBoundingClientRect();
-
-  // Bubble direction follows available screen space. A shape near the right edge
-  // makes the bubble open to the left, with its pointer on the bubble's right.
-  const roomRight=window.innerWidth-pr.right-margin;
-  const roomLeft=pr.left-margin;
-  const openLeft=(roomRight < br.width*0.72 && roomLeft > roomRight) || pr.right > window.innerWidth*0.72;
-  let left;
-  if(openLeft){
-    left=pr.right-br.width-Math.max(6,Math.min(pr.width*0.35,pr.width-8));
-    box.classList.add('hint-anchor-right');
-  } else {
-    left=pr.left+Math.max(6,Math.min(pr.width*0.55,pr.width-8));
+  const clampX=x=>Math.max(margin,Math.min(x,window.innerWidth-br.width-margin));
+  const clampY=y=>Math.max(margin,Math.min(y,window.innerHeight-br.height-margin));
+  const candidates=[
+    {left:pr.right+gap,top:pr.top+(pr.height-br.height)/2,side:'right'},
+    {left:pr.left-br.width-gap,top:pr.top+(pr.height-br.height)/2,side:'left'},
+    {left:pr.left+(pr.width-br.width)/2,top:pr.top-br.height-gap,side:'above'},
+    {left:pr.left+(pr.width-br.width)/2,top:pr.bottom+gap,side:'below'}
+  ].map(c=>({...c,left:clampX(c.left),top:clampY(c.top)}));
+  const overlapArea=(a,b)=>Math.max(0,Math.min(a.right,b.right)-Math.max(a.left,b.left))*Math.max(0,Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top));
+  let best=candidates[0],bestScore=Infinity;
+  for(const c of candidates){
+    const r={left:c.left,top:c.top,right:c.left+br.width,bottom:c.top+br.height};
+    // Covering the selected shape is overwhelmingly worse than being slightly farther away.
+    const overlap=overlapArea(r,pr);
+    const cx=c.left+br.width/2,cy=c.top+br.height/2;
+    const px=pr.left+pr.width/2,py=pr.top+pr.height/2;
+    const score=overlap*100+Math.hypot(cx-px,cy-py)*0.02;
+    if(score<bestScore){bestScore=score;best=c;}
   }
-  left=Math.max(margin,Math.min(left,window.innerWidth-br.width-margin));
-
-  let top=pr.top-br.height-14;
-  if(top < margin){
-    top=Math.min(window.innerHeight-br.height-margin,pr.bottom+14);
-    box.classList.add('hint-below-piece');
-  }
-  // The Hint instruction element lives inside the Board heading, whose normal
-  // edge-aware CSS uses !important positioning.  When following a selected Rack
-  // shape, explicitly override those heading coordinates so the speech bubble is
-  // physically anchored beside the selected shape itself.
-  box.style.setProperty('left',`${Math.round(left)}px`,'important');
+  if(best.side==='left') box.classList.add('hint-anchor-right');
+  if(best.side==='below') box.classList.add('hint-below-piece');
+  box.style.setProperty('left',`${Math.round(best.left)}px`,'important');
   box.style.setProperty('right','auto','important');
-  box.style.setProperty('top',`${Math.round(top)}px`,'important');
+  box.style.setProperty('top',`${Math.round(best.top)}px`,'important');
   box.style.setProperty('bottom','auto','important');
   return true;
 }
@@ -406,24 +450,29 @@ function setHintModeClass(){
 function updateHintInstruction(){
   const box=$('#hintInstruction');
   const text=$('#hintInstructionText');
+  const cancel=$('#hintCancelLabel');
   if(!box || !text) return;
   const active=state.hintArmed || state.hintInUse;
-  box.hidden=!active;
+  if(cancel) cancel.hidden=true;
+  box.hidden=true;
   box.classList.remove('hint-follow-piece','hint-below-piece','hint-anchor-right');
   box.style.removeProperty('left');
   box.style.removeProperty('right');
   box.style.removeProperty('top');
   box.style.removeProperty('bottom');
   if(!active) return;
+
+  // v1.19.7: the Hint bulb itself is the cancel affordance. Keep the UI clean
+  // and explain inside the first-step popup that tapping the bulb again cancels
+  // without spending a hint. The Board remains dimmed while the Rack stays live.
   if(state.hintArmed){
-    text.textContent='Tap a shape from the Rack Area to Reveal where it can fit.';
+    text.textContent='Tap a shape from the Rack Area to reveal where it can fit. Tap the Hint bulb again to cancel. No hint is used until a shape is selected.';
+    box.hidden=false;
     return;
   }
-  text.textContent='Drag the selected Shape onto the board.';
-  if(state.hintBubbleDismissed){
-    box.hidden=true;
-    return;
-  }
+
+  text.textContent='Drag the selected shape onto the board.';
+  if(state.hintBubbleDismissed) return;
   box.hidden=false;
   if(!placeHintBubbleNearSelectedPiece(box)){
     box.classList.remove('hint-follow-piece','hint-below-piece','hint-anchor-right');
@@ -764,12 +813,35 @@ function paintRuleRegion(rule){
 
 
 function updateResponsiveLayout(){
-  const landscape = window.innerWidth >= 760 && window.innerWidth > window.innerHeight;
+  const viewportWidth=window.visualViewport?.width || window.innerWidth;
+  const viewportHeight=window.visualViewport?.height || window.innerHeight;
+  const landscape = viewportWidth >= 760 && viewportWidth > viewportHeight;
   document.body.classList.toggle('landscape-ui', landscape);
   document.body.classList.toggle('portrait-ui', !landscape);
+
+  const topbar=document.querySelector('.topbar');
+  if(topbar){
+    document.documentElement.style.setProperty('--suji-topbar-h', `${Math.ceil(topbar.getBoundingClientRect().height)}px`);
+  }
+
   updateHintControlLocation();
   updatePlacementHintLocation(landscape);
   updatePortraitPlayHeight(landscape);
+  updateLandscapePlayHeight(landscape);
+}
+
+function updateLandscapePlayHeight(landscape){
+  const play=document.querySelector('.play-layout');
+  if(!play) return;
+  if(!landscape){
+    play.style.removeProperty('--landscape-play-height');
+    return;
+  }
+  const visualHeight=window.visualViewport?.height || window.innerHeight;
+  const top=play.getBoundingClientRect().top;
+  const safeBottom=6;
+  const available=Math.max(230, Math.floor(visualHeight-top-safeBottom));
+  play.style.setProperty('--landscape-play-height', `${available}px`);
 }
 
 function updatePlacementHintLocation(landscape){
@@ -877,6 +949,85 @@ function placeholderOccupied(targetPiece, ignoreId=null){
   return false;
 }
 
+function getBlockingPieceIds(targetPiece, ignoreId=null){
+  const targetCells = new Set(
+    targetPiece.cells.map(([dr,dc])=>`${targetPiece.home.r+dr}:${targetPiece.home.c+dc}`)
+  );
+  const blockers=new Set();
+
+  for(const [id,pos] of state.placed){
+    if(id===ignoreId) continue;
+    const p=state.pieces.find(x=>x.id===id);
+    if(!p) continue;
+    for(const [dr,dc] of p.cells){
+      if(targetCells.has(`${pos.r+dr}:${pos.c+dc}`)){
+        blockers.add(id);
+        break;
+      }
+    }
+  }
+  return blockers;
+}
+
+function blockerNeedsMoving(id){
+  if(state.anchors.has(id)) return false;
+  const p=state.pieces.find(x=>x.id===id);
+  const pos=state.placed.get(id);
+  if(!p || !pos) return false;
+  // Any piece already sitting in its own canonical home is treated as correct and
+  // should never be suggested as an obstruction to move away.
+  return !(pos.r===p.home.r && pos.c===p.home.c);
+}
+
+function suppressBlockedHintDestination(blockingIds){
+  if(!blockingIds || blockingIds.size===0) return false;
+  // Hide the blocked candidate only when there is nothing useful for the player
+  // to move: every blocker is either locked or already correctly placed.
+  return ![...blockingIds].some(blockerNeedsMoving);
+}
+
+function clearHintBlockerEmphasis(){
+  $$('.piece.board-piece.hint-blocker-move').forEach(el=>el.classList.remove('hint-blocker-move'));
+}
+
+function emphasizeMovableBlockers(blockingIds){
+  if(!blockingIds) return;
+  for(const id of blockingIds){
+    if(!blockerNeedsMoving(id)) continue;
+    $$(`.piece.board-piece[data-id="${id}"]`).forEach(el=>el.classList.add('hint-blocker-move'));
+  }
+}
+
+function clearBlockedHintOverlays(){
+  $$('.hint-blocked-shape-overlay').forEach(el=>el.remove());
+}
+
+function addBlockedHintOverlay(targetPiece){
+  const wrap=$('#boardWrap');
+  if(!wrap || !targetPiece) return;
+  const br=board.getBoundingClientRect();
+  const wr=wrap.getBoundingClientRect();
+  const cell=br.width/9;
+  const overlay=document.createElement('div');
+  overlay.className='hint-blocked-shape-overlay';
+  overlay.dataset.guideId=targetPiece.id;
+  overlay.style.left=(br.left-wr.left + targetPiece.home.c*cell)+'px';
+  overlay.style.top=(br.top-wr.top + targetPiece.home.r*cell)+'px';
+  const b=pieceBounds(targetPiece);
+  overlay.style.width=(b.cols*cell)+'px';
+  overlay.style.height=(b.rows*cell)+'px';
+  for(const [dr,dc] of targetPiece.cells){
+    const tile=document.createElement('span');
+    tile.className='hint-blocked-shape-tile';
+    tile.style.left=(dc*cell)+'px';
+    tile.style.top=(dr*cell)+'px';
+    tile.style.width=cell+'px';
+    tile.style.height=cell+'px';
+    overlay.appendChild(tile);
+  }
+  wrap.appendChild(overlay);
+}
+
 function clearGuideHover(){
   $$('.guide-piece.guide-hover').forEach(g=>g.classList.remove('guide-hover'));
   $('#boardWrap')?.classList.remove('guide-focus-active');
@@ -889,6 +1040,8 @@ function clearGuideHover(){
 // Pieces Guide is ON. Guides OFF continues to use unrestricted geometric placement.
 function activateCompatiblePieceGuides(){
   $('#boardWrap')?.classList.remove('guide-focus-active');
+  clearHintBlockerEmphasis();
+  clearBlockedHintOverlays();
   const selectedPiece=state.pieces.find(x=>x.id===state.hintSelectedId);
   const wantedShape=selectedPiece ? shapeKey(selectedPiece) : null;
   $$('.guide-piece').forEach(el=>{
@@ -903,12 +1056,20 @@ function activateCompatiblePieceGuides(){
     // another board shape is currently covering it. Occupied homes are visibly
     // marked but remain unavailable for snap until the blocking shape is moved.
     const occupied=placeholderOccupied(targetPiece,state.hintSelectedId);
+    if(occupied){
+      const blockingIds=getBlockingPieceIds(targetPiece,state.hintSelectedId);
+      if(suppressBlockedHintDestination(blockingIds)) return;
+      emphasizeMovableBlockers(blockingIds);
+      addBlockedHintOverlay(targetPiece);
+    }
     el.classList.add('guide-compatible','hint-destination');
     if(occupied) el.classList.add('hint-occupied-destination');
   });
 }
 
 function clearCompatiblePieceGuides(){
+  clearHintBlockerEmphasis();
+  clearBlockedHintOverlays();
   $$('.guide-piece.guide-compatible, .guide-piece.guide-hover, .guide-piece.hint-destination, .guide-piece.hint-occupied-destination').forEach(el=>{
     el.classList.remove('guide-compatible','guide-hover','hint-destination','hint-occupied-destination');
   });
@@ -1540,30 +1701,26 @@ function endDrag(e){
     return;
   }
 
-  // Hint Mode is deliberately strict: once a destination has visibly locked
-  // (purple guide-hover), that locked placeholder becomes authoritative for the drop.
-  // Do NOT re-test the pointer-derived row/column on pointerup: the mouse/finger may
-  // drift slightly after lock-on. Releasing while the target is still locked commits
-  // the piece to the exact highlighted home position, subject only to the normal fit check.
+  // v1.19.3 Hint flow: after a Rack shape is selected the hint is consumed, but
+  // guidance remains active until the selected shape is released on a highlighted
+  // compatible destination. Dropping it elsewhere on the Board simply returns it
+  // to the Rack so the same revealed Hint can be tried again.
+  let hintCompleted=false;
   if(state.hintInUse && state.hintSelectedId===drag.id){
     const target=drag.guideTarget;
     if(target && fits(drag.p,target.home.r,target.home.c,drag.id)){
       state.placed.set(drag.id,{r:target.home.r,c:target.home.c});
-      // Only the piece's OWN true home placeholder proves correctness. A same-shape
-      // placeholder belonging to another piece is merely geometrically compatible and
-      // must remain uncertain; otherwise a wrong 2x2-on-2x2 placement could be wrongly
-      // protected from Sudoku-error shaking.
-      if(target.id===drag.id){
-        state.hintCorrectPieces.add(drag.id);
-      } else {
-        state.hintCorrectPieces.delete(drag.id);
-      }
+      if(target.id===drag.id) state.hintCorrectPieces.add(drag.id);
+      else state.hintCorrectPieces.delete(drag.id);
       state.lastDroppedId=drag.id;
       state.manualMoves++;
+      hintCompleted=true;
     } else if(drag.oldPos){
       state.placed.set(drag.id,drag.oldPos);
       if(drag.wasHintCorrect) state.hintCorrectPieces.add(drag.id);
     }
+    // With no old Board position and no highlighted destination, leaving the
+    // piece unplaced makes renderAll() put it back in the Rack automatically.
   } else if(fits(drag.p, r, c, drag.id)){
     // Outside Hint Mode, normal free geometric placement remains unchanged.
     state.placed.set(drag.id,{r,c});
@@ -1577,7 +1734,14 @@ function endDrag(e){
   const usedHint=state.hintInUse && state.hintSelectedId===drag.id;
   clearCompatiblePieceGuides();
   cleanupDrag();
-  if(usedHint) finishPlacementHint();
+  if(usedHint && hintCompleted){
+    finishPlacementHint();
+  } else if(usedHint){
+    renderGuides();
+    activateCompatiblePieceGuides();
+    setHintModeClass();
+    updateHintInstruction();
+  }
   renderAll(false);
 }
 

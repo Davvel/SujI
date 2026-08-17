@@ -1,4 +1,7 @@
-# SuJi — Checkpoint #19 v19.0.0
+# SuJi — Checkpoint 1.20.0
+
+> **Checkpoint naming from v1.20.0 onward:** the checkpoint number is the full semantic version itself (`Major.Minor.Patch`). Therefore this release is **Checkpoint 1.20.0**, not Checkpoint 19.
+
 
 ## v17.0.4 — Edge-aware Hint speech bubbles
 
@@ -1123,3 +1126,111 @@ Checkpoint 18 starts directly from the accepted Checkpoint 17 v17.0.6 state and 
 - Visible application version updated to 19.0.0.
 - PWA cache namespace updated to v19.0.0.
 - Treat this exact package as the protected rollback baseline for all future Checkpoint 19 development.
+
+
+## v1.19.3 — Hint focus-flow refinement
+
+Built from the protected Checkpoint 19 v19.0.0 baseline and includes the accumulated 1.19.1–1.19.3 refinements:
+
+- Board heading renamed to **SuJi Board**.
+- Sudoku conflict balloon no longer has a pointer and now chooses a nearby position that minimises overlap with Board shapes/numbers.
+- Central SuJi watermark is subtly smile-like while remaining faint and recognisably the same mark.
+- On first pressing Hint, a small **Cancel** label appears under the bulb; the Board is colour-preservingly dimmed while the Rack stays fully visible.
+- Selecting a Rack shape consumes the Hint and removes **Cancel**. The Board returns to normal brightness; the Rack dims while the selected shape stays bright.
+- If the hinted shape is dropped anywhere on the Board except a highlighted compatible destination, it returns to the Rack and Hint Mode remains active for another try.
+- Releasing on the highlighted destination completes the Hint, exits Hint Mode, and restores the Rack.
+- Selected-shape instruction bubbles continue to avoid covering the selected Rack shape.
+- PWA cache namespace updated for v1.19.3.
+
+
+## v1.19.4 — Conflict balloon cleanup
+- Removed the remaining decorative diamond/tail from the local Sudoku conflict balloon.
+
+## v1.19.5 — Hint first-step message fix
+- Clicking Hint now immediately shows: “Tap a shape from the Rack Area to Reveal where it can fit.”
+- The existing Cancel label, Board colour-preserving dimming, and Rack-selection flow remain unchanged.
+- Repaired escaped CSS append blocks so the accumulated Checkpoint 17 / v1.19.x UI rules parse normally.
+- No package created for this working revision.
+
+
+## v1.19.8 — Hint polish and conflict-bubble proximity
+
+- Removed the visible `Cancel` label beside the Hint bulb.
+- First-step Hint guidance now explains that tapping the Hint bulb again cancels without consuming a hint.
+- After selecting a Rack shape in Hint Mode, the Rack dims clearly except for the selected shape.
+- Hint destination placeholders on the Board are stronger and use a clearer red outline.
+- Sudoku conflict messages now prefer a closer placement above the offending shape cluster when space allows.
+- Visible application version updated to 1.19.8.
+- PWA cache namespace updated to v1.19.8.
+
+## v1.20.0 — Stable Hint and Sudoku conflict UX baseline
+
+This release promotes the accepted v1.19.x refinement line to a new stable v1.20.0 baseline.
+
+- Retains the v1.19.9 Hint refinements, including stronger Step-1 Board gray-out and brighter warm silver/yellow Hint destination placeholders with clear red outlines.
+- Sudoku conflict messages are now anchored as close as practical to one of the visibly jiggling culprit shapes.
+- Prefer the shape that caused the conflict; otherwise use another jiggling participant.
+- Message placement considers only nearby positions (above, below, left, right) and no longer drifts to a remote Board corner simply to avoid overlap.
+- Above/below are preferred, with side placement used as a fallback.
+- Visible application version updated to 1.20.0.
+- PWA cache namespace updated to v1.20.0.
+
+
+## v1.20.1 — Google Pixel / short mobile landscape fit
+
+- Fixed landscape mode on short phone viewports such as Google Pixel-class devices.
+- Removed the old desktop landscape minimum Board size on phone-height landscape screens.
+- Board and Rack now fit side-by-side inside the actual visual viewport without the lower game area being cropped.
+- Landscape chrome is compacted only on short-height devices; normal desktop/tablet landscape and portrait behaviour are preserved.
+- Responsive sizing now uses `visualViewport` when available, so browser/PWA UI bars are accounted for more accurately.
+- Visible application version updated to 1.20.1.
+- PWA cache namespace updated to v1.20.1.
+
+## v1.20.5 — stronger blocked Hint destination cue
+
+- Continued from v1.20.4, keeping the simple FREE vs BLOCKED destination distinction.
+- BLOCKED Hint destinations are now much more visible, using a stronger pale-blue filled ghost with bolder dotted borders and diagonal obstruction hatching.
+- Added a compact non-verbal move-away cue badge on blocked destinations so the player can immediately read “something is in the way” without words.
+- FREE destinations still pulse yellow ↔ silver as before.
+- No Hint logic, drag/drop, or blocker-piece behaviour changed.
+- Visible application version updated to 1.20.5.
+- PWA cache namespace updated to v1.20.5.
+
+## v1.20.6 — clearer blocked destinations, less fill, smarter suppression
+
+- BLOCKED Hint destinations now preserve the underlying numbers much better by using only a very light translucent fill.
+- Added a thicker animated “marching ants” border around blocked destinations so the obstruction reads clearly without covering the board content.
+- Removed the previous blocked-destination move badge.
+- BLOCKED markers are now suppressed when the destination is occupied by a locked starting shape or by a shape that is already sitting in its own correct home, because those are not pieces the player needs to move for the selected Hint.
+- FREE destinations continue to pulse yellow ↔ silver.
+- Visible application version updated to 1.20.6.
+- PWA cache namespace updated to v1.20.6.
+
+## v1.20.8 — visible blocked silhouettes + blocker jiggle
+
+- BLOCKED Hint destinations are now rendered above ordinary Board pieces as a transparent cyan marching-ants outline, so the destination cannot disappear underneath its blocker.
+- The actual Board shape that is preventing the destination from being used gently jiggles and gets a cyan/amber edge while keeping its original colours and numbers readable.
+- Only movable/misplaced blockers are emphasised. Locked starting pieces and pieces already sitting in their own correct home do not receive a blocked cue.
+- Valid free destinations remain distinct, and the active drag lock-on target is forced above Board pieces with a strong red fill/glow.
+- Visible application version updated to 1.20.8.
+- PWA cache namespace updated to v1.20.8.
+
+## v1.20.9 — dedicated blocked-shape silhouette
+
+- Blocked Hint destinations now use a separate high-z-index Board overlay instead of relying on the legacy guide cells.
+- The entire selected silhouette (for example a T shape) is drawn over the blocking piece with bright cyan dashed cells plus animated amber marching accents.
+- The interior remains almost transparent so the blocking shape numbers remain visible.
+- Movable blockers continue to jiggle and now use a stronger amber/cyan edge.
+- Locked/correct-home blockers remain excluded from the move-away cue.
+- Valid free destinations and the red lock-on target remain unchanged.
+- Visible application version updated to 1.20.9.
+- PWA cache namespace updated to v1.20.9.
+
+## v1.21.0 — new protected checkpoint baseline
+
+- This version marks the accepted state after the successful blocked-destination silhouette fix.
+- Checkpoint **1.21.0** is now the new protected baseline.
+- It is created directly from the accepted **v1.20.9** state, with no further gameplay or UX changes beyond version/checkpoint promotion.
+- Visible application version updated to **1.21.0**.
+- PWA cache namespace updated to **v1.21.0**.
+

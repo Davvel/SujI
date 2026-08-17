@@ -6312,7 +6312,64 @@ body.portrait-ui .board-heading-tools .hint-instruction{
 body.portrait-ui.placement-hint-mode .play-layout{
   grid-template-rows:auto minmax(0,1fr) !important;
 }
-\n\n/* === SuJi Checkpoint #17 v17.0.3: top Hint control in both orientations ===\n   Retire the lower Board taskbar everywhere. Hint stays immediately left of\n   Picture, and the recovered Board height is used for the puzzle itself. */\n.board-taskbar{\n  display:none !important;\n  height:0 !important;\n  min-height:0 !important;\n  margin:0 !important;\n  padding:0 !important;\n  border:0 !important;\n}\n.board-heading-tools{\n  position:relative;\n  display:flex;\n  align-items:center;\n  gap:6px;\n  flex:0 0 auto;\n}\n.board-heading-tools .placement-hint-btn{\n  order:1;\n  width:44px;\n  height:40px;\n  flex:0 0 44px;\n  border-radius:12px;\n}\n.board-heading-tools .placement-hint-icon{font-size:24px;}\n.board-heading-tools .placement-hint-count{\n  right:-5px;\n  bottom:-5px;\n  min-width:20px;\n  height:20px;\n  font-size:11px;\n}\n.board-heading-tools .picture-preview-btn{order:2;}\n.board-heading-tools .hint-instruction{\n  left:auto;\n  right:0;\n  bottom:auto;\n  top:calc(100% + 8px);\n  z-index:30;\n}\n.board-heading-tools .hint-instruction::after{\n  left:auto;\n  right:16px;\n  top:auto;\n  bottom:100%;\n  transform:translateY(7px) rotate(225deg);\n}\n/* Landscape previously reserved vertical room for the retired taskbar.\n   Let the square Board consume that recovered height. */\nbody.landscape-ui .board-wrap{\n  max-height:calc(100% - 39px) !important;\n}\nbody.landscape-ui .board-section{\n  padding-bottom:8px;\n}\n
+
+
+/* === SuJi Checkpoint #17 v17.0.3: top Hint control in both orientations ===
+   Retire the lower Board taskbar everywhere. Hint stays immediately left of
+   Picture, and the recovered Board height is used for the puzzle itself. */
+.board-taskbar{
+  display:none !important;
+  height:0 !important;
+  min-height:0 !important;
+  margin:0 !important;
+  padding:0 !important;
+  border:0 !important;
+}
+.board-heading-tools{
+  position:relative;
+  display:flex;
+  align-items:center;
+  gap:6px;
+  flex:0 0 auto;
+}
+.board-heading-tools .placement-hint-btn{
+  order:1;
+  width:44px;
+  height:40px;
+  flex:0 0 44px;
+  border-radius:12px;
+}
+.board-heading-tools .placement-hint-icon{font-size:24px;}
+.board-heading-tools .placement-hint-count{
+  right:-5px;
+  bottom:-5px;
+  min-width:20px;
+  height:20px;
+  font-size:11px;
+}
+.board-heading-tools .picture-preview-btn{order:2;}
+.board-heading-tools .hint-instruction{
+  left:auto;
+  right:0;
+  bottom:auto;
+  top:calc(100% + 8px);
+  z-index:30;
+}
+.board-heading-tools .hint-instruction::after{
+  left:auto;
+  right:16px;
+  top:auto;
+  bottom:100%;
+  transform:translateY(7px) rotate(225deg);
+}
+/* Landscape previously reserved vertical room for the retired taskbar.
+   Let the square Board consume that recovered height. */
+body.landscape-ui .board-wrap{
+  max-height:calc(100% - 39px) !important;
+}
+body.landscape-ui .board-section{
+  padding-bottom:8px;
+}
 /* === SuJi Checkpoint #17 v17.0.4: edge-aware Hint speech bubbles ===
    Keep useful text width near viewport edges. When the source sits at the
    right edge, the bubble opens left and its pointer moves to the right side. */
@@ -6387,4 +6444,747 @@ body.portrait-ui.placement-hint-mode .play-layout{
 }
 .rack-shell.rack-conflict-locked .rack .piece{
   cursor:not-allowed;
+}
+
+
+/* === SuJi v1.19.3 refinements (pre-1.20 checkpoint naming) ===
+   Includes the v1.19.1 title/conflict-bubble cleanup, v1.19.2 smile watermark,
+   and v1.19.3 guided Hint focus flow. */
+
+/* v1.19.1: conflict balloon has no pointer and is positioned by app.js to
+   minimise overlap with Board shapes/numbers. */
+.conflict-bubble::after{display:none !important;content:none !important}
+
+/* v1.19.2: retain the existing faint circular SuJi watermark, but make the
+   circle read subtly as a happy face / future "say cheese" signature. */
+.suji-watermark::after{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:50%;
+  width:54%;
+  height:44%;
+  transform:translate(-50%,-37%);
+  border-bottom:3px solid rgba(47,128,237,.12);
+  border-radius:0 0 56% 56%;
+  pointer-events:none;
+}
+.suji-watermark span::before,
+.suji-watermark span::after{
+  content:"";
+  position:absolute;
+  top:29%;
+  width:6%;
+  aspect-ratio:1;
+  border-radius:50%;
+  background:rgba(47,182,93,.13);
+  box-shadow:0 0 0 1px rgba(255,255,255,.24);
+}
+.suji-watermark span::before{left:31%}
+.suji-watermark span::after{right:31%;background:rgba(242,183,5,.14)}
+
+/* v1.19.3: compact cancel label directly beneath the active Hint bulb. */
+.board-heading-tools{position:relative}
+.hint-cancel-label{
+  position:absolute;
+  z-index:65;
+  top:calc(100% + 4px);
+  right:calc(44px + 8px);
+  min-width:46px;
+  padding:3px 7px;
+  border-radius:8px;
+  border:1px solid rgba(190,139,0,.48);
+  background:linear-gradient(180deg,#fff5b9,#ffe47b);
+  color:#604700;
+  box-shadow:0 4px 10px rgba(35,35,25,.18);
+  font:900 10px/1.15 Inter,ui-sans-serif,system-ui,sans-serif;
+  text-align:center;
+  pointer-events:none;
+}
+.hint-cancel-label[hidden]{display:none !important}
+
+/* Step 1: preserve Board colours, but visually dim the Board so attention moves
+   to the fully visible Rack. This is a translucent shade, not monochrome. */
+body.hint-awaiting-selection .board-wrap::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:24;
+  pointer-events:none;
+  background:rgba(25,31,43,.27);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);
+}
+
+/* Step 2: once a Rack shape is selected, dim the Rack and every other shape,
+   while the selected shape stays bright, coloured and clearly actionable. */
+body.hint-shape-selected .rack-shell::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:3;
+  pointer-events:none;
+  border-radius:inherit;
+  background:rgba(96,99,105,.34);
+  box-shadow:inset 0 0 0 999px rgba(185,185,185,.08);
+}
+body.hint-shape-selected .rack .piece:not(.hint-selected-piece){
+  filter:grayscale(.88) saturate(.22) brightness(.76) !important;
+  opacity:.50;
+  z-index:4;
+}
+body.hint-shape-selected .rack .piece.hint-selected-piece{
+  z-index:15 !important;
+  opacity:1 !important;
+}
+
+/* The selected-shape instruction follows the shape but should never sit on top
+   of it; app.js chooses a side/above/below position with viewport clamping. */
+.board-heading-tools .hint-instruction.hint-follow-piece{z-index:70}
+
+/* === SuJi v1.19.4: clean conflict balloon === */
+.conflict-bubble::after,
+.conflict-bubble.conflict-bubble-below-target::after,
+.conflict-bubble.conflict-bubble-above-target::after{
+  display:none !important;
+  content:none !important;
+  width:0 !important;
+  height:0 !important;
+  border:0 !important;
+}
+
+/* === SuJi v1.19.5: first-step Hint instruction visibility === */
+body.hint-awaiting-selection .board-heading-tools .hint-instruction{
+  display:flex;
+  z-index:70;
+}
+
+
+/* === SuJi v1.19.6–v1.19.8: hint-state polish and closer conflict bubbles === */
+
+/* Retire the standalone Cancel tag; the active Hint bulb and popup text now
+   explain cancellation more cleanly. */
+.hint-cancel-label{display:none !important}
+
+/* Allow the first-step hint popup to carry the fuller cancel/no-consume copy. */
+.hint-instruction,
+.board-heading-tools .hint-instruction{
+  width:min(310px, calc(100vw - 24px));
+  min-width:min(240px, calc(100vw - 24px));
+  max-width:min(310px, calc(100vw - 24px));
+}
+@media (max-width:420px){
+  .hint-instruction,
+  .board-heading-tools .hint-instruction{
+    width:min(270px, calc(100vw - 20px));
+    min-width:min(210px, calc(100vw - 20px));
+    max-width:min(270px, calc(100vw - 20px));
+  }
+}
+
+/* When a Rack shape has been selected for the Hint, the rest of the Rack should
+   clearly fade away while the selected shape stays fully visible above the dim. */
+body.hint-shape-selected .rack-shell::before{
+  z-index:12;
+  background:rgba(84,88,96,.46);
+  box-shadow:inset 0 0 0 999px rgba(218,223,229,.11), inset 0 0 0 1px rgba(255,255,255,.16);
+}
+body.hint-shape-selected .rack .piece:not(.hint-selected-piece){
+  filter:grayscale(.94) saturate(.14) brightness(.66) contrast(.92) !important;
+  opacity:.38 !important;
+  z-index:8 !important;
+}
+body.hint-shape-selected .rack .piece.hint-selected-piece{
+  position:relative;
+  z-index:22 !important;
+  opacity:1 !important;
+}
+
+/* Make hinted placeholder shapes easier to see on the Board, and give them a
+   clear red border so the destination family is obvious at a glance. */
+.guide-piece.hint-destination{
+  filter:drop-shadow(0 0 10px rgba(228,80,80,.22)) drop-shadow(0 0 8px rgba(214,221,230,.76));
+}
+.guide-piece.hint-destination .guide-tile,
+.guide-piece.hint-destination::before{
+  opacity:1 !important;
+  background:linear-gradient(135deg,
+    rgba(244,247,250,.98) 0%,
+    rgba(218,224,231,.98) 24%,
+    rgba(192,199,207,.98) 50%,
+    rgba(238,242,247,.99) 72%,
+    rgba(181,189,198,.98) 100%) !important;
+  border:2px solid rgba(210,78,78,.92) !important;
+  box-shadow:
+    inset 1px 1px 0 rgba(255,255,255,.68),
+    inset -2px -2px 4px rgba(96,105,114,.18),
+    0 0 0 1px rgba(255,243,240,.46),
+    0 0 10px rgba(224,92,92,.28),
+    0 0 16px rgba(247,249,252,.42) !important;
+}
+.guide-piece.hint-destination.hint-occupied-destination{
+  filter:drop-shadow(0 0 8px rgba(221,85,85,.32)) drop-shadow(0 0 5px rgba(218,225,233,.75)) !important;
+}
+.guide-piece.hint-destination.hint-occupied-destination .guide-tile{
+  opacity:.74 !important;
+  border:2px dashed rgba(173,74,74,.98) !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.42),
+    0 0 10px rgba(233,123,123,.30),
+    0 0 16px rgba(115,128,143,.34) !important;
+}
+
+
+/* === SuJi v1.19.9: stronger destination fill + Step-1 Board gray-out === */
+
+/* Hint Step 1: intentionally gray/desaturate the Board while preserving enough
+   structure for orientation. The Rack remains the visual focus for selection. */
+body.hint-awaiting-selection .board-wrap{
+  filter:grayscale(.78) saturate(.30) brightness(.82) contrast(.96);
+  transition:filter .16s ease;
+}
+body.hint-awaiting-selection .board-wrap::after{
+  background:rgba(72,77,86,.28) !important;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.10) !important;
+}
+
+/* After a Rack shape is selected, the Board returns to normal colour so the
+   player can use picture/tile colours while following the revealed destination. */
+body.hint-shape-selected .board-wrap{
+  filter:none !important;
+}
+
+/* Brighter, warmer silver/yellow destination cells. Keep the red outline as the
+   unmistakable boundary while making the interior substantially easier to see. */
+.guide-piece.hint-destination .guide-tile,
+.guide-piece.hint-destination::before{
+  background:linear-gradient(135deg,
+    rgba(255,250,211,.99) 0%,
+    rgba(240,230,181,.99) 22%,
+    rgba(210,214,206,.99) 46%,
+    rgba(250,243,199,.99) 68%,
+    rgba(221,217,184,.99) 100%) !important;
+  border:2px solid rgba(216,72,72,.96) !important;
+  box-shadow:
+    inset 1px 1px 0 rgba(255,255,255,.82),
+    inset -2px -2px 4px rgba(128,119,85,.16),
+    0 0 0 1px rgba(255,247,224,.72),
+    0 0 11px rgba(255,225,117,.40),
+    0 0 18px rgba(231,98,98,.26) !important;
+  filter:brightness(1.10) saturate(1.08) !important;
+}
+.guide-piece.hint-destination.hint-occupied-destination .guide-tile{
+  opacity:.82 !important;
+  background:linear-gradient(135deg,
+    rgba(255,248,205,.93) 0%,
+    rgba(226,222,191,.92) 50%,
+    rgba(248,237,181,.94) 100%) !important;
+  border:2px dashed rgba(188,69,69,.98) !important;
+}
+
+
+/* === SuJi v1.20.1: compact true mobile landscape ===
+   Phones such as Pixel-class devices have a very short CSS viewport in landscape.
+   Older desktop-oriented landscape rules enforced a 600px+ Board minimum, which
+   made the Board/Rack overflow below the visible screen.  On short landscape
+   viewports, size the game from the actual visual viewport instead. */
+@media (orientation:landscape) and (max-height:600px){
+  body.landscape-ui{
+    overflow:hidden !important;
+    min-height:100dvh;
+  }
+
+  body.landscape-ui .topbar{
+    padding-top:4px;
+    padding-bottom:4px;
+  }
+  body.landscape-ui .brand-mark{width:30px;height:30px}
+  body.landscape-ui .brand h1{font-size:18px}
+  body.landscape-ui .brand p{font-size:8px;margin-top:1px}
+  body.landscape-ui .icon-btn{width:32px;height:32px}
+
+  body.landscape-ui .app{
+    width:100% !important;
+    max-width:none !important;
+    height:calc(100dvh - var(--suji-topbar-h, 48px));
+    padding:4px 7px max(4px,env(safe-area-inset-bottom));
+    overflow:hidden;
+  }
+
+  body.landscape-ui .compact-status-strip{
+    min-height:38px;
+    padding:4px 6px;
+    gap:5px;
+    margin:0 0 5px;
+    grid-template-columns:minmax(0,1fr) auto auto 34px;
+  }
+  body.landscape-ui .compact-level-label{
+    min-height:30px;
+    padding:0 .58rem;
+    font-size:11px;
+  }
+  body.landscape-ui .compact-level-btn{
+    width:30px;min-width:30px;height:30px;font-size:1rem;
+  }
+  body.landscape-ui .compact-metric{
+    min-height:30px;
+    padding:0 6px;
+    gap:4px;
+  }
+  body.landscape-ui .compact-metric-label{font-size:8px;letter-spacing:.75px}
+  body.landscape-ui .compact-metric-value{font-size:16px}
+  body.landscape-ui .compact-time .digital-timer{min-width:42px}
+  body.landscape-ui .compact-reset-btn{
+    width:32px;min-width:32px;height:32px;font-size:18px;
+  }
+
+  body.landscape-ui .play-layout{
+    height:var(--landscape-play-height, calc(100dvh - 96px)) !important;
+    min-height:0 !important;
+    grid-template-columns:minmax(0,1.42fr) minmax(245px,1fr) !important;
+    gap:7px !important;
+    align-items:stretch !important;
+    overflow:hidden;
+  }
+  body.landscape-ui .play-layout .board-section,
+  body.landscape-ui .play-layout .rack-section{
+    margin-top:0 !important;
+    height:100% !important;
+    min-height:0 !important;
+    overflow:hidden !important;
+    border-radius:14px;
+  }
+  body.landscape-ui .board-section{
+    padding:5px 6px 6px !important;
+  }
+  body.landscape-ui .board-section .board-section-heading{
+    min-height:30px;
+    margin:0 0 4px !important;
+  }
+  body.landscape-ui .board-title-block h2,
+  body.landscape-ui .rack-section .section-heading h2{font-size:17px}
+  body.landscape-ui .board-heading-tools{gap:4px}
+  body.landscape-ui .board-heading-tools .placement-hint-btn{
+    width:38px;height:34px;flex-basis:38px;border-radius:10px;
+  }
+  body.landscape-ui .board-heading-tools .placement-hint-icon{font-size:20px}
+  body.landscape-ui .picture-preview-btn{width:38px;height:38px}
+
+  body.landscape-ui .board-wrap{
+    flex:1 1 auto !important;
+    width:auto !important;
+    height:auto !important;
+    min-width:0 !important;
+    min-height:0 !important;
+    max-width:100% !important;
+    max-height:calc(100% - 34px) !important;
+    aspect-ratio:1 / 1;
+    align-self:center;
+  }
+
+  body.landscape-ui .rack-section{
+    padding:5px 6px 6px !important;
+  }
+  body.landscape-ui .rack-section > .section-heading{
+    margin:0 0 4px !important;
+    min-height:26px;
+    align-items:center;
+  }
+  body.landscape-ui .rack-shell{
+    flex:1 1 auto !important;
+    height:auto !important;
+    min-height:0 !important;
+    border-width:5px;
+    border-radius:16px;
+  }
+
+  body.landscape-ui .game-footer{display:none !important}
+}
+
+/* Extra-short installed/browser landscape: save another few pixels of chrome. */
+@media (orientation:landscape) and (max-height:480px){
+  body.landscape-ui .brand p{display:none}
+  body.landscape-ui .topbar{padding-top:3px;padding-bottom:3px}
+  body.landscape-ui .brand-mark{width:28px;height:28px}
+  body.landscape-ui .compact-status-strip{min-height:34px;padding:3px 5px;margin-bottom:4px}
+  body.landscape-ui .compact-level-label,
+  body.landscape-ui .compact-level-btn,
+  body.landscape-ui .compact-metric{min-height:28px;height:28px}
+  body.landscape-ui .compact-level-btn{width:28px;min-width:28px}
+  body.landscape-ui .compact-reset-btn{width:30px;min-width:30px;height:30px}
+  body.landscape-ui .play-layout{gap:6px !important}
+  body.landscape-ui .board-section{padding:4px 5px 5px !important}
+  body.landscape-ui .rack-section{padding:4px 5px 5px !important}
+}
+
+
+/* === SuJi v1.20.4: simple Hint destination distinction ===
+   Built directly from v1.20.1. No blocker-piece highlighting and no Hint logic
+   changes. The only purpose is to make FREE and BLOCKED destinations unmistakable. */
+
+/* FREE destination: solid outline and gentle yellow <-> silver pulse. */
+.guide-piece.hint-destination:not(.hint-occupied-destination){
+  filter:drop-shadow(0 0 8px rgba(255,211,77,.34)) !important;
+  animation:none !important;
+}
+.guide-piece.hint-destination:not(.hint-occupied-destination) .guide-tile{
+  opacity:1 !important;
+  border:2px solid rgba(210,72,72,.96) !important;
+  background:rgb(255,238,151) !important;
+  box-shadow:
+    inset 1px 1px 0 rgba(255,255,255,.82),
+    inset -2px -2px 4px rgba(103,110,119,.12),
+    0 0 9px rgba(255,211,77,.38) !important;
+  animation:sujiHintFreePulse1204 1.15s ease-in-out infinite alternate !important;
+}
+
+/* BLOCKED destination: pale blue, dotted border, static and translucent so the
+   real board shape underneath remains easy to see. */
+.guide-piece.hint-destination.hint-occupied-destination{
+  filter:none !important;
+  animation:none !important;
+}
+.guide-piece.hint-destination.hint-occupied-destination .guide-tile{
+  opacity:.52 !important;
+  background:rgba(190,224,249,.72) !important;
+  border:2px dotted rgba(69,126,184,.98) !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.42),
+    0 0 5px rgba(87,153,214,.18) !important;
+  filter:none !important;
+  animation:none !important;
+}
+
+@keyframes sujiHintFreePulse1204{
+  from{
+    background:rgb(255,238,151);
+    filter:brightness(1.04);
+    box-shadow:
+      inset 1px 1px 0 rgba(255,255,255,.82),
+      inset -2px -2px 4px rgba(103,110,119,.12),
+      0 0 8px rgba(255,211,77,.34);
+  }
+  to{
+    background:rgb(207,214,222);
+    filter:brightness(1.12);
+    box-shadow:
+      inset 1px 1px 0 rgba(255,255,255,.72),
+      inset -2px -2px 4px rgba(103,110,119,.14),
+      0 0 9px rgba(190,199,209,.38);
+  }
+}
+
+@media (prefers-reduced-motion:reduce){
+  .guide-piece.hint-destination:not(.hint-occupied-destination) .guide-tile{
+    animation:none !important;
+    background:rgb(255,238,151) !important;
+  }
+}
+
+
+/* === SuJi v1.20.5: stronger blocked Hint cue, still from 1.20.4 logic ===
+   UX pattern: keep the valid destination warm and inviting, while a blocked
+   destination becomes a clearly obstructed blue ghost with hatch lines and a
+   compact move-away icon badge — no words required. */
+
+.guide-piece.hint-destination.hint-occupied-destination{
+  position:relative;
+  filter:drop-shadow(0 0 10px rgba(92,163,225,.30)) !important;
+  animation:none !important;
+}
+
+.guide-piece.hint-destination.hint-occupied-destination .guide-tile{
+  opacity:.88 !important;
+  background:
+    repeating-linear-gradient(135deg,
+      rgba(214,236,252,.94) 0 10px,
+      rgba(177,215,244,.92) 10px 20px),
+    linear-gradient(180deg,
+      rgba(225,242,255,.94) 0%,
+      rgba(184,220,247,.92) 100%) !important;
+  border:3px dotted rgba(63,128,191,.98) !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.62),
+    0 0 0 1px rgba(165,207,241,.66),
+    0 0 10px rgba(89,157,218,.24) !important;
+  filter:saturate(1.08) brightness(1.02) !important;
+  animation:none !important;
+}
+
+/* Small non-verbal move-away cue badge. */
+.guide-piece.hint-destination.hint-occupied-destination::after{
+  content:"⇄";
+  position:absolute;
+  right:-10px;
+  top:-10px;
+  width:24px;
+  height:24px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:999px;
+  background:linear-gradient(180deg,#ffffff,#d8efff);
+  border:2px solid rgba(67,133,196,.96);
+  color:rgba(51,108,167,1);
+  font:900 14px/1 Inter,ui-sans-serif,system-ui,sans-serif;
+  box-shadow:0 3px 8px rgba(57,103,146,.22);
+  pointer-events:none;
+}
+
+@media (max-width:760px){
+  .guide-piece.hint-destination.hint-occupied-destination::after{
+    width:22px;height:22px;font-size:13px;right:-8px;top:-8px;
+  }
+}
+
+@media (prefers-reduced-motion:reduce){
+  .guide-piece.hint-destination.hint-occupied-destination,
+  .guide-piece.hint-destination.hint-occupied-destination .guide-tile{
+    animation:none !important;
+  }
+}
+
+
+/* === SuJi v1.20.6: lighter blocked destinations with marching-ants border ===
+   Keep the underlying numbers clearly visible. A blocked destination now uses
+   mostly a border-only treatment with animated dotted “ants” marching around
+   the edge, while valid destinations remain warm and inviting. */
+
+/* Retire the v1.20.5 move-away badge so blocked cues stay clean and do not hide
+   the Board content underneath. */
+.guide-piece.hint-destination.hint-occupied-destination::after{
+  display:none !important;
+  content:none !important;
+}
+
+.guide-piece.hint-destination.hint-occupied-destination{
+  filter:drop-shadow(0 0 8px rgba(88,153,214,.22)) !important;
+}
+
+.guide-piece.hint-destination.hint-occupied-destination .guide-tile{
+  position:relative;
+  opacity:1 !important;
+  background:rgba(188,223,249,.14) !important;
+  border:0 !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(182,215,244,.34),
+    0 0 0 1px rgba(97,157,214,.22) !important;
+  overflow:visible;
+}
+
+.guide-piece.hint-destination.hint-occupied-destination .guide-tile::after{
+  content:"";
+  position:absolute;
+  inset:-2px;
+  pointer-events:none;
+  background:
+    repeating-linear-gradient(90deg, rgba(71,130,191,.98) 0 8px, rgba(71,130,191,0) 8px 14px) top left / calc(100% - 14px) 4px no-repeat,
+    repeating-linear-gradient(180deg, rgba(71,130,191,.98) 0 8px, rgba(71,130,191,0) 8px 14px) top right / 4px calc(100% - 14px) no-repeat,
+    repeating-linear-gradient(90deg, rgba(71,130,191,.98) 0 8px, rgba(71,130,191,0) 8px 14px) bottom right / calc(100% - 14px) 4px no-repeat,
+    repeating-linear-gradient(180deg, rgba(71,130,191,.98) 0 8px, rgba(71,130,191,0) 8px 14px) bottom left / 4px calc(100% - 14px) no-repeat;
+  border-radius:4px;
+  animation:sujiHintBlockedAnts1206 .9s linear infinite;
+}
+
+@keyframes sujiHintBlockedAnts1206{
+  from{
+    background-position:
+      0 0,
+      100% 0,
+      100% 100%,
+      0 100%;
+  }
+  to{
+    background-position:
+      14px 0,
+      100% 14px,
+      calc(100% - 14px) 100%,
+      0 calc(100% - 14px);
+  }
+}
+
+@media (prefers-reduced-motion:reduce){
+  .guide-piece.hint-destination.hint-occupied-destination .guide-tile::after{
+    animation:none !important;
+  }
+}
+
+
+/* === SuJi v1.20.7: restore blocked candidates + red lock-on target ===
+   A blocked destination is hidden only if every overlapping blocker is a
+   protected known-correct piece. Any movable/misplaced blocker keeps the
+   marching-ants destination visible. The active valid snap target regains the
+   unmistakable static pale-red lock-on glow used before these refinements. */
+
+/* Valid destination under the dragged hinted shape: strong red lock-on. */
+.guide-piece.hint-destination:not(.hint-occupied-destination).guide-hover{
+  filter:drop-shadow(0 0 11px rgba(218,71,71,.42)) !important;
+}
+.guide-piece.hint-destination:not(.hint-occupied-destination).guide-hover .guide-tile{
+  opacity:1 !important;
+  background:linear-gradient(160deg,
+    rgb(246,204,204) 0%,
+    rgb(235,169,169) 50%,
+    rgb(224,145,145) 100%) !important;
+  border:3px solid rgb(198,73,73) !important;
+  box-shadow:
+    inset 1px 1px 0 rgba(255,255,255,.50),
+    inset -2px -2px 3px rgba(126,52,52,.15),
+    0 0 0 2px rgba(255,224,224,.50),
+    0 0 13px rgba(218,82,82,.42),
+    0 0 22px rgba(218,82,82,.22) !important;
+  animation:none !important;
+  filter:none !important;
+}
+
+
+/* === SuJi v1.20.8: blocked destination above the blocker + blocker jiggle ===
+   The blocked silhouette is now drawn ABOVE ordinary board pieces as a transparent
+   animated outline, so it can never disappear behind the shape causing the block.
+   Only movable/misplaced blockers are gently jiggled and colour-emphasised. */
+
+/* The blocked destination is an outline, not a veil. Keep numbers and picture
+   fragments underneath fully readable. */
+.guide-piece.hint-destination.hint-occupied-destination{
+  z-index:34 !important;
+  pointer-events:none !important;
+  filter:drop-shadow(0 0 7px rgba(41,148,214,.50)) !important;
+}
+.guide-piece.hint-destination.hint-occupied-destination .guide-tile{
+  opacity:1 !important;
+  background:rgba(72,189,235,.035) !important;
+  border:0 !important;
+  box-shadow:inset 0 0 0 1px rgba(78,185,231,.14) !important;
+  filter:none !important;
+}
+.guide-piece.hint-destination.hint-occupied-destination .guide-tile::after{
+  content:"" !important;
+  display:block !important;
+  position:absolute !important;
+  inset:-3px !important;
+  border-radius:6px !important;
+  pointer-events:none !important;
+  background:
+    repeating-linear-gradient(90deg,#00a7e8 0 9px,rgba(0,167,232,0) 9px 15px) top left / calc(100% - 15px) 4px no-repeat,
+    repeating-linear-gradient(180deg,#00a7e8 0 9px,rgba(0,167,232,0) 9px 15px) top right / 4px calc(100% - 15px) no-repeat,
+    repeating-linear-gradient(90deg,#00a7e8 0 9px,rgba(0,167,232,0) 9px 15px) bottom right / calc(100% - 15px) 4px no-repeat,
+    repeating-linear-gradient(180deg,#00a7e8 0 9px,rgba(0,167,232,0) 9px 15px) bottom left / 4px calc(100% - 15px) no-repeat !important;
+  box-shadow:0 0 0 1px rgba(255,255,255,.62),0 0 9px rgba(0,167,232,.36) !important;
+  animation:sujiHintBlockedAnts1208 .72s linear infinite !important;
+}
+
+/* A blocker that really needs moving gets the visual message itself: a short,
+   gentle side-to-side jiggle plus a cyan/amber edge. It keeps its real colours. */
+.piece.board-piece.hint-blocker-move{
+  z-index:18 !important;
+  transform-origin:center center !important;
+  animation:sujiHintBlockerJiggle1208 1.25s ease-in-out infinite !important;
+  filter:drop-shadow(0 0 7px rgba(0,177,232,.68)) drop-shadow(0 0 3px rgba(255,191,57,.55)) !important;
+}
+.piece.board-piece.hint-blocker-move .piece-cell{
+  box-shadow:
+    inset 0 0 0 2px rgba(0,177,232,.82),
+    inset 0 0 0 4px rgba(255,197,56,.22),
+    0 0 8px rgba(0,177,232,.28),
+    inset 0 -4px 0 #0002 !important;
+}
+
+/* The actual valid snap lock must always sit above ordinary board pieces and
+   remain unmistakably red when the dragged shape reaches it. */
+.guide-piece.hint-destination:not(.hint-occupied-destination).guide-hover{
+  z-index:42 !important;
+  filter:drop-shadow(0 0 12px rgba(224,58,58,.62)) !important;
+}
+.guide-piece.hint-destination:not(.hint-occupied-destination).guide-hover .guide-tile{
+  background:rgba(247,158,158,.90) !important;
+  border:3px solid #d83d3d !important;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.50),0 0 13px rgba(218,61,61,.60),0 0 23px rgba(218,61,61,.30) !important;
+}
+
+@keyframes sujiHintBlockedAnts1208{
+  from{background-position:0 0,100% 0,100% 100%,0 100%}
+  to{background-position:15px 0,100% 15px,calc(100% - 15px) 100%,0 calc(100% - 15px)}
+}
+@keyframes sujiHintBlockerJiggle1208{
+  0%,72%,100%{transform:translateX(0) rotate(0deg)}
+  78%{transform:translateX(-3px) rotate(-.45deg)}
+  84%{transform:translateX(3px) rotate(.45deg)}
+  90%{transform:translateX(-2px) rotate(-.3deg)}
+  96%{transform:translateX(2px) rotate(.3deg)}
+}
+@media (prefers-reduced-motion:reduce){
+  .guide-piece.hint-destination.hint-occupied-destination .guide-tile::after,
+  .piece.board-piece.hint-blocker-move{animation:none !important}
+}
+
+
+/* === SuJi v1.20.9: dedicated blocked-shape overlay ===
+   The legacy guide layer is intentionally not trusted for the blocked silhouette.
+   A separate overlay is appended last in BoardWrap so the selected T/L/etc shape
+   remains unmistakably visible even when another board piece sits underneath it. */
+.hint-blocked-shape-overlay{
+  position:absolute;
+  z-index:58;
+  pointer-events:none;
+  overflow:visible;
+  filter:drop-shadow(0 0 7px rgba(0,174,239,.62)) drop-shadow(0 0 5px rgba(255,184,48,.42));
+}
+.hint-blocked-shape-tile{
+  position:absolute;
+  box-sizing:border-box;
+  border-radius:5px;
+  background:rgba(55,190,240,.07);
+  border:3px dashed #00aeea;
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.62),
+    0 0 0 1px rgba(255,181,42,.68),
+    0 0 9px rgba(0,174,234,.35);
+  animation:sujiBlockedShapePulse1209 .86s ease-in-out infinite alternate;
+}
+.hint-blocked-shape-tile::after{
+  content:"";
+  position:absolute;
+  inset:-5px;
+  border-radius:7px;
+  pointer-events:none;
+  background:
+    linear-gradient(90deg,#ffb52a 0 8px,transparent 8px 15px) 0 0 / 30px 3px repeat-x,
+    linear-gradient(180deg,#ffb52a 0 8px,transparent 8px 15px) 100% 0 / 3px 30px repeat-y,
+    linear-gradient(90deg,#ffb52a 0 8px,transparent 8px 15px) 0 100% / 30px 3px repeat-x,
+    linear-gradient(180deg,#ffb52a 0 8px,transparent 8px 15px) 0 0 / 3px 30px repeat-y;
+  animation:sujiBlockedShapeAnts1209 .70s linear infinite;
+}
+
+/* Let the dedicated overlay carry the blocked silhouette; keep old blocked guide
+   cells visually quiet so they cannot muddy the numbers beneath. */
+.guide-piece.hint-destination.hint-occupied-destination .guide-tile,
+.guide-piece.hint-destination.hint-occupied-destination .guide-tile::after{
+  opacity:0 !important;
+  background:transparent !important;
+  border:0 !important;
+  box-shadow:none !important;
+  animation:none !important;
+}
+
+/* The blocker itself remains readable but unmistakably movable. */
+.piece.board-piece.hint-blocker-move{
+  filter:drop-shadow(0 0 8px rgba(0,177,232,.74)) drop-shadow(0 0 5px rgba(255,177,34,.66)) !important;
+}
+.piece.board-piece.hint-blocker-move .piece-cell{
+  box-shadow:
+    inset 0 0 0 2px rgba(255,178,33,.90),
+    inset 0 0 0 4px rgba(0,177,232,.34),
+    0 0 9px rgba(0,177,232,.30),
+    inset 0 -4px 0 #0002 !important;
+}
+
+@keyframes sujiBlockedShapePulse1209{
+  from{border-color:#00aeea;background:rgba(55,190,240,.035);filter:brightness(.98)}
+  to{border-color:#58d9ff;background:rgba(255,192,54,.08);filter:brightness(1.18)}
+}
+@keyframes sujiBlockedShapeAnts1209{
+  from{background-position:0 0,100% 0,0 100%,0 0}
+  to{background-position:30px 0,100% 30px,-30px 100%,0 -30px}
+}
+@media (prefers-reduced-motion:reduce){
+  .hint-blocked-shape-tile,.hint-blocked-shape-tile::after{animation:none !important}
 }
