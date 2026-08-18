@@ -888,45 +888,36 @@ function clearMobileLandscapeGeometry(){
 function updateMobileLandscapeGeometry(enabled){
   if(!enabled){ clearMobileLandscapeGeometry(); return; }
 
-  const app=document.querySelector('.app');
   const play=document.querySelector('.play-layout');
   const boardSection=document.querySelector('.board-section');
   const heading=boardSection?.querySelector('.board-section-heading');
-  if(!app || !play || !boardSection || !heading) return;
+  if(!play || !boardSection || !heading) return;
 
-  // Force the newly selected orientation CSS and --landscape-play-height to be
-  // committed before measuring. This matters on Android immediately after a
-  // portrait -> landscape rotation, when the first resize event can be stale.
+  // v1.26.5: mobile landscape is deliberately balanced 50/50.  The Rack must
+  // never grow past half the usable play width merely because the Board square
+  // is height-limited.  Keeping a full half for the Board also gives Hint/error
+  // bubbles room to open without being clipped at the left edge.
   void play.offsetHeight;
 
   const playHeight=Math.max(120,Math.floor(play.getBoundingClientRect().height));
-  const appRect=app.getBoundingClientRect();
-  const appStyle=getComputedStyle(app);
+  const boardRect=boardSection.getBoundingClientRect();
   const boardStyle=getComputedStyle(boardSection);
   const headingStyle=getComputedStyle(heading);
-  const appPadX=(parseFloat(appStyle.paddingLeft)||0)+(parseFloat(appStyle.paddingRight)||0);
   const boardPadX=(parseFloat(boardStyle.paddingLeft)||0)+(parseFloat(boardStyle.paddingRight)||0);
   const boardPadY=(parseFloat(boardStyle.paddingTop)||0)+(parseFloat(boardStyle.paddingBottom)||0);
   const headingH=heading.getBoundingClientRect().height
     +(parseFloat(headingStyle.marginTop)||0)+(parseFloat(headingStyle.marginBottom)||0);
 
-  const contentWidth=Math.max(360,Math.floor(appRect.width-appPadX));
-  const gap=6;
-  const boardByHeight=Math.max(96,Math.floor(playHeight-boardPadY-headingH-2));
-
-  // On a phone the Board width should be driven primarily by the *height* that
-  // is genuinely visible.  The Rack then receives all horizontal room left over.
-  // Reserve at least ~55% for the crowded Rack, but never enlarge the Board panel
-  // beyond what its square can use.
-  const rackFloor=Math.max(280,Math.floor(contentWidth*.55));
-  const maxBoardColumn=Math.max(190,contentWidth-rackFloor-gap);
-  const boardByWidth=Math.max(96,Math.floor(maxBoardColumn-boardPadX-2));
+  const boardByHeight=Math.max(96,Math.floor(playHeight-boardPadY-headingH-4));
+  // Leave a small white gutter on both sides of the square inside the Board half.
+  const sideBreathing=18;
+  const boardByWidth=Math.max(96,Math.floor(boardRect.width-boardPadX-(sideBreathing*2)));
   const boardSize=Math.max(96,Math.floor(Math.min(boardByHeight,boardByWidth)));
-  const boardColumn=Math.max(190,Math.min(maxBoardColumn,Math.ceil(boardSize+boardPadX+2)));
 
   const root=document.documentElement;
   root.style.setProperty('--mobile-landscape-board-size',`${boardSize}px`);
-  root.style.setProperty('--mobile-landscape-board-col',`${boardColumn}px`);
+  // The CSS grid owns the equal columns; remove any stale width from v1.26.4.
+  root.style.removeProperty('--mobile-landscape-board-col');
 }
 
 function updateResponsiveLayout(){

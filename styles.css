@@ -8025,3 +8025,45 @@ body.mobile-landscape-ui .rack-shell{
 body.mobile-landscape-ui .game-footer{
   display:none !important;
 }
+
+
+/* === SuJi v1.26.5: balanced mobile-landscape Board / Rack ===
+   A rotated phone uses two equal play columns.  The Rack may use up to half of
+   the usable width, never more.  The Board owns the other half and centres its
+   height-limited square with breathing room on both sides, keeping Hint/status
+   bubbles away from the viewport edges.  Desktop/laptop landscape is unchanged. */
+body.mobile-landscape-ui .play-layout{
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+}
+
+body.mobile-landscape-ui .board-section{
+  padding-left:10px !important;
+  padding-right:10px !important;
+  overflow:visible !important;
+}
+
+body.mobile-landscape-ui .rack-section{
+  min-width:0 !important;
+  max-width:100% !important;
+}
+
+body.mobile-landscape-ui .board-wrap{
+  margin-left:auto !important;
+  margin-right:auto !important;
+}
+
+/* The first Hint instruction is anchored to the Board tools.  Constrain it to
+   the Board half rather than to the whole phone so it cannot be drawn off-screen. */
+body.mobile-landscape-ui .board-heading-tools .hint-instruction:not(.hint-follow-piece){
+  width:min(310px, calc(50vw - 44px)) !important;
+  min-width:min(220px, calc(50vw - 44px)) !important;
+  max-width:min(310px, calc(50vw - 44px)) !important;
+  right:0 !important;
+  left:auto !important;
+}
+
+/* The selected-shape bubble is fixed to the viewport; keep the existing JS
+   clamping but add safe-edge room for Android navigation/cutout areas. */
+body.mobile-landscape-ui .hint-instruction.hint-follow-piece{
+  max-width:min(250px, calc(50vw - 32px)) !important;
+}

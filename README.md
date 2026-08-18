@@ -1469,3 +1469,14 @@ This release promotes the accepted v1.19.x refinement line to a new stable v1.20
 - `Version 1.26.4` remains visible in both portrait and short mobile landscape.
 - Adds `.gitattributes` to keep project text files on LF line endings.
 - PWA service-worker cache namespace updated to **suji-v1-26-4**.
+
+
+## v1.26.5 — balanced mobile landscape
+
+- Mobile landscape now gives the Board and Rack equal shares of the usable play width; the Rack cannot expand beyond 50% merely because the Board square is height-limited.
+- The Board square remains sized from the real available height, but is centred inside its half with deliberate white breathing room on both sides.
+- The extra Board width gives Hint and status bubbles room to remain on-screen instead of being clipped when the phone is rotated.
+- Mobile Rack packing automatically recalculates inside its 50% column.
+- Portrait and desktop/laptop landscape behaviour are unchanged.
+- Visible build number updated to **Version 1.26.5** in portrait and landscape.
+- PWA service-worker cache namespace updated to **suji-v1-26-5**.
