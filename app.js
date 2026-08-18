@@ -834,6 +834,11 @@ function paintRuleRegion(rule){
 function updateResponsiveLayout(){
   const viewportWidth=window.visualViewport?.width || window.innerWidth;
   const viewportHeight=window.visualViewport?.height || window.innerHeight;
+  // v1.26.2: use the *visual* viewport width for short mobile landscape.
+  // Android browser/navigation chrome can make 100vw wider than the pixels the
+  // player can actually see; exposing this value to CSS keeps the whole app
+  // (including the right edge of the Rack/status strip) inside the visible area.
+  document.documentElement.style.setProperty('--suji-visual-width', `${Math.floor(viewportWidth)}px`);
   const landscape = viewportWidth >= 760 && viewportWidth > viewportHeight;
   document.body.classList.toggle('landscape-ui', landscape);
   document.body.classList.toggle('portrait-ui', !landscape);
@@ -1693,10 +1698,24 @@ function renderAll(animateAnchors=false){
   } else {
     rackShell.style.height='';
     rackShell.style.minHeight='0px';
-    const rackWidth=Math.max(80,rackShell.clientWidth || rack.getBoundingClientRect().width);
-    const rackHeight=Math.max(120,rackShell.clientHeight || rack.getBoundingClientRect().height);
+    const measuredRackWidth=Math.max(80,Math.floor(rack.getBoundingClientRect().width || rackShell.clientWidth));
+    const measuredRackHeight=Math.max(120,Math.floor(rack.getBoundingClientRect().height || rackShell.clientHeight));
     const landscapeMinCell=(window.innerWidth<1000 || window.innerHeight<720) ? 14 : 18;
-    layout=buildRackLayout(rackPieces,rackWidth,rackHeight,true,landscapeMinCell);
+
+    // v1.26.2: reserve a small internal safety gutter before packing.  On some
+    // Android landscape viewports the browser/navigation edge can shave a few
+    // pixels from the visually usable right side. Packing against the reduced
+    // rectangle guarantees that every shape remains wholly inside the tray.
+    const safetyX=(window.innerHeight<=600) ? 10 : 6;
+    const safetyY=(window.innerHeight<=600) ? 6 : 4;
+    const safeRackWidth=Math.max(70,measuredRackWidth-safetyX*2);
+    const safeRackHeight=Math.max(100,measuredRackHeight-safetyY*2);
+    layout=buildRackLayout(rackPieces,safeRackWidth,safeRackHeight,true,landscapeMinCell);
+    if(layout?.map?.size){
+      const shifted=new Map();
+      for(const [id,pos] of layout.map) shifted.set(id,{...pos,x:pos.x+safetyX,y:pos.y+safetyY});
+      layout={...layout,map:shifted};
+    }
   }
 
   rackPieces.forEach((p)=>{

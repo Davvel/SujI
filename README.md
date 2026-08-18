@@ -1467,3 +1467,16 @@ This release promotes the accepted v1.19.x refinement line to a new stable v1.20
 - Portrait layout, gameplay, Hint Mode, Sudoku rules, drag/drop behaviour and level content are unchanged.
 - Visible application version updated to **v1.26.1**.
 - PWA service-worker cache namespace updated to **suji-v1-26-1**.
+
+
+## v1.26.2 — mobile landscape fit refinement
+
+- Starts from accepted v1.26.1.
+- Short mobile landscape now uses the actual `visualViewport` width so the app does not extend beneath Android/browser navigation chrome.
+- Cancels legacy 600/620px landscape Board minimums on short phones; the complete square Board is fitted to the available gameplay height.
+- Board column is height-driven with a small practical width guarantee; Rack receives all remaining horizontal space.
+- Landscape Rack packing reserves a small internal safety gutter so no shapes are clipped at the right edge.
+- Compact header keeps the version visible in landscape, including extra-short phone screens.
+- Added `.gitattributes` to standardise text files on LF line endings.
+- Visible version updated to **v1.26.2**.
+- PWA cache namespace updated to **suji-v1-26-2**.
