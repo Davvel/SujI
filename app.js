@@ -427,7 +427,7 @@ function placeHintBubbleNearSelectedPiece(box){
 }
 
 function updateHintViewportMetrics(){
-  // v1.25.1: Hint Mode is now visual/interaction-only. Older builds used a
+  // v1.25.2: Hint Mode is now visual/interaction-only. Older builds used a
   // special compact portrait Board/Rack geometry so every Rack shape could be
   // seen at once. The normal adaptive Rack now already provides that behaviour,
   // so Hint must never resize the play area or publish Hint-only size variables.
@@ -1679,7 +1679,7 @@ function renderAll(animateAnchors=false){
     const targetMin=Math.max(150,Math.min(visualHeight*0.22,210));
     const rackWidth=Math.max(80,rackShell.clientWidth || rack.getBoundingClientRect().width);
 
-    // v1.25.1: use exactly the same adaptive portrait Rack packing in normal
+    // v1.25.2: use exactly the same adaptive portrait Rack packing in normal
     // play, while selecting a Hint shape, while dragging it, and after it locks.
     // Hint Mode no longer has any separate compact sizing path.
     const settledRackRect=rack.getBoundingClientRect();

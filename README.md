@@ -1438,7 +1438,7 @@ This release promotes the accepted v1.19.x refinement line to a new stable v1.20
 - Retains the normal-play valid-drop preview: when Hint Mode is OFF, the exact Board cells that would receive a dragged shape are filled with translucent light red only when the release would be accepted; no preview is shown for overlaps, out-of-bounds placements, or any release that would return the shape to the Rack/previous position.
 - Visible application version and PWA cache namespace updated to **v1.25.0**.
 
-## v1.25.1 — Hint layout unification
+## v1.25.2 — Hint layout unification
 
 - Branched directly from the protected **v1.25.0** baseline.
 - Removed the legacy portrait Hint-only Board/Rack shrinking path.
@@ -1446,5 +1446,5 @@ This release promotes the accepted v1.19.x refinement line to a new stable v1.20
 - `updateHintViewportMetrics()` no longer publishes Hint-specific Board/Rack sizing variables.
 - Hint remains a visual/interaction mode only: dimming, selection emphasis, instructions, destination guidance and drag restrictions are preserved.
 - Fixes the Rack shrinking/miscalculation that could remain after a successful Hint placement.
-- Visible application version and PWA cache namespace updated to **v1.25.1**.
+- Visible application version and PWA cache namespace updated to **v1.25.2**.
 

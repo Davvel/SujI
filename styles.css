@@ -7855,7 +7855,7 @@ body.suji-drag-active.hint-dragging-selected .sudoku-lines{
 }
 
 
-/* === SuJi v1.25.1: retire legacy Hint-only portrait resizing ===
+/* === SuJi v1.25.2: retire legacy Hint-only portrait resizing ===
    Hint Mode now changes guidance/interaction visuals only. Board and Rack use
    the exact same adaptive portrait geometry before, during and after a Hint. */
 body.portrait-ui.placement-hint-mode .play-layout{
