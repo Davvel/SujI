@@ -1662,6 +1662,14 @@ function renderAll(animateAnchors=false){
   // stale/smaller Rack measurement and therefore undersized shapes.
   let portraitGeometry=null;
   if(!landscape && !compactHintRack){
+    // v1.25.1: Hint mode temporarily stores a compact Rack height directly on
+    // .rack-shell.  On the first normal render after a successful Hint drop,
+    // that local custom property used to survive long enough to poison the
+    // geometry measurement below: the Rack tray was measured at the compact
+    // Hint height while the Rack section was already back at its normal height.
+    // Clear the Hint-only local override BEFORE measuring normal portrait
+    // geometry so Board/Rack allocation is recalculated from the real tray.
+    rackShell.style.removeProperty('--portrait-rack-height');
     portraitGeometry=resolvePortraitBoardRackGeometry(rackPieces,false);
     if(portraitGeometry){
       document.documentElement.style.setProperty('--portrait-board-size',Math.round(portraitGeometry.boardSize)+'px');

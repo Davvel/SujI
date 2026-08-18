@@ -1428,3 +1428,21 @@ This release promotes the accepted v1.19.x refinement line to a new stable v1.20
 - If the current release would be rejected and the shape would return to the Rack/previous position, no landing preview is displayed.
 - Existing v1.24.2 drag-performance optimisations remain in place.
 - Visible version and PWA cache namespace updated to v1.24.4.
+
+
+## v1.25.0 — protected checkpoint
+
+- Frozen directly from the accepted **v1.24.4** state.
+- No gameplay, visual, placement, Hint Mode, Board/Rack sizing, Sudoku, level-content, or drag-behaviour changes were introduced for this checkpoint.
+- Retains the v1.24.x mobile drag-performance optimisations.
+- Retains the normal-play valid-drop preview: when Hint Mode is OFF, the exact Board cells that would receive a dragged shape are filled with translucent light red only when the release would be accepted; no preview is shown for overlaps, out-of-bounds placements, or any release that would return the shape to the Rack/previous position.
+- Visible application version and PWA cache namespace updated to **v1.25.0**.
+
+## v1.25.1 — Hint completion Rack-height correction
+
+- Fixed a portrait/mobile layout regression that could shrink the Rack after a successful placement Hint.
+- When Hint Mode ends, the temporary compact Hint Rack-height override is now cleared before normal Board/Rack geometry is measured.
+- The normal responsive Rack height and piece scale are therefore recalculated from the real available Rack area immediately after the Hint placement.
+- No changes to Hint placement behaviour, Sudoku rules, drag behaviour, or the v1.25.0 light-red valid landing preview.
+- Visible application version and PWA cache namespace updated to **v1.25.1**.
+
