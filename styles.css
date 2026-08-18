@@ -7898,153 +7898,130 @@ body.portrait-ui.placement-hint-mode .rack-shell{
   transition:none !important;
 }
 
-/* === SuJi v1.26.1: height-driven mobile landscape columns ===
-   In short phone landscape, the Board square is limited by viewport HEIGHT.
-   The old 1.42fr / 1fr column ratio could therefore leave a very wide empty
-   Board panel while unnecessarily squeezing/clipping the Rack.  Size the
-   Board column from the same resolved landscape play height instead, then let
-   the Rack consume every remaining horizontal pixel. */
-@media (orientation:landscape) and (max-height:600px){
-  body.landscape-ui .play-layout{
-    grid-template-columns:
-      minmax(0, clamp(300px, calc(var(--landscape-play-height, 100dvh) - 8px), 520px))
-      minmax(0, 1fr) !important;
-    width:100% !important;
-    max-width:100% !important;
-  }
-
-  body.landscape-ui .board-section,
-  body.landscape-ui .rack-section{
-    min-width:0 !important;
-  }
-
-  body.landscape-ui .board-wrap{
-    width:min(100%, calc(var(--landscape-play-height, 100dvh) - 46px)) !important;
-    max-width:100% !important;
-  }
-
-  body.landscape-ui .rack-section,
-  body.landscape-ui .rack-shell{
-    width:100% !important;
-    max-width:100% !important;
-  }
+/* === SuJi v1.26.4: rotation-stable Pixel/mobile landscape ===
+   Built from the protected v1.26.0 baseline. Desktop/laptop landscape keeps its
+   accepted layout. Only a short touch landscape receives the phone-specific
+   geometry calculated from the settled visual viewport after rotation. */
+body.mobile-landscape-ui{
+  min-width:0 !important;
+  width:100% !important;
+  overflow-x:hidden !important;
+  overflow-y:hidden !important;
 }
 
-/* Extra-short phones need an even leaner Board column so the Rack remains
-   fully on-screen beside it. */
-@media (orientation:landscape) and (max-height:480px){
-  body.landscape-ui .play-layout{
-    grid-template-columns:
-      minmax(0, clamp(270px, calc(var(--landscape-play-height, 100dvh) - 4px), 460px))
-      minmax(0, 1fr) !important;
-  }
+/* v8.0.7 imposed a 900px landscape app minimum. That is useful on desktops but
+   is the direct source of horizontal clipping on Pixel-class CSS viewports. */
+body.mobile-landscape-ui .app{
+  min-width:0 !important;
+  width:calc(100% - var(--mobile-landscape-safe-left,0px) - var(--mobile-landscape-safe-right,0px)) !important;
+  max-width:none !important;
+  margin-left:var(--mobile-landscape-safe-left,0px) !important;
+  margin-right:var(--mobile-landscape-safe-right,0px) !important;
+  padding-left:6px !important;
+  padding-right:6px !important;
+  padding-bottom:4px !important;
+  overflow:hidden !important;
 }
 
-
-/* === SuJi v1.26.3: mobile-landscape usable-viewport correction ===
-   1.26.2 accidentally wrote its final CSS override with literal "\\n" text,
-   so the browser ignored that block. This clean override fixes the three
-   observed landscape-phone issues: full Board visibility, Rack/right-edge
-   safety, and a permanently visible compact version label. */
-@media (orientation:landscape) and (max-height:600px){
-  html,
-  body.landscape-ui{
-    min-width:0 !important;
-    overflow-x:hidden !important;
-  }
-
-  body.landscape-ui .topbar{
-    padding-top:3px !important;
-    padding-bottom:3px !important;
-  }
-  body.landscape-ui .brand{gap:6px !important}
-  body.landscape-ui .brand-mark{width:28px !important;height:28px !important}
-  body.landscape-ui .brand h1{font-size:18px !important;line-height:1 !important}
-  body.landscape-ui .brand p{
-    display:block !important;
-    margin:1px 0 0 !important;
-    font-size:8px !important;
-    line-height:1 !important;
-    white-space:nowrap !important;
-  }
-  body.landscape-ui .icon-btn{width:30px !important;height:30px !important}
-
-  /* --suji-usable-width is calculated from visualViewport plus an Android
-     system-navigation safety gutter when the OS overlays navigation on the
-     right side of a short landscape PWA. */
-  body.landscape-ui .app{
-    min-width:0 !important;
-    width:var(--suji-usable-width, calc(100dvw - 8px)) !important;
-    max-width:var(--suji-usable-width, calc(100dvw - 8px)) !important;
-    margin-left:4px !important;
-    margin-right:0 !important;
-    padding:3px 3px max(3px,env(safe-area-inset-bottom)) !important;
-    box-sizing:border-box !important;
-    overflow:hidden !important;
-  }
-
-  body.landscape-ui .compact-status-strip{
-    width:100% !important;
-    max-width:100% !important;
-    min-width:0 !important;
-    box-sizing:border-box !important;
-    overflow:hidden !important;
-  }
-
-  body.landscape-ui .play-layout{
-    min-width:0 !important;
-    width:100% !important;
-    max-width:100% !important;
-    height:var(--landscape-play-height, calc(100dvh - 94px)) !important;
-    min-height:0 !important;
-    grid-template-columns:
-      minmax(0, var(--suji-landscape-board-column, 390px))
-      minmax(0, 1fr) !important;
-    gap:6px !important;
-    align-items:stretch !important;
-    overflow:hidden !important;
-  }
-
-  body.landscape-ui .board-section,
-  body.landscape-ui .rack-section{
-    min-width:0 !important;
-    min-height:0 !important;
-    width:100% !important;
-    max-width:100% !important;
-    height:100% !important;
-    box-sizing:border-box !important;
-    overflow:hidden !important;
-  }
-
-  body.landscape-ui .board-wrap{
-    flex:0 0 auto !important;
-    min-width:0 !important;
-    min-height:0 !important;
-    width:var(--suji-landscape-board-size, 340px) !important;
-    height:var(--suji-landscape-board-size, 340px) !important;
-    max-width:100% !important;
-    max-height:100% !important;
-    aspect-ratio:1 / 1 !important;
-    align-self:center !important;
-  }
-
-  body.landscape-ui .rack-section,
-  body.landscape-ui .rack-shell,
-  body.landscape-ui .rack{
-    min-width:0 !important;
-    max-width:100% !important;
-  }
-  body.landscape-ui .rack-shell{
-    width:100% !important;
-    box-sizing:border-box !important;
-    overflow:hidden !important;
-  }
-  body.landscape-ui .rack{overflow:hidden !important}
+/* Keep system navigation/cutout space away from the top controls as well. */
+body.mobile-landscape-ui .topbar{
+  padding-left:max(7px,env(safe-area-inset-left),calc(var(--mobile-landscape-safe-left,0px) + 7px)) !important;
+  padding-right:max(7px,env(safe-area-inset-right),calc(var(--mobile-landscape-safe-right,0px) + 7px)) !important;
 }
 
-@media (orientation:landscape) and (max-height:480px){
-  body.landscape-ui .brand p{
-    display:block !important;
-    font-size:7px !important;
-  }
+/* Never hide the build number in short landscape. The older <=480px rule did. */
+body.mobile-landscape-ui .brand p{
+  display:block !important;
+  margin:1px 0 0 !important;
+  font-size:7.5px !important;
+  line-height:1 !important;
+  white-space:nowrap;
+}
+
+body.mobile-landscape-ui .compact-status-strip{
+  min-width:0 !important;
+  overflow:hidden !important;
+}
+body.mobile-landscape-ui .compact-level-block,
+body.mobile-landscape-ui .compact-metric{
+  min-width:0 !important;
+}
+
+/* Height comes from visualViewport after the controls have actually laid out.
+   Board column comes from the square Board's usable height; Rack gets the rest. */
+body.mobile-landscape-ui .play-layout{
+  width:100% !important;
+  min-width:0 !important;
+  height:var(--landscape-play-height,220px) !important;
+  min-height:0 !important;
+  max-height:var(--landscape-play-height,220px) !important;
+  grid-template-columns:var(--mobile-landscape-board-col,250px) minmax(0,1fr) !important;
+  grid-template-rows:minmax(0,1fr) !important;
+  gap:6px !important;
+  align-items:stretch !important;
+  overflow:hidden !important;
+}
+body.mobile-landscape-ui .play-layout .board-section,
+body.mobile-landscape-ui .play-layout .rack-section{
+  width:100% !important;
+  min-width:0 !important;
+  height:100% !important;
+  min-height:0 !important;
+  max-height:100% !important;
+  margin-top:0 !important;
+  overflow:hidden !important;
+  box-sizing:border-box !important;
+}
+body.mobile-landscape-ui .board-section{
+  padding:4px 5px 5px !important;
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:center !important;
+}
+body.mobile-landscape-ui .board-section .board-section-heading{
+  width:100% !important;
+  flex:0 0 auto !important;
+  min-height:28px !important;
+  margin:0 0 3px !important;
+}
+body.mobile-landscape-ui .board-title-block h2,
+body.mobile-landscape-ui .rack-section .section-heading h2{
+  font-size:16px !important;
+}
+body.mobile-landscape-ui .board-wrap{
+  flex:0 0 auto !important;
+  width:var(--mobile-landscape-board-size,210px) !important;
+  height:var(--mobile-landscape-board-size,210px) !important;
+  min-width:0 !important;
+  min-height:0 !important;
+  max-width:100% !important;
+  max-height:none !important;
+  aspect-ratio:1 / 1 !important;
+  align-self:center !important;
+}
+body.mobile-landscape-ui .rack-section{
+  padding:4px 5px 5px !important;
+  display:flex !important;
+  flex-direction:column !important;
+}
+body.mobile-landscape-ui .rack-section > .section-heading{
+  flex:0 0 auto !important;
+  min-height:24px !important;
+  margin:0 0 3px !important;
+  align-items:center !important;
+}
+body.mobile-landscape-ui .rack-shell{
+  flex:1 1 auto !important;
+  width:100% !important;
+  height:auto !important;
+  min-width:0 !important;
+  min-height:0 !important;
+  max-width:100% !important;
+  overflow:hidden !important;
+  border-width:5px !important;
+  border-radius:15px !important;
+  box-sizing:border-box !important;
+}
+body.mobile-landscape-ui .game-footer{
+  display:none !important;
 }

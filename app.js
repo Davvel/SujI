@@ -831,71 +831,147 @@ function paintRuleRegion(rule){
 }
 
 
-function updateResponsiveLayout(){
-  const viewportWidth=window.visualViewport?.width || window.innerWidth;
-  const viewportHeight=window.visualViewport?.height || window.innerHeight;
-  // v1.26.3: calculate the truly usable landscape width. Some Android
-  // installations overlay the 3-button navigation rail on the right while still
-  // reporting that area as viewport width. Preserve a small Android-only safety
-  // gutter on short landscape screens, plus any measurable visual-viewport loss.
+function getResponsiveViewport(){
   const vv=window.visualViewport;
-  const viewportLoss=Math.max(0, Math.floor(window.innerWidth - viewportWidth - (vv?.offsetLeft || 0)));
-  const isAndroid=/Android/i.test(navigator.userAgent || '');
-  const shortLandscape=viewportWidth > viewportHeight && viewportHeight <= 600;
-  const androidNavFallback=(isAndroid && shortLandscape && viewportLoss < 12) ? 34 : 0;
-  const safeRight=Math.max(viewportLoss, androidNavFallback);
-  const usableWidth=Math.max(320, Math.floor(viewportWidth - safeRight - 8));
-  document.documentElement.style.setProperty('--suji-visual-width', `${Math.floor(viewportWidth)}px`);
-  document.documentElement.style.setProperty('--suji-landscape-safe-right', `${safeRight}px`);
-  document.documentElement.style.setProperty('--suji-usable-width', `${usableWidth}px`);
-  const landscape = viewportWidth >= 760 && viewportWidth > viewportHeight;
-  document.body.classList.toggle('landscape-ui', landscape);
-  document.body.classList.toggle('portrait-ui', !landscape);
+  const width=Math.max(1,Math.round(vv?.width || document.documentElement.clientWidth || window.innerWidth || 1));
+  const height=Math.max(1,Math.round(vv?.height || document.documentElement.clientHeight || window.innerHeight || 1));
+  return {width,height};
+}
+
+function hasTouchPrimaryInput(){
+  return (navigator.maxTouchPoints||0)>0 || !!window.matchMedia?.('(pointer: coarse)').matches;
+}
+
+function getScreenOrientationAngle(){
+  const raw=(typeof screen.orientation?.angle==='number')
+    ? screen.orientation.angle
+    : (typeof window.orientation==='number' ? window.orientation : 0);
+  return ((raw%360)+360)%360;
+}
+
+function updateMobileLandscapeSafeInsets(enabled,viewport){
+  const root=document.documentElement;
+  if(!enabled){
+    root.style.removeProperty('--mobile-landscape-safe-left');
+    root.style.removeProperty('--mobile-landscape-safe-right');
+    return;
+  }
+
+  let safeLeft=0,safeRight=0;
+  const vv=window.visualViewport;
+  const layoutWidth=Math.max(document.documentElement.clientWidth||0,window.innerWidth||0);
+  if(vv && layoutWidth){
+    safeLeft=Math.max(0,Math.ceil(vv.offsetLeft||0));
+    safeRight=Math.max(0,Math.ceil(layoutWidth-(vv.offsetLeft||0)-vv.width));
+  }
+
+  // Android's three-button navigation rail can be drawn over an edge-to-edge
+  // PWA without reducing visualViewport.width.  Pixel-class phones therefore
+  // need a small orientation-aware fallback inset when the browser reports 0.
+  if(/Android/i.test(navigator.userAgent) && safeLeft<4 && safeRight<4){
+    const fallback=Math.round(clamp(viewport.height*.08,28,38));
+    const angle=getScreenOrientationAngle();
+    if(angle===270) safeLeft=fallback;
+    else safeRight=fallback;
+  }
+
+  root.style.setProperty('--mobile-landscape-safe-left',`${safeLeft}px`);
+  root.style.setProperty('--mobile-landscape-safe-right',`${safeRight}px`);
+}
+
+function clearMobileLandscapeGeometry(){
+  const root=document.documentElement;
+  root.style.removeProperty('--mobile-landscape-board-size');
+  root.style.removeProperty('--mobile-landscape-board-col');
+}
+
+function updateMobileLandscapeGeometry(enabled){
+  if(!enabled){ clearMobileLandscapeGeometry(); return; }
+
+  const app=document.querySelector('.app');
+  const play=document.querySelector('.play-layout');
+  const boardSection=document.querySelector('.board-section');
+  const heading=boardSection?.querySelector('.board-section-heading');
+  if(!app || !play || !boardSection || !heading) return;
+
+  // Force the newly selected orientation CSS and --landscape-play-height to be
+  // committed before measuring. This matters on Android immediately after a
+  // portrait -> landscape rotation, when the first resize event can be stale.
+  void play.offsetHeight;
+
+  const playHeight=Math.max(120,Math.floor(play.getBoundingClientRect().height));
+  const appRect=app.getBoundingClientRect();
+  const appStyle=getComputedStyle(app);
+  const boardStyle=getComputedStyle(boardSection);
+  const headingStyle=getComputedStyle(heading);
+  const appPadX=(parseFloat(appStyle.paddingLeft)||0)+(parseFloat(appStyle.paddingRight)||0);
+  const boardPadX=(parseFloat(boardStyle.paddingLeft)||0)+(parseFloat(boardStyle.paddingRight)||0);
+  const boardPadY=(parseFloat(boardStyle.paddingTop)||0)+(parseFloat(boardStyle.paddingBottom)||0);
+  const headingH=heading.getBoundingClientRect().height
+    +(parseFloat(headingStyle.marginTop)||0)+(parseFloat(headingStyle.marginBottom)||0);
+
+  const contentWidth=Math.max(360,Math.floor(appRect.width-appPadX));
+  const gap=6;
+  const boardByHeight=Math.max(96,Math.floor(playHeight-boardPadY-headingH-2));
+
+  // On a phone the Board width should be driven primarily by the *height* that
+  // is genuinely visible.  The Rack then receives all horizontal room left over.
+  // Reserve at least ~55% for the crowded Rack, but never enlarge the Board panel
+  // beyond what its square can use.
+  const rackFloor=Math.max(280,Math.floor(contentWidth*.55));
+  const maxBoardColumn=Math.max(190,contentWidth-rackFloor-gap);
+  const boardByWidth=Math.max(96,Math.floor(maxBoardColumn-boardPadX-2));
+  const boardSize=Math.max(96,Math.floor(Math.min(boardByHeight,boardByWidth)));
+  const boardColumn=Math.max(190,Math.min(maxBoardColumn,Math.ceil(boardSize+boardPadX+2)));
+
+  const root=document.documentElement;
+  root.style.setProperty('--mobile-landscape-board-size',`${boardSize}px`);
+  root.style.setProperty('--mobile-landscape-board-col',`${boardColumn}px`);
+}
+
+function updateResponsiveLayout(){
+  const viewport=getResponsiveViewport();
+  const touch=hasTouchPrimaryInput();
+  const geometricLandscape=viewport.width>viewport.height;
+  // Do not require a desktop-like 760px width for a rotated phone. Pixel-class
+  // devices can report fewer CSS pixels depending on browser/PWA chrome.
+  const landscape=geometricLandscape && (viewport.width>=700 || touch);
+  const mobileLandscape=landscape && touch && viewport.height<=620;
+
+  document.body.classList.toggle('landscape-ui',landscape);
+  document.body.classList.toggle('portrait-ui',!landscape);
+  document.body.classList.toggle('mobile-landscape-ui',mobileLandscape);
+  document.documentElement.style.setProperty('--suji-visual-width',`${viewport.width}px`);
+  document.documentElement.style.setProperty('--suji-visual-height',`${viewport.height}px`);
+  updateMobileLandscapeSafeInsets(mobileLandscape,viewport);
 
   const topbar=document.querySelector('.topbar');
   if(topbar){
-    document.documentElement.style.setProperty('--suji-topbar-h', `${Math.ceil(topbar.getBoundingClientRect().height)}px`);
+    document.documentElement.style.setProperty('--suji-topbar-h',`${Math.ceil(topbar.getBoundingClientRect().height)}px`);
   }
 
   updateHintControlLocation();
   updatePlacementHintLocation(landscape);
   updatePortraitPlayHeight(landscape);
-  updateLandscapePlayHeight(landscape);
+  updateLandscapePlayHeight(landscape,viewport);
+  updateMobileLandscapeGeometry(mobileLandscape);
 }
 
-function updateLandscapePlayHeight(landscape){
+function updateLandscapePlayHeight(landscape,viewport=getResponsiveViewport()){
   const play=document.querySelector('.play-layout');
   if(!play) return;
   if(!landscape){
     play.style.removeProperty('--landscape-play-height');
     return;
   }
-  const visualHeight=window.visualViewport?.height || window.innerHeight;
   const top=play.getBoundingClientRect().top;
-  // Short phone landscape needs a little real bottom breathing room; without
-  // this the final Sudoku row can sit under the viewport edge by a few pixels.
-  const safeBottom=visualHeight<=600 ? 12 : 6;
-  const available=Math.max(230, Math.floor(visualHeight-top-safeBottom));
-  play.style.setProperty('--landscape-play-height', `${available}px`);
-
-  if(visualHeight<=600){
-    const boardSection=document.querySelector('.board-section');
-    const heading=boardSection?.querySelector('.board-section-heading');
-    const sectionStyle=boardSection ? getComputedStyle(boardSection) : null;
-    const padY=sectionStyle ? (parseFloat(sectionStyle.paddingTop||0)+parseFloat(sectionStyle.paddingBottom||0)) : 10;
-    const headingH=heading ? Math.ceil(heading.getBoundingClientRect().height) : 30;
-    const headingStyle=heading ? getComputedStyle(heading) : null;
-    const headingMargin=headingStyle ? (parseFloat(headingStyle.marginTop||0)+parseFloat(headingStyle.marginBottom||0)) : 4;
-    // Leave an extra 6px so the Board border never touches/clips at the bottom.
-    const boardSize=Math.max(220, Math.floor(available - padY - headingH - headingMargin - 6));
-    const padX=sectionStyle ? (parseFloat(sectionStyle.paddingLeft||0)+parseFloat(sectionStyle.paddingRight||0)) : 12;
-    const boardColumn=Math.ceil(boardSize + padX + 4);
-    document.documentElement.style.setProperty('--suji-landscape-board-size', `${boardSize}px`);
-    document.documentElement.style.setProperty('--suji-landscape-board-column', `${boardColumn}px`);
-  }else{
-    document.documentElement.style.removeProperty('--suji-landscape-board-size');
-    document.documentElement.style.removeProperty('--suji-landscape-board-column');
-  }
+  const safeBottom=4;
+  // Desktop keeps the historical minimum. A phone in landscape must instead
+  // fit the *real* remaining viewport, otherwise the Board is guaranteed to run
+  // below the screen after rotation.
+  const minHeight=document.body.classList.contains('mobile-landscape-ui') ? 120 : 230;
+  const available=Math.max(minHeight,Math.floor(viewport.height-top-safeBottom));
+  play.style.setProperty('--landscape-play-height',`${available}px`);
 }
 
 function updatePlacementHintLocation(landscape){
@@ -1728,23 +1804,11 @@ function renderAll(animateAnchors=false){
   } else {
     rackShell.style.height='';
     rackShell.style.minHeight='0px';
-    const measuredRackWidth=Math.max(80,Math.floor(rack.getBoundingClientRect().width || rackShell.clientWidth));
-    const measuredRackHeight=Math.max(120,Math.floor(rack.getBoundingClientRect().height || rackShell.clientHeight));
-    const landscapeMinCell=(window.innerWidth<1000 || window.innerHeight<720) ? 14 : 18;
-
-    // v1.26.3: the whole app now excludes any Android navigation overlay. Keep
-    // only a modest internal tray gutter so the outermost Rack shapes never
-    // touch the physical rim.
-    const safetyX=(window.innerHeight<=600) ? 8 : 6;
-    const safetyY=(window.innerHeight<=600) ? 6 : 4;
-    const safeRackWidth=Math.max(70,measuredRackWidth-safetyX*2);
-    const safeRackHeight=Math.max(100,measuredRackHeight-safetyY*2);
-    layout=buildRackLayout(rackPieces,safeRackWidth,safeRackHeight,true,landscapeMinCell);
-    if(layout?.map?.size){
-      const shifted=new Map();
-      for(const [id,pos] of layout.map) shifted.set(id,{...pos,x:pos.x+safetyX,y:pos.y+safetyY});
-      layout={...layout,map:shifted};
-    }
+    const rackWidth=Math.max(80,rackShell.clientWidth || rack.getBoundingClientRect().width);
+    const rackHeight=Math.max(120,rackShell.clientHeight || rack.getBoundingClientRect().height);
+    const landscapeViewport=getResponsiveViewport();
+    const landscapeMinCell=(landscapeViewport.width<1000 || landscapeViewport.height<720) ? 14 : 18;
+    layout=buildRackLayout(rackPieces,rackWidth,rackHeight,true,landscapeMinCell);
   }
 
   rackPieces.forEach((p)=>{
@@ -2912,7 +2976,51 @@ const picturePreviewOverlay=$('#picturePreviewOverlay');
 if(picturePreviewOverlay) picturePreviewOverlay.addEventListener('click',e=>{ if(e.target===picturePreviewOverlay) requestClosePicturePreview(); });
 window.addEventListener('keydown',e=>{ if(e.key==='Escape'){ requestClosePicturePreview(); } });
 
-window.addEventListener('resize',()=>{ updateResponsiveLayout(); setHintModeClass(); updateHintViewportMetrics(); updateStats(); renderAll(false); });
+let responsiveRelayoutRaf=0;
+let responsiveRelayoutTimer=0;
+let orientationRelayoutEpoch=0;
+
+function performResponsiveRelayout(){
+  updateResponsiveLayout();
+  setHintModeClass();
+  updateHintViewportMetrics();
+  updateStats();
+  renderAll(false);
+  if(state.activeTeachingConflict) updateConflictBubble(state.activeTeachingConflict);
+}
+
+function scheduleResponsiveRelayout(){
+  if(responsiveRelayoutRaf) cancelAnimationFrame(responsiveRelayoutRaf);
+  responsiveRelayoutRaf=requestAnimationFrame(()=>{
+    responsiveRelayoutRaf=requestAnimationFrame(()=>{
+      responsiveRelayoutRaf=0;
+      performResponsiveRelayout();
+    });
+  });
+  clearTimeout(responsiveRelayoutTimer);
+  responsiveRelayoutTimer=setTimeout(performResponsiveRelayout,140);
+}
+
+function stabilizeAfterOrientationChange(){
+  const epoch=++orientationRelayoutEpoch;
+  // Android updates orientation, visualViewport and layout viewport in separate
+  // phases. Re-measure several times, but only for the newest rotation.
+  [0,70,180,360].forEach(delay=>{
+    setTimeout(()=>{
+      if(epoch!==orientationRelayoutEpoch) return;
+      requestAnimationFrame(performResponsiveRelayout);
+    },delay);
+  });
+}
+
+window.addEventListener('resize',scheduleResponsiveRelayout,{passive:true});
+if(window.visualViewport){
+  window.visualViewport.addEventListener('resize',scheduleResponsiveRelayout,{passive:true});
+}
+window.addEventListener('orientationchange',stabilizeAfterOrientationChange,{passive:true});
+if(screen.orientation?.addEventListener){
+  screen.orientation.addEventListener('change',stabilizeAfterOrientationChange);
+}
 updateResponsiveLayout(); buildBoard(); resetLevel(true);
 })();
 

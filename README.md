@@ -1456,39 +1456,16 @@ This release promotes the accepted v1.19.x refinement line to a new stable v1.20
 - Visible application version updated to **v1.26.0**.
 - PWA service-worker cache namespace updated to **suji-v1-26-0** so mobile installations fetch the checkpoint build as a new version.
 
+## v1.26.4 — rotation-stable mobile landscape
 
-## v1.26.1 — mobile landscape space utilisation fix
-
-- Branched directly from the protected **v1.26.0** checkpoint.
-- Fixes wasted horizontal space on short mobile-landscape screens.
-- The landscape Board column is now derived from the actual available gameplay height instead of the old fixed `1.42fr / 1fr` Board/Rack ratio.
-- Because the Board is square and height-limited in phone landscape, its panel now stays close to the width the Board genuinely needs.
-- The Rack automatically receives all remaining horizontal space, preventing unnecessary right-side clipping/overflow and giving Rack shapes more usable room.
-- Portrait layout, gameplay, Hint Mode, Sudoku rules, drag/drop behaviour and level content are unchanged.
-- Visible application version updated to **v1.26.1**.
-- PWA service-worker cache namespace updated to **suji-v1-26-1**.
-
-
-## v1.26.2 — mobile landscape fit refinement
-
-- Starts from accepted v1.26.1.
-- Short mobile landscape now uses the actual `visualViewport` width so the app does not extend beneath Android/browser navigation chrome.
-- Cancels legacy 600/620px landscape Board minimums on short phones; the complete square Board is fitted to the available gameplay height.
-- Board column is height-driven with a small practical width guarantee; Rack receives all remaining horizontal space.
-- Landscape Rack packing reserves a small internal safety gutter so no shapes are clipped at the right edge.
-- Compact header keeps the version visible in landscape, including extra-short phone screens.
-- Added `.gitattributes` to standardise text files on LF line endings.
-- Visible version updated to **v1.26.2**.
-- PWA cache namespace updated to **suji-v1-26-2**.
-
-## v1.26.3 — mobile landscape final visible-area correction
-
-- Built from the accepted v1.26.2 line.
-- Fixed the malformed v1.26.2 CSS tail that contained literal `\n` text and therefore did not apply reliably in the browser.
-- Short mobile landscape now reserves a right-side Android navigation safety gutter when needed.
-- Board size is calculated from the actual remaining play height so the complete 9×9 Board stays visible.
-- Board column width follows that calculated Board size; the Rack receives the remaining usable width.
-- Rack packing keeps a small internal rim gutter and no longer relies on space hidden under the Android navigation rail.
-- Compact version label is forced visible in short landscape and now displays `v1.26.3`.
-- PWA cache namespace updated to `suji-v1-26-3`.
-- Portrait gameplay and Hint behaviour are unchanged.
+- Built directly from the protected **v1.26.0** baseline; the experimental v1.26.1–v1.26.3 landscape changes are not carried forward.
+- Adds an explicit short-touch/mobile landscape mode so laptop/desktop landscape keeps the accepted v1.26.0 behaviour.
+- Removes the legacy 900px minimum application width only on mobile landscape, preventing the Rack from being pushed underneath the Android navigation rail.
+- Uses `visualViewport` dimensions and recalculates after `resize`, `visualViewport.resize`, `orientationchange`, and `screen.orientation.change`.
+- Android rotation is remeasured in several short settling passes because the orientation, layout viewport and visual viewport can update at different moments after portrait → landscape rotation.
+- The mobile Board column is derived from the genuinely available gameplay height; the square Board is sized explicitly so its complete 9×9 area remains on-screen.
+- The Rack automatically receives all remaining horizontal space and is repacked only after the settled landscape geometry is measured.
+- Adds an orientation-aware Android navigation-rail safety inset for edge-to-edge PWA cases where the browser reports no inset.
+- `Version 1.26.4` remains visible in both portrait and short mobile landscape.
+- Adds `.gitattributes` to keep project text files on LF line endings.
+- PWA service-worker cache namespace updated to **suji-v1-26-4**.
