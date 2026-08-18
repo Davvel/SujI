@@ -1448,3 +1448,22 @@ This release promotes the accepted v1.19.x refinement line to a new stable v1.20
 - Fixes the Rack shrinking/miscalculation that could remain after a successful Hint placement.
 - Visible application version and PWA cache namespace updated to **v1.25.2**.
 
+## v1.26.0 — Checkpoint 26 protected baseline
+
+- Created directly from the accepted **v1.25.2** build.
+- No gameplay, Hint Mode, Rack sizing, Board sizing, drag-and-drop, Sudoku, guide, visual, or responsive-layout behavior changed during this checkpoint save.
+- This version freezes the accepted v1.25.2 state as the new protected rollback baseline.
+- Visible application version updated to **v1.26.0**.
+- PWA service-worker cache namespace updated to **suji-v1-26-0** so mobile installations fetch the checkpoint build as a new version.
+
+
+## v1.26.1 — mobile landscape space utilisation fix
+
+- Branched directly from the protected **v1.26.0** checkpoint.
+- Fixes wasted horizontal space on short mobile-landscape screens.
+- The landscape Board column is now derived from the actual available gameplay height instead of the old fixed `1.42fr / 1fr` Board/Rack ratio.
+- Because the Board is square and height-limited in phone landscape, its panel now stays close to the width the Board genuinely needs.
+- The Rack automatically receives all remaining horizontal space, preventing unnecessary right-side clipping/overflow and giving Rack shapes more usable room.
+- Portrait layout, gameplay, Hint Mode, Sudoku rules, drag/drop behaviour and level content are unchanged.
+- Visible application version updated to **v1.26.1**.
+- PWA service-worker cache namespace updated to **suji-v1-26-1**.

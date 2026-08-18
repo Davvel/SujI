@@ -7897,3 +7897,45 @@ body.portrait-ui.placement-hint-mode .rack-shell{
   overflow:hidden !important;
   transition:none !important;
 }
+
+/* === SuJi v1.26.1: height-driven mobile landscape columns ===
+   In short phone landscape, the Board square is limited by viewport HEIGHT.
+   The old 1.42fr / 1fr column ratio could therefore leave a very wide empty
+   Board panel while unnecessarily squeezing/clipping the Rack.  Size the
+   Board column from the same resolved landscape play height instead, then let
+   the Rack consume every remaining horizontal pixel. */
+@media (orientation:landscape) and (max-height:600px){
+  body.landscape-ui .play-layout{
+    grid-template-columns:
+      minmax(0, clamp(300px, calc(var(--landscape-play-height, 100dvh) - 8px), 520px))
+      minmax(0, 1fr) !important;
+    width:100% !important;
+    max-width:100% !important;
+  }
+
+  body.landscape-ui .board-section,
+  body.landscape-ui .rack-section{
+    min-width:0 !important;
+  }
+
+  body.landscape-ui .board-wrap{
+    width:min(100%, calc(var(--landscape-play-height, 100dvh) - 46px)) !important;
+    max-width:100% !important;
+  }
+
+  body.landscape-ui .rack-section,
+  body.landscape-ui .rack-shell{
+    width:100% !important;
+    max-width:100% !important;
+  }
+}
+
+/* Extra-short phones need an even leaner Board column so the Rack remains
+   fully on-screen beside it. */
+@media (orientation:landscape) and (max-height:480px){
+  body.landscape-ui .play-layout{
+    grid-template-columns:
+      minmax(0, clamp(270px, calc(var(--landscape-play-height, 100dvh) - 4px), 460px))
+      minmax(0, 1fr) !important;
+  }
+}
