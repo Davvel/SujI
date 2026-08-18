@@ -427,17 +427,12 @@ function placeHintBubbleNearSelectedPiece(box){
 }
 
 function updateHintViewportMetrics(){
-  if(!document.body.classList.contains('portrait-ui') || !(state.hintArmed || state.hintInUse)) return;
-  const play=document.querySelector('.play-layout');
-  if(!play) return;
-  const top=Math.max(0,play.getBoundingClientRect().top);
-  const available=Math.max(360,window.innerHeight-top-4);
-  const rackShellH=Math.max(135,Math.min(window.innerHeight*0.22,185));
-  const rackChrome=58; // Rack heading + Hint instruction + panel padding.
-  const boardChrome=88; // Board heading + Hint taskbar + panel padding.
-  const boardSize=Math.max(185,Math.min(window.innerWidth-30,available-rackShellH-rackChrome-boardChrome-8));
-  document.documentElement.style.setProperty('--hint-play-height',`${available}px`);
-  document.documentElement.style.setProperty('--hint-board-size',`${boardSize}px`);
+  // v1.25.1: Hint Mode is now visual/interaction-only. Older builds used a
+  // special compact portrait Board/Rack geometry so every Rack shape could be
+  // seen at once. The normal adaptive Rack now already provides that behaviour,
+  // so Hint must never resize the play area or publish Hint-only size variables.
+  document.documentElement.style.removeProperty('--hint-play-height');
+  document.documentElement.style.removeProperty('--hint-board-size');
 }
 
 function ensureHintDimLayers(){
@@ -1571,7 +1566,7 @@ function resolvePortraitRackLayout(pieces, width, minHeight, maxHeight, compactH
   };
 }
 
-function resolvePortraitBoardRackGeometry(rackPieces, compactHintRack=false){
+function resolvePortraitBoardRackGeometry(rackPieces){
   const play=document.querySelector('.play-layout');
   const boardSection=document.querySelector('.board-section');
   const rackSection=document.querySelector('.rack-section');
@@ -1596,9 +1591,7 @@ function resolvePortraitBoardRackGeometry(rackPieces, compactHintRack=false){
   const currentRackSectionRect=rackSection.getBoundingClientRect();
   const rackChrome=Math.max(10,Math.round(currentRackSectionRect.height-currentRackRect.height));
   const gap=6;
-  const minRack=compactHintRack
-    ? Math.max(118,Math.min(visualHeight*0.18,160))
-    : Math.max(150,Math.min(visualHeight*0.22,210));
+  const minRack=Math.max(150,Math.min(visualHeight*0.22,210));
 
   // v1.23.5: the Board is allowed to shrink more aggressively when the Rack is
   // crowded. The minimum Board size is dynamic instead of fixed: at the start
@@ -1630,9 +1623,7 @@ function resolvePortraitBoardRackGeometry(rackPieces, compactHintRack=false){
 
     const boardCell=boardSize/9;
     const crowdBoost=remaining>=18 ? 4 : remaining>=12 ? 2 : 0;
-    const targetRackCell=compactHintRack
-      ? Math.max(20,Math.min(36,boardCell*.48))
-      : Math.max(30+crowdBoost,Math.min(50,boardCell*.66+crowdBoost));
+    const targetRackCell=Math.max(30+crowdBoost,Math.min(50,boardCell*.66+crowdBoost));
     const fit=tryPackRack(rackPieces,rackWidth,rackHeight,Math.floor(targetRackCell),6);
     if(fit) return {boardSize,rackHeight,boardChrome,rackChrome,gap};
     fallback={boardSize,rackHeight,boardChrome,rackChrome,gap};
@@ -1653,7 +1644,6 @@ function renderAll(animateAnchors=false){
   const rackShell=document.querySelector('.rack-shell');
   let rackPieces=state.pieces.filter(p=>!state.placed.has(p.id));
   const landscape=document.body.classList.contains('landscape-ui');
-  const compactHintRack=!landscape && (state.hintArmed || state.hintInUse);
 
   // v1.23.7: keep the resolved portrait geometry so the packer can size
   // against the SAME Rack dimensions that CSS is being told to render. Earlier
@@ -1661,16 +1651,8 @@ function renderAll(animateAnchors=false){
   // that could still be part-way through its height transition, producing a
   // stale/smaller Rack measurement and therefore undersized shapes.
   let portraitGeometry=null;
-  if(!landscape && !compactHintRack){
-    // v1.25.1: Hint mode temporarily stores a compact Rack height directly on
-    // .rack-shell.  On the first normal render after a successful Hint drop,
-    // that local custom property used to survive long enough to poison the
-    // geometry measurement below: the Rack tray was measured at the compact
-    // Hint height while the Rack section was already back at its normal height.
-    // Clear the Hint-only local override BEFORE measuring normal portrait
-    // geometry so Board/Rack allocation is recalculated from the real tray.
-    rackShell.style.removeProperty('--portrait-rack-height');
-    portraitGeometry=resolvePortraitBoardRackGeometry(rackPieces,false);
+  if(!landscape){
+    portraitGeometry=resolvePortraitBoardRackGeometry(rackPieces);
     if(portraitGeometry){
       document.documentElement.style.setProperty('--portrait-board-size',Math.round(portraitGeometry.boardSize)+'px');
       document.documentElement.style.setProperty('--portrait-board-section-height',Math.round(portraitGeometry.boardSize+portraitGeometry.boardChrome)+'px');
@@ -1694,33 +1676,18 @@ function renderAll(animateAnchors=false){
 
   if(!landscape){
     const visualHeight=window.visualViewport?.height || window.innerHeight;
-    const targetMin=compactHintRack
-      ? Math.max(118,Math.min(visualHeight*0.18,160))
-      : Math.max(150,Math.min(visualHeight*0.22,210));
-    const boardWrapRect=document.querySelector('#boardWrap')?.getBoundingClientRect();
-    const targetMax=Math.max(targetMin,Math.floor(boardWrapRect?.height || boardRect.height || targetMin));
+    const targetMin=Math.max(150,Math.min(visualHeight*0.22,210));
     const rackWidth=Math.max(80,rackShell.clientWidth || rack.getBoundingClientRect().width);
 
-    if(compactHintRack){
-      // Preserve the accepted Hint-mode geometry; the Board/Rack rebalance is a
-      // normal portrait-play behaviour only.
-      const readableRackCell=Math.max(20,Math.min(36,cell*0.46));
-      const resolved=resolvePortraitRackLayout(
-        rackPieces,rackWidth,targetMin,targetMax,true,readableRackCell
-      );
-      rackShell.style.setProperty('--portrait-rack-height',Math.round(resolved.height)+'px');
-      layout=resolved.layout;
-    }else{
-      // v1.23.7: use the resolved target height, not an animated/stale DOM height.
-      // Width is taken from the actual inner .rack positioning surface after a
-      // forced layout flush, so borders/panel chrome cannot distort the packer.
-      const settledRackRect=rack.getBoundingClientRect();
-      const settledRackWidth=Math.max(80,Math.floor(settledRackRect.width || rackWidth));
-      const rackHeight=Math.max(targetMin,Math.floor(portraitGeometry?.rackHeight || settledRackRect.height || rackShell.clientHeight));
-      const rackDrivenFloor=Math.max(28,Math.min(56,Math.floor(Math.min(settledRackWidth,rackHeight)*0.08)));
-      layout=buildRackLayout(rackPieces,settledRackWidth,rackHeight,false,rackDrivenFloor);
-      layout=centerRackLayout(layout,rackPieces,settledRackWidth,rackHeight,6);
-    }
+    // v1.25.1: use exactly the same adaptive portrait Rack packing in normal
+    // play, while selecting a Hint shape, while dragging it, and after it locks.
+    // Hint Mode no longer has any separate compact sizing path.
+    const settledRackRect=rack.getBoundingClientRect();
+    const settledRackWidth=Math.max(80,Math.floor(settledRackRect.width || rackWidth));
+    const rackHeight=Math.max(targetMin,Math.floor(portraitGeometry?.rackHeight || settledRackRect.height || rackShell.clientHeight));
+    const rackDrivenFloor=Math.max(28,Math.min(56,Math.floor(Math.min(settledRackWidth,rackHeight)*0.08)));
+    layout=buildRackLayout(rackPieces,settledRackWidth,rackHeight,false,rackDrivenFloor);
+    layout=centerRackLayout(layout,rackPieces,settledRackWidth,rackHeight,6);
     rackShell.style.height='';
     rackShell.style.minHeight='0px';
   } else {

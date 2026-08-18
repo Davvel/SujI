@@ -7584,7 +7584,7 @@ body.hint-dragging-selected > .piece.board-piece.drag-ghost .piece-cell{
 /* Portrait gameplay can now grow vertically as needed so the Rack itself can
    expand instead of forcing an inner scrollbar. Hint mode keeps its existing
    focused single-screen geometry. */
-body.portrait-ui:not(.placement-hint-mode) .play-layout{
+body.portrait-ui .play-layout{
   height:auto !important;
   min-height:0 !important;
   display:flex !important;
@@ -7592,12 +7592,12 @@ body.portrait-ui:not(.placement-hint-mode) .play-layout{
   gap:6px;
   overflow:visible !important;
 }
-body.portrait-ui:not(.placement-hint-mode) .play-layout .board-section,
-body.portrait-ui:not(.placement-hint-mode) .play-layout .rack-section{
+body.portrait-ui .play-layout .board-section,
+body.portrait-ui .play-layout .rack-section{
   width:100%;
   overflow:visible !important;
 }
-body.portrait-ui:not(.placement-hint-mode) .rack-section{
+body.portrait-ui .rack-section{
   flex:0 0 auto;
 }
 body.portrait-ui .rack-shell{
@@ -7663,19 +7663,19 @@ body.portrait-ui .rack-shell{
    v1.23.0 introduced adaptive Rack sizing, but an older portrait rule forced
    height:100% !important and could collapse the wooden tray to its borders.
    The calculated height now owns the tray explicitly. */
-body.portrait-ui:not(.placement-hint-mode) .rack-section{
+body.portrait-ui .rack-section{
   height:auto !important;
   min-height:0 !important;
   flex:0 0 auto !important;
   overflow:visible !important;
 }
-body.portrait-ui:not(.placement-hint-mode) .rack-shell{
+body.portrait-ui .rack-shell{
   height:var(--portrait-rack-height, 180px) !important;
   min-height:0 !important;
   flex:0 0 auto !important;
   overflow:hidden !important;
 }
-body.portrait-ui:not(.placement-hint-mode) .rack{
+body.portrait-ui .rack{
   position:absolute;
   inset:0;
 }
@@ -7683,20 +7683,20 @@ body.portrait-ui:not(.placement-hint-mode) .rack{
 /* === SuJi v1.23.2: readable adaptive portrait Rack ===
    Height is now driven by app.js from a target readable piece-cell size.
    Preserve smooth growth/shrink without changing the calculated geometry. */
-body.portrait-ui:not(.placement-hint-mode) .rack-shell{
+body.portrait-ui .rack-shell{
   transition:height .22s ease !important;
 }
 
 /* === SuJi v1.23.3: Board/Rack share portrait height ===
    A crowded Rack now takes height from the Board. Both remain on one portrait
    gameplay surface; as Rack pieces disappear the Board can grow back. */
-body.portrait-ui:not(.placement-hint-mode){
+body.portrait-ui{
   overflow:hidden !important;
 }
-body.portrait-ui:not(.placement-hint-mode) .app{
+body.portrait-ui .app{
   overflow:hidden !important;
 }
-body.portrait-ui:not(.placement-hint-mode) .play-layout{
+body.portrait-ui .play-layout{
   height:var(--portrait-play-height, calc(100dvh - 132px)) !important;
   min-height:0 !important;
   display:grid !important;
@@ -7704,27 +7704,27 @@ body.portrait-ui:not(.placement-hint-mode) .play-layout{
   gap:6px !important;
   overflow:hidden !important;
 }
-body.portrait-ui:not(.placement-hint-mode) .board-section{
+body.portrait-ui .board-section{
   width:100% !important;
   height:auto !important;
   flex:0 0 auto !important;
   overflow:hidden !important;
 }
-body.portrait-ui:not(.placement-hint-mode) .board-wrap{
+body.portrait-ui .board-wrap{
   width:var(--portrait-board-size, min(100%, 520px)) !important;
   height:var(--portrait-board-size, auto) !important;
   max-width:100% !important;
   max-height:none !important;
   flex:0 0 auto !important;
 }
-body.portrait-ui:not(.placement-hint-mode) .rack-section{
+body.portrait-ui .rack-section{
   width:100% !important;
   height:calc(var(--portrait-rack-height, 180px) + 12px) !important;
   min-height:0 !important;
   flex:0 0 auto !important;
   overflow:hidden !important;
 }
-body.portrait-ui:not(.placement-hint-mode) .rack-shell{
+body.portrait-ui .rack-shell{
   height:var(--portrait-rack-height, 180px) !important;
   min-height:0 !important;
   flex:0 0 auto !important;
@@ -7735,23 +7735,23 @@ body.portrait-ui:not(.placement-hint-mode) .rack-shell{
 /* === SuJi v1.23.4: Rack panel follows tray + full-space piece distribution ===
    The white Rack panel and wooden tray now share the same calculated portrait
    geometry. This prevents the tray from overflowing a shorter white section. */
-body.portrait-ui:not(.placement-hint-mode) .play-layout{
+body.portrait-ui .play-layout{
   grid-template-rows:
     var(--portrait-board-section-height, auto)
     var(--portrait-rack-section-height, 192px) !important;
   align-content:start !important;
 }
-body.portrait-ui:not(.placement-hint-mode) .board-section{
+body.portrait-ui .board-section{
   height:var(--portrait-board-section-height, auto) !important;
   min-height:0 !important;
 }
-body.portrait-ui:not(.placement-hint-mode) .rack-section{
+body.portrait-ui .rack-section{
   height:var(--portrait-rack-section-height, 192px) !important;
   min-height:var(--portrait-rack-section-height, 192px) !important;
   box-sizing:border-box !important;
   overflow:hidden !important;
 }
-body.portrait-ui:not(.placement-hint-mode) .rack-shell{
+body.portrait-ui .rack-shell{
   height:var(--portrait-rack-height, 180px) !important;
   width:100% !important;
   box-sizing:border-box !important;
@@ -7763,7 +7763,7 @@ body.portrait-ui:not(.placement-hint-mode) .rack-shell{
    pass. A height transition made getBoundingClientRect() report an intermediate
    tray height, so pieces were sized for yesterday's/smaller Rack. Keep the
    dynamic resize immediate; Hint-mode visuals remain untouched. */
-body.portrait-ui:not(.placement-hint-mode) .rack-shell{
+body.portrait-ui .rack-shell{
   transition:none !important;
 }
 
@@ -7852,4 +7852,48 @@ body.suji-drag-active.hint-dragging-selected .sudoku-lines{
   background:rgba(255,92,92,.34);
   border:2px solid rgba(225,38,38,.82);
   box-shadow:inset 0 0 0 1px rgba(255,255,255,.42), 0 0 7px rgba(220,20,20,.28);
+}
+
+
+/* === SuJi v1.25.1: retire legacy Hint-only portrait resizing ===
+   Hint Mode now changes guidance/interaction visuals only. Board and Rack use
+   the exact same adaptive portrait geometry before, during and after a Hint. */
+body.portrait-ui.placement-hint-mode .play-layout{
+  height:var(--portrait-play-height, calc(100dvh - 132px)) !important;
+  min-height:0 !important;
+  display:grid !important;
+  grid-template-rows:
+    var(--portrait-board-section-height, auto)
+    var(--portrait-rack-section-height, 192px) !important;
+  gap:6px !important;
+  align-content:start !important;
+  overflow:hidden !important;
+}
+body.portrait-ui.placement-hint-mode .board-section{
+  width:100% !important;
+  height:var(--portrait-board-section-height, auto) !important;
+  min-height:0 !important;
+  overflow:hidden !important;
+}
+body.portrait-ui.placement-hint-mode .board-wrap{
+  width:var(--portrait-board-size, min(100%, 520px)) !important;
+  height:var(--portrait-board-size, auto) !important;
+  max-width:100% !important;
+  max-height:none !important;
+}
+body.portrait-ui.placement-hint-mode .rack-section{
+  width:100% !important;
+  height:var(--portrait-rack-section-height, 192px) !important;
+  min-height:var(--portrait-rack-section-height, 192px) !important;
+  margin-top:0 !important;
+  box-sizing:border-box !important;
+  overflow:hidden !important;
+}
+body.portrait-ui.placement-hint-mode .rack-shell{
+  height:var(--portrait-rack-height, 180px) !important;
+  min-height:0 !important;
+  width:100% !important;
+  box-sizing:border-box !important;
+  overflow:hidden !important;
+  transition:none !important;
 }
