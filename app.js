@@ -834,11 +834,20 @@ function paintRuleRegion(rule){
 function updateResponsiveLayout(){
   const viewportWidth=window.visualViewport?.width || window.innerWidth;
   const viewportHeight=window.visualViewport?.height || window.innerHeight;
-  // v1.26.2: use the *visual* viewport width for short mobile landscape.
-  // Android browser/navigation chrome can make 100vw wider than the pixels the
-  // player can actually see; exposing this value to CSS keeps the whole app
-  // (including the right edge of the Rack/status strip) inside the visible area.
+  // v1.26.3: calculate the truly usable landscape width. Some Android
+  // installations overlay the 3-button navigation rail on the right while still
+  // reporting that area as viewport width. Preserve a small Android-only safety
+  // gutter on short landscape screens, plus any measurable visual-viewport loss.
+  const vv=window.visualViewport;
+  const viewportLoss=Math.max(0, Math.floor(window.innerWidth - viewportWidth - (vv?.offsetLeft || 0)));
+  const isAndroid=/Android/i.test(navigator.userAgent || '');
+  const shortLandscape=viewportWidth > viewportHeight && viewportHeight <= 600;
+  const androidNavFallback=(isAndroid && shortLandscape && viewportLoss < 12) ? 34 : 0;
+  const safeRight=Math.max(viewportLoss, androidNavFallback);
+  const usableWidth=Math.max(320, Math.floor(viewportWidth - safeRight - 8));
   document.documentElement.style.setProperty('--suji-visual-width', `${Math.floor(viewportWidth)}px`);
+  document.documentElement.style.setProperty('--suji-landscape-safe-right', `${safeRight}px`);
+  document.documentElement.style.setProperty('--suji-usable-width', `${usableWidth}px`);
   const landscape = viewportWidth >= 760 && viewportWidth > viewportHeight;
   document.body.classList.toggle('landscape-ui', landscape);
   document.body.classList.toggle('portrait-ui', !landscape);
@@ -863,9 +872,30 @@ function updateLandscapePlayHeight(landscape){
   }
   const visualHeight=window.visualViewport?.height || window.innerHeight;
   const top=play.getBoundingClientRect().top;
-  const safeBottom=6;
+  // Short phone landscape needs a little real bottom breathing room; without
+  // this the final Sudoku row can sit under the viewport edge by a few pixels.
+  const safeBottom=visualHeight<=600 ? 12 : 6;
   const available=Math.max(230, Math.floor(visualHeight-top-safeBottom));
   play.style.setProperty('--landscape-play-height', `${available}px`);
+
+  if(visualHeight<=600){
+    const boardSection=document.querySelector('.board-section');
+    const heading=boardSection?.querySelector('.board-section-heading');
+    const sectionStyle=boardSection ? getComputedStyle(boardSection) : null;
+    const padY=sectionStyle ? (parseFloat(sectionStyle.paddingTop||0)+parseFloat(sectionStyle.paddingBottom||0)) : 10;
+    const headingH=heading ? Math.ceil(heading.getBoundingClientRect().height) : 30;
+    const headingStyle=heading ? getComputedStyle(heading) : null;
+    const headingMargin=headingStyle ? (parseFloat(headingStyle.marginTop||0)+parseFloat(headingStyle.marginBottom||0)) : 4;
+    // Leave an extra 6px so the Board border never touches/clips at the bottom.
+    const boardSize=Math.max(220, Math.floor(available - padY - headingH - headingMargin - 6));
+    const padX=sectionStyle ? (parseFloat(sectionStyle.paddingLeft||0)+parseFloat(sectionStyle.paddingRight||0)) : 12;
+    const boardColumn=Math.ceil(boardSize + padX + 4);
+    document.documentElement.style.setProperty('--suji-landscape-board-size', `${boardSize}px`);
+    document.documentElement.style.setProperty('--suji-landscape-board-column', `${boardColumn}px`);
+  }else{
+    document.documentElement.style.removeProperty('--suji-landscape-board-size');
+    document.documentElement.style.removeProperty('--suji-landscape-board-column');
+  }
 }
 
 function updatePlacementHintLocation(landscape){
@@ -1702,11 +1732,10 @@ function renderAll(animateAnchors=false){
     const measuredRackHeight=Math.max(120,Math.floor(rack.getBoundingClientRect().height || rackShell.clientHeight));
     const landscapeMinCell=(window.innerWidth<1000 || window.innerHeight<720) ? 14 : 18;
 
-    // v1.26.2: reserve a small internal safety gutter before packing.  On some
-    // Android landscape viewports the browser/navigation edge can shave a few
-    // pixels from the visually usable right side. Packing against the reduced
-    // rectangle guarantees that every shape remains wholly inside the tray.
-    const safetyX=(window.innerHeight<=600) ? 10 : 6;
+    // v1.26.3: the whole app now excludes any Android navigation overlay. Keep
+    // only a modest internal tray gutter so the outermost Rack shapes never
+    // touch the physical rim.
+    const safetyX=(window.innerHeight<=600) ? 8 : 6;
     const safetyY=(window.innerHeight<=600) ? 6 : 4;
     const safeRackWidth=Math.max(70,measuredRackWidth-safetyX*2);
     const safeRackHeight=Math.max(100,measuredRackHeight-safetyY*2);

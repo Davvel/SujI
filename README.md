@@ -1480,3 +1480,15 @@ This release promotes the accepted v1.19.x refinement line to a new stable v1.20
 - Added `.gitattributes` to standardise text files on LF line endings.
 - Visible version updated to **v1.26.2**.
 - PWA cache namespace updated to **suji-v1-26-2**.
+
+## v1.26.3 — mobile landscape final visible-area correction
+
+- Built from the accepted v1.26.2 line.
+- Fixed the malformed v1.26.2 CSS tail that contained literal `\n` text and therefore did not apply reliably in the browser.
+- Short mobile landscape now reserves a right-side Android navigation safety gutter when needed.
+- Board size is calculated from the actual remaining play height so the complete 9×9 Board stays visible.
+- Board column width follows that calculated Board size; the Rack receives the remaining usable width.
+- Rack packing keeps a small internal rim gutter and no longer relies on space hidden under the Android navigation rail.
+- Compact version label is forced visible in short landscape and now displays `v1.26.3`.
+- PWA cache namespace updated to `suji-v1-26-3`.
+- Portrait gameplay and Hint behaviour are unchanged.

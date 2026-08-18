@@ -7939,4 +7939,112 @@ body.portrait-ui.placement-hint-mode .rack-shell{
       minmax(0, 1fr) !important;
   }
 }
-\n\n/* === SuJi v1.26.2: final mobile-landscape fit + visible version ===\n   Historic landscape rules include old minimum Board sizes and a 900px app\n   floor.  Those are useful on desktop but fight the modern short-phone layout.\n   This final override scopes only to short landscape phones: fit the complete\n   Board by the actual play height, keep the app inside the visual viewport,\n   give the Rack the remainder, and keep the version line visible. */\n@media (orientation:landscape) and (max-height:600px){\n  html,\n  body.landscape-ui{\n    min-width:0 !important;\n    overflow-x:hidden !important;\n  }\n\n  body.landscape-ui .topbar{\n    padding-top:3px !important;\n    padding-bottom:3px !important;\n  }\n  body.landscape-ui .brand{gap:6px !important}\n  body.landscape-ui .brand-mark{width:28px !important;height:28px !important}\n  body.landscape-ui .brand h1{font-size:18px !important;line-height:1 !important}\n  body.landscape-ui .brand p{\n    display:block !important;\n    margin:1px 0 0 !important;\n    font-size:8px !important;\n    line-height:1 !important;\n    white-space:nowrap !important;\n  }\n  body.landscape-ui .icon-btn{width:30px !important;height:30px !important}\n\n  /* visualViewport width excludes browser/Android chrome more reliably than vw */\n  body.landscape-ui .app{\n    min-width:0 !important;\n    width:calc(var(--suji-visual-width, 100dvw) - 8px) !important;\n    max-width:calc(var(--suji-visual-width, 100dvw) - 8px) !important;\n    margin-left:4px !important;\n    margin-right:4px !important;\n    padding-left:3px !important;\n    padding-right:3px !important;\n    box-sizing:border-box !important;\n  }\n\n  body.landscape-ui .compact-status-strip{\n    width:100% !important;\n    max-width:100% !important;\n    min-width:0 !important;\n    box-sizing:border-box !important;\n    overflow:hidden !important;\n  }\n\n  body.landscape-ui .play-layout{\n    min-width:0 !important;\n    width:100% !important;\n    max-width:100% !important;\n    height:var(--landscape-play-height, calc(100dvh - 90px)) !important;\n    min-height:0 !important;\n    grid-template-columns:\n      minmax(0, clamp(300px, calc(var(--landscape-play-height, 100dvh) - 2px), 560px))\n      minmax(0, 1fr) !important;\n    gap:6px !important;\n    overflow:hidden !important;\n  }\n\n  body.landscape-ui .board-section,\n  body.landscape-ui .rack-section{\n    min-width:0 !important;\n    min-height:0 !important;\n    width:100% !important;\n    max-width:100% !important;\n    height:100% !important;\n    box-sizing:border-box !important;\n    overflow:hidden !important;\n  }\n\n  /* Explicitly cancel the older 600/620px minimum Board rules. */\n  body.landscape-ui .board-wrap{\n    flex:0 1 auto !important;\n    min-width:0 !important;\n    min-height:0 !important;\n    width:min(100%, calc(var(--landscape-play-height, 100dvh) - 44px)) !important;\n    height:auto !important;\n    max-width:100% !important;\n    max-height:calc(100% - 38px) !important;\n    aspect-ratio:1 / 1 !important;\n    align-self:center !important;\n  }\n\n  body.landscape-ui .rack-section,\n  body.landscape-ui .rack-shell,\n  body.landscape-ui .rack{\n    min-width:0 !important;\n    max-width:100% !important;\n  }\n  body.landscape-ui .rack-shell{\n    width:100% !important;\n    box-sizing:border-box !important;\n  }\n}\n\n@media (orientation:landscape) and (max-height:480px){\n  /* Keep the version even on the shortest supported phone landscape. */\n  body.landscape-ui .brand p{display:block !important;font-size:7px !important}\n  body.landscape-ui .play-layout{\n    grid-template-columns:\n      minmax(0, clamp(280px, calc(var(--landscape-play-height, 100dvh) - 1px), 470px))\n      minmax(0, 1fr) !important;\n  }\n  body.landscape-ui .board-wrap{\n    width:min(100%, calc(var(--landscape-play-height, 100dvh) - 40px)) !important;\n    max-height:calc(100% - 34px) !important;\n  }\n}\n
+
+
+/* === SuJi v1.26.3: mobile-landscape usable-viewport correction ===
+   1.26.2 accidentally wrote its final CSS override with literal "\\n" text,
+   so the browser ignored that block. This clean override fixes the three
+   observed landscape-phone issues: full Board visibility, Rack/right-edge
+   safety, and a permanently visible compact version label. */
+@media (orientation:landscape) and (max-height:600px){
+  html,
+  body.landscape-ui{
+    min-width:0 !important;
+    overflow-x:hidden !important;
+  }
+
+  body.landscape-ui .topbar{
+    padding-top:3px !important;
+    padding-bottom:3px !important;
+  }
+  body.landscape-ui .brand{gap:6px !important}
+  body.landscape-ui .brand-mark{width:28px !important;height:28px !important}
+  body.landscape-ui .brand h1{font-size:18px !important;line-height:1 !important}
+  body.landscape-ui .brand p{
+    display:block !important;
+    margin:1px 0 0 !important;
+    font-size:8px !important;
+    line-height:1 !important;
+    white-space:nowrap !important;
+  }
+  body.landscape-ui .icon-btn{width:30px !important;height:30px !important}
+
+  /* --suji-usable-width is calculated from visualViewport plus an Android
+     system-navigation safety gutter when the OS overlays navigation on the
+     right side of a short landscape PWA. */
+  body.landscape-ui .app{
+    min-width:0 !important;
+    width:var(--suji-usable-width, calc(100dvw - 8px)) !important;
+    max-width:var(--suji-usable-width, calc(100dvw - 8px)) !important;
+    margin-left:4px !important;
+    margin-right:0 !important;
+    padding:3px 3px max(3px,env(safe-area-inset-bottom)) !important;
+    box-sizing:border-box !important;
+    overflow:hidden !important;
+  }
+
+  body.landscape-ui .compact-status-strip{
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+    box-sizing:border-box !important;
+    overflow:hidden !important;
+  }
+
+  body.landscape-ui .play-layout{
+    min-width:0 !important;
+    width:100% !important;
+    max-width:100% !important;
+    height:var(--landscape-play-height, calc(100dvh - 94px)) !important;
+    min-height:0 !important;
+    grid-template-columns:
+      minmax(0, var(--suji-landscape-board-column, 390px))
+      minmax(0, 1fr) !important;
+    gap:6px !important;
+    align-items:stretch !important;
+    overflow:hidden !important;
+  }
+
+  body.landscape-ui .board-section,
+  body.landscape-ui .rack-section{
+    min-width:0 !important;
+    min-height:0 !important;
+    width:100% !important;
+    max-width:100% !important;
+    height:100% !important;
+    box-sizing:border-box !important;
+    overflow:hidden !important;
+  }
+
+  body.landscape-ui .board-wrap{
+    flex:0 0 auto !important;
+    min-width:0 !important;
+    min-height:0 !important;
+    width:var(--suji-landscape-board-size, 340px) !important;
+    height:var(--suji-landscape-board-size, 340px) !important;
+    max-width:100% !important;
+    max-height:100% !important;
+    aspect-ratio:1 / 1 !important;
+    align-self:center !important;
+  }
+
+  body.landscape-ui .rack-section,
+  body.landscape-ui .rack-shell,
+  body.landscape-ui .rack{
+    min-width:0 !important;
+    max-width:100% !important;
+  }
+  body.landscape-ui .rack-shell{
+    width:100% !important;
+    box-sizing:border-box !important;
+    overflow:hidden !important;
+  }
+  body.landscape-ui .rack{overflow:hidden !important}
+}
+
+@media (orientation:landscape) and (max-height:480px){
+  body.landscape-ui .brand p{
+    display:block !important;
+    font-size:7px !important;
+  }
+}
