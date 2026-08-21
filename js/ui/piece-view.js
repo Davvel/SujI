@@ -24,9 +24,8 @@ function pieceElement(p, cellPx, location='rack'){
   el.style.setProperty('--piece-cell',cellPx+'px');
   el.style.width=(b.cols*cellPx)+'px'; el.style.height=(b.rows*cellPx)+'px';
   if(state.picture&&state.imageURL){
-    // --img is consumed by css/base.css, so relative URLs must be expressed from css/.
-    const cssImageURL=state.imageURL.startsWith('resources/') ? `../${state.imageURL}` : state.imageURL;
-    el.style.setProperty('--img',`url("${cssImageURL}")`);
+    // level-loader normalizes artwork to an absolute URL before rendering.
+    el.style.setProperty('--img',`url("${state.imageURL}")`);
   }
   for(const t of p.tiles){
     const pc=document.createElement('div');

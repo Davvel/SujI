@@ -1242,9 +1242,9 @@ async function findImage(level){
   // This avoids file:// / local-open issues where a HEAD request may fail even
   // though the image exists beside the HTML package.
   if(level>=1 && level<=5){
-    return `assets/images/Image_${padLevel(level)}.png`;
+    return `resources/Image_${padLevel(level)}.png`;
   }
-  const base='assets/images/Image_'+padLevel(level);
+  const base='resources/Image_'+padLevel(level);
   for(const ext of ['png','jpg','jpeg','webp']){
     const url=base+'.'+ext;
     try{

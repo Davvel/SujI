@@ -1,7 +1,7 @@
 /** SuJi classic-compatible module wrapper. Source owner: js/main.js */
 SuJiModules.define("js/main.js", function(require, exports){
 'use strict';
-/** SuJi 1.29.0 composition root. Detailed behaviour lives in specialised modules. */
+/** SuJi 1.31.0 composition root. Detailed behaviour lives in specialised modules. */
 const {app} = require("js/core/app-context.js");
 const {$} = require("js/core/dom.js");
 require("js/data/pattern-provider.js");
