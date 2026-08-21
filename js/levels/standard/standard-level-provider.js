@@ -1,0 +1,1 @@
+window.Suji.levels.standardProvider=function(level){return {id:`standard-${String(level).padStart(4,'0')}`,type:'standard',number:level,puzzle:{size:9,patternId:((level-1)%10)+1,sudokuSeed:level},rules:{rotationsAllowed:false,hintsAllowed:true}};};

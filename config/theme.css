@@ -1,0 +1,7 @@
+/* SuJi design tokens. New visual changes should prefer these variables. */
+:root{
+ --suji-bg:#121826; --suji-surface:#ffffff; --suji-text:#172033; --suji-muted:#667085;
+ --suji-primary:#2f80ed; --suji-accent:#f2b705; --suji-success:#2fb65d;
+ --suji-warning:#ffbd59; --suji-danger:#ef5b5b;
+ --suji-radius-sm:8px; --suji-radius-md:14px; --suji-radius-lg:22px;
+}

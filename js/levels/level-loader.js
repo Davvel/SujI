@@ -1,0 +1,1 @@
+window.Suji.levels.load=function(level){ const tutorial=window.Suji.levels.tutorial[level]; if(tutorial) return Object.assign({},tutorial,{number:level,puzzle:{size:9,patternId:((level-1)%10)+1,sudokuSeed:level}}); return window.Suji.levels.standardProvider(level); };

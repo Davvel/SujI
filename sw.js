@@ -1,68 +1,57 @@
-const CACHE_NAME = 'suji-v1-26-5';
+const CACHE_NAME = 'suji-v1-28-0';
 const PRECACHE = [
+  "./arch_1.1.0.md",
+  "./assets/icons/apple-touch-icon.png",
+  "./assets/icons/icon-192.png",
+  "./assets/icons/icon-512.png",
+  "./assets/icons/icon-maskable-512.png",
+  "./assets/icons/suji-icon.svg",
+  "./assets/images/Image_0001.png",
+  "./assets/images/Image_0002.png",
+  "./assets/images/Image_0003.png",
+  "./assets/images/Image_0004.png",
+  "./assets/images/Image_0005.png",
+  "./config/game-config.js",
+  "./config/storage-config.js",
+  "./config/theme.css",
+  "./config/ui-config.js",
+  "./css/legacy.css",
+  "./css/main.css",
+  "./data/patterns/pattern_01.json",
+  "./data/patterns/pattern_02.json",
+  "./data/patterns/pattern_03.json",
+  "./data/patterns/pattern_04.json",
+  "./data/patterns/pattern_05.json",
+  "./data/patterns/pattern_06.json",
+  "./data/patterns/pattern_07.json",
+  "./data/patterns/pattern_08.json",
+  "./data/patterns/pattern_09.json",
+  "./data/patterns/pattern_10.json",
   "./index.html",
-  "./README.md",
-  "./app.js",
-  "./icons/apple-touch-icon.png",
-  "./icons/icon-192.png",
-  "./icons/icon-512.png",
-  "./icons/icon-maskable-512.png",
-  "./icons/suji-icon.svg",
-  "./manifest.webmanifest",
-  "./pattern_data/pattern_01.json",
-  "./pattern_data/pattern_02.json",
-  "./pattern_data/pattern_03.json",
-  "./pattern_data/pattern_04.json",
-  "./pattern_data/pattern_05.json",
-  "./pattern_data/pattern_06.json",
-  "./pattern_data/pattern_07.json",
-  "./pattern_data/pattern_08.json",
-  "./pattern_data/pattern_09.json",
-  "./pattern_data/pattern_10.json",
-  "./patterns.js",
-  "./resources/Image_0001.png",
-  "./resources/Image_0002.png",
-  "./resources/Image_0003.png",
-  "./resources/Image_0004.png",
-  "./resources/Image_0005.png",
-  "./styles.css"
+  "./js/app.js",
+  "./js/core/utils.js",
+  "./js/data/pattern-provider.js",
+  "./js/features/README.md",
+  "./js/game/puzzle-builder.js",
+  "./js/game/sudoku-generator.js",
+  "./js/layout/README.md",
+  "./js/levels/level-loader.js",
+  "./js/levels/level-manager.js",
+  "./js/levels/level-registry.js",
+  "./js/levels/packs/README.md",
+  "./js/levels/progression.js",
+  "./js/levels/sponsored/README.md",
+  "./js/levels/standard/standard-level-provider.js",
+  "./js/levels/tutorial/tutorial-levels.js",
+  "./js/levels/types/sponsored-level.js",
+  "./js/levels/types/standard-level.js",
+  "./js/levels/types/themed-level.js",
+  "./js/levels/types/tutorial-level.js",
+  "./js/storage/README.md",
+  "./js/ui/README.md",
+  "./manifest.webmanifest"
 ];
 
-self.addEventListener('install', event => {
-  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(PRECACHE)).then(() => self.skipWaiting()));
-});
-
-self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys().then(keys => Promise.all(keys.filter(key => key.startsWith('suji-') && key !== CACHE_NAME).map(key => caches.delete(key))))
-      .then(() => self.clients.claim())
-  );
-});
-
-self.addEventListener('fetch', event => {
-  const request = event.request;
-  if (request.method !== 'GET') return;
-  const url = new URL(request.url);
-  if (url.origin !== self.location.origin) return;
-
-  if (request.mode === 'navigate') {
-    event.respondWith(
-      fetch(request).then(response => {
-        const copy = response.clone();
-        caches.open(CACHE_NAME).then(cache => cache.put('./index.html', copy));
-        return response;
-      }).catch(() => caches.match('./index.html'))
-    );
-    return;
-  }
-
-  event.respondWith(
-    caches.match(request).then(cached => cached || fetch(request).then(response => {
-      if (response && response.status === 200 && response.type === 'basic') {
-        const copy = response.clone();
-        caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
-      }
-      return response;
-    }))
-  );
-});
+self.addEventListener('install', event => {event.waitUntil(caches.open(CACHE_NAME).then(cache=>cache.addAll(PRECACHE)).then(()=>self.skipWaiting()));});
+self.addEventListener('activate', event => {event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key.startsWith('suji-')&&key!==CACHE_NAME).map(key=>caches.delete(key)))).then(()=>self.clients.claim()));});
+self.addEventListener('fetch', event => {const request=event.request;if(request.method!=='GET')return;const url=new URL(request.url);if(url.origin!==self.location.origin)return;if(request.mode==='navigate'){event.respondWith(fetch(request).then(response=>{const copy=response.clone();caches.open(CACHE_NAME).then(cache=>cache.put('./index.html',copy));return response;}).catch(()=>caches.match('./index.html')));return;}event.respondWith(caches.match(request).then(cached=>cached||fetch(request).then(response=>{if(response&&response.status===200&&response.type==='basic'){const copy=response.clone();caches.open(CACHE_NAME).then(cache=>cache.put(request,copy));}return response;})));});
