@@ -1,2 +1,2 @@
-window.Suji=window.Suji||{}; window.Suji.levels=window.Suji.levels||{}; window.Suji.levels.types=window.Suji.levels.types||{};
-window.Suji.levels.types.tutorial=def=>Object.assign({type:'tutorial'},def);
+/** Normalizes a tutorial definition into the common LevelDefinition contract. */
+export function normalizeTutorialLevel(definition){ return Object.freeze({...definition,type:'tutorial'}); }

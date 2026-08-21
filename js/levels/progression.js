@@ -1,1 +1,4 @@
-window.Suji.levels.progression={nextLevel:level=>Math.min(window.Suji.config.game.maxLevel,Number(level||1)+1),isTutorial:level=>Number(level)<=window.Suji.config.game.tutorialLastLevel};
+/** Level-system progression boundary. Storage remains in progress-store.js. */
+import {state} from '../core/state.js';
+export const canOpenLevel = level => Number(level)>=1 && Number(level)<=state.highestLevelReached;
+export const highestLevelReached = () => state.highestLevelReached;

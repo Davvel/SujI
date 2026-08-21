@@ -8,11 +8,11 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="SuJi">
-  <title>SuJi — Version 1.28.0</title>
+  <title>SuJi — Version 1.29.0</title>
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="icon" href="assets/icons/icon-192.png">
-  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
-  <link rel="stylesheet" href="css/main.css">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <header class="topbar">
@@ -23,7 +23,7 @@
       </div>
       <div>
         <h1>SuJi</h1>
-        <p>Version 1.28.0</p>
+        <p>Version 1.29.0</p>
       </div>
     </div>
     <button id="helpBtn" class="icon-btn settings-btn" title="Settings" aria-label="Settings">⚙</button>
@@ -252,7 +252,7 @@
 
 
   <aside id="pwaInstallPrompt" class="pwa-install-prompt" hidden aria-live="polite">
-    <img class="pwa-install-icon" src="assets/icons/icon-192.png" alt="" aria-hidden="true">
+    <img class="pwa-install-icon" src="icons/icon-192.png" alt="" aria-hidden="true">
     <div class="pwa-install-copy">
       <strong id="pwaInstallTitle">Install SuJi</strong>
       <span id="pwaInstallText">Add SuJi to your Home Screen and play like a normal app.</span>
@@ -263,23 +263,6 @@
     </div>
   </aside>
 
-  <script src="config/game-config.js"></script>
-  <script src="config/ui-config.js"></script>
-  <script src="config/storage-config.js"></script>
-  <script src="js/core/utils.js"></script>
-  <script src="js/data/pattern-provider.js"></script>
-  <script src="js/game/sudoku-generator.js"></script>
-  <script src="js/game/puzzle-builder.js"></script>
-  <script src="js/levels/tutorial/tutorial-levels.js"></script>
-  <script src="js/levels/types/tutorial-level.js"></script>
-  <script src="js/levels/types/standard-level.js"></script>
-  <script src="js/levels/types/themed-level.js"></script>
-  <script src="js/levels/types/sponsored-level.js"></script>
-  <script src="js/levels/level-registry.js"></script>
-  <script src="js/levels/standard/standard-level-provider.js"></script>
-  <script src="js/levels/level-loader.js"></script>
-  <script src="js/levels/level-manager.js"></script>
-  <script src="js/levels/progression.js"></script>
-  <script src="js/app.js"></script>
+  <script type="module" src="js/main.js"></script>
 </body>
 </html>

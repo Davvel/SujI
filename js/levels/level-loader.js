@@ -1,1 +1,29 @@
-window.Suji.levels.load=function(level){ const tutorial=window.Suji.levels.tutorial[level]; if(tutorial) return Object.assign({},tutorial,{number:level,puzzle:{size:9,patternId:((level-1)%10)+1,sudokuSeed:level}}); return window.Suji.levels.standardProvider(level); };
+/**
+ * SuJi Module: levels/level-loader
+ * Owns: resolving a normalized LevelDefinition and current artwork discovery.
+ */
+import {app} from '../core/app-context.js';
+import {state} from '../core/state.js';
+import {$,$$,board,rack} from '../core/dom.js';
+import {resolveNumericLevel} from './level-registry.js';
+const padLevel=(...args)=>app.padLevel(...args);
+export function getLevelDefinition(level){ return resolveNumericLevel(level); }
+async function findImage(level){
+  // For the curated onboarding artwork (Levels 1–5), use direct resource paths.
+  // This avoids file:// / local-open issues where a HEAD request may fail even
+  // though the image exists beside the HTML package.
+  if(level>=1 && level<=5){
+    return `resources/Image_${padLevel(level)}.png`;
+  }
+  const base='resources/Image_'+padLevel(level);
+  for(const ext of ['png','jpg','jpeg','webp']){
+    const url=base+'.'+ext;
+    try{
+      const res=await fetch(url,{method:'HEAD',cache:'no-store'});
+      if(res.ok) return url;
+    }catch(e){}
+  }
+  return null;
+}
+Object.assign(app,{getLevelDefinition,findImage});
+export {findImage};

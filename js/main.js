@@ -1,0 +1,41 @@
+/** SuJi 1.29.0 composition root. Detailed behaviour lives in specialised modules. */
+import {app} from './core/app-context.js';
+import {$} from './core/dom.js';
+import './data/pattern-provider.js';
+import './storage/progress-store.js';
+import './game/scoring.js';
+import './ui/stats-view.js';
+import './ui/conflict-view.js';
+import './features/hints.js';
+import './features/picture-preview.js';
+import './features/tutorial.js';
+import './layout/responsive-layout.js';
+import './game/sudoku-generator.js';
+import './game/puzzle-builder.js';
+import './game/placement-rules.js';
+import './ui/board-view.js';
+import './ui/piece-view.js';
+import './layout/rack-layout.js';
+import './ui/rack-view.js';
+import './features/drag-drop.js';
+import './game/validator.js';
+import './levels/level-loader.js';
+import './levels/level-manager.js';
+import './features/settings.js';
+import './features/level-picker.js';
+import {initDialogs} from './ui/dialogs.js';
+import {initPWA} from './pwa/install.js';
+
+app.initSettings();
+app.initLevelActions();
+app.initLevelPicker();
+app.initTutorial();
+app.initHints();
+app.initPicturePreview();
+app.initResponsiveLayout();
+initDialogs();
+initPWA();
+
+app.updateResponsiveLayout();
+app.buildBoard();
+app.resetLevel(true);
