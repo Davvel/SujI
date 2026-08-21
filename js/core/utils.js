@@ -1,5 +1,8 @@
+/** SuJi classic-compatible module wrapper. Source owner: js/core/utils.js */
+SuJiModules.define("js/core/utils.js", function(require, exports){
+'use strict';
 /** SuJi Module: core/utils — generic helpers only. */
-import {app} from './app-context.js';
+const {app} = require("js/core/app-context.js");
 function formatDuration(totalSeconds){
   totalSeconds=Math.max(0,Math.round(totalSeconds||0));
   const m=Math.floor(totalSeconds/60), sec=totalSeconds%60;
@@ -22,4 +25,10 @@ function mulberry32(a){ return function(){ let t=a+=0x6D2B79F5; t=Math.imul(t^t>
 function shuffle(arr,rng){ arr=[...arr]; for(let i=arr.length-1;i>0;i--){ const j=Math.floor(rng()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
 
 Object.assign(app,{formatDuration,formatDurationMinutes,clamp,padLevel,mulberry32,shuffle});
-export {formatDuration,formatDurationMinutes,clamp,padLevel,mulberry32,shuffle};
+exports["formatDuration"] = formatDuration;
+exports["formatDurationMinutes"] = formatDurationMinutes;
+exports["clamp"] = clamp;
+exports["padLevel"] = padLevel;
+exports["mulberry32"] = mulberry32;
+exports["shuffle"] = shuffle;
+});

@@ -1,25 +1,27 @@
+/** SuJi classic-compatible module wrapper. Source owner: js/storage/progress-store.js */
+SuJiModules.define("js/storage/progress-store.js", function(require, exports){
+'use strict';
 /**
  * SuJi Module: storage/progress-store
  * Owns: level history, visited levels and monotonic highest-level persistence.
  */
-import {app} from '../core/app-context.js';
-import {state} from '../core/state.js';
-import {clamp} from '../core/utils.js';
-import {STORAGE_KEYS} from '../../config/storage-keys.js';
-
-export function loadLevelHistory(){
+const {app} = require("js/core/app-context.js");
+const {state} = require("js/core/state.js");
+const {clamp} = require("js/core/utils.js");
+const {STORAGE_KEYS} = require("config/storage-keys.js");
+function loadLevelHistory(){
   try{
     const raw=JSON.parse(localStorage.getItem(STORAGE_KEYS.levelHistory)||'{}');
     return raw && typeof raw==='object' ? raw : {};
   }catch(_){ return {}; }
 }
-export function loadVisitedLevels(){
+function loadVisitedLevels(){
   try{
     const raw=JSON.parse(localStorage.getItem(STORAGE_KEYS.visitedLevels)||'[]');
     return new Set(Array.isArray(raw) ? raw.map(Number).filter(n=>Number.isFinite(n)&&n>=1&&n<=9999) : []);
   }catch(_){ return new Set(); }
 }
-export function highestUnlockedFromHistory(history){
+function highestUnlockedFromHistory(history){
   let highest=1;
   if(history && typeof history==='object'){
     for(const key of Object.keys(history)){
@@ -29,12 +31,12 @@ export function highestUnlockedFromHistory(history){
   }
   return highest;
 }
-export function saveLevelHistory(){ localStorage.setItem(STORAGE_KEYS.levelHistory,JSON.stringify(state.levelHistory)); }
-export function bestRecord(level){ return state.levelHistory[String(level)] || null; }
-export function saveVisitedLevels(){ localStorage.setItem(STORAGE_KEYS.visitedLevels,JSON.stringify([...state.visitedLevels].sort((a,b)=>a-b))); }
-export function markLevelVisited(level){ level=clamp(parseInt(level,10)||1,1,9999); state.visitedLevels.add(level); saveVisitedLevels(); }
-export function hasVisitedLevel(level){ return state.visitedLevels.has(Number(level)); }
-export function persistHighestLevelReached(level){
+function saveLevelHistory(){ localStorage.setItem(STORAGE_KEYS.levelHistory,JSON.stringify(state.levelHistory)); }
+function bestRecord(level){ return state.levelHistory[String(level)] || null; }
+function saveVisitedLevels(){ localStorage.setItem(STORAGE_KEYS.visitedLevels,JSON.stringify([...state.visitedLevels].sort((a,b)=>a-b))); }
+function markLevelVisited(level){ level=clamp(parseInt(level,10)||1,1,9999); state.visitedLevels.add(level); saveVisitedLevels(); }
+function hasVisitedLevel(level){ return state.visitedLevels.has(Number(level)); }
+function persistHighestLevelReached(level){
   const next=clamp(parseInt(level,10)||1,1,9999);
   if(next>state.highestLevelReached) state.highestLevelReached=next;
   localStorage.setItem(STORAGE_KEYS.highestLevelReached,String(state.highestLevelReached));
@@ -48,3 +50,13 @@ export function persistHighestLevelReached(level){
   return state.highestLevelReached;
 }
 Object.assign(app,{saveLevelHistory,bestRecord,saveVisitedLevels,markLevelVisited,hasVisitedLevel,highestUnlockedFromHistory,persistHighestLevelReached});
+exports["loadLevelHistory"] = loadLevelHistory;
+exports["loadVisitedLevels"] = loadVisitedLevels;
+exports["highestUnlockedFromHistory"] = highestUnlockedFromHistory;
+exports["saveLevelHistory"] = saveLevelHistory;
+exports["bestRecord"] = bestRecord;
+exports["saveVisitedLevels"] = saveVisitedLevels;
+exports["markLevelVisited"] = markLevelVisited;
+exports["hasVisitedLevel"] = hasVisitedLevel;
+exports["persistHighestLevelReached"] = persistHighestLevelReached;
+});

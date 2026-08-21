@@ -1,13 +1,16 @@
+/** SuJi classic-compatible module wrapper. Source owner: js/levels/level-manager.js */
+SuJiModules.define("js/levels/level-manager.js", function(require, exports){
+'use strict';
 /**
  * SuJi Module: levels/level-manager
  * Migrated from the accepted 1.27.0 implementation with function bodies preserved.
  */
-import {app} from '../core/app-context.js';
-import {state} from '../core/state.js';
-import {$,$$,board,rack} from '../core/dom.js';
-import {TYPE_COLORS,TUTORIAL_LEVELS,RULE_COPY,GAME_CONFIG} from '../../config/game-config.js';
-import {UI_CONFIG} from '../../config/ui-config.js';
-import {STORAGE_KEYS} from '../../config/storage-keys.js';
+const {app} = require("js/core/app-context.js");
+const {state} = require("js/core/state.js");
+const {$, $$, board, rack} = require("js/core/dom.js");
+const {TYPE_COLORS, TUTORIAL_LEVELS, RULE_COPY, GAME_CONFIG} = require("config/game-config.js");
+const {UI_CONFIG} = require("config/ui-config.js");
+const {STORAGE_KEYS} = require("config/storage-keys.js");
 const bestRecord=(...args)=>app.bestRecord(...args);
 const chooseAnchors=(...args)=>app.chooseAnchors(...args);
 const clamp=(...args)=>app.clamp(...args);
@@ -293,9 +296,8 @@ async function checkForLevelCompletion(){
 
 
 Object.assign(app,{cancelAnchorFlights,animateAnchorsFromRack,resetLevel,checkForLevelCompletion});
-export {cancelAnchorFlights,animateAnchorsFromRack,resetLevel,checkForLevelCompletion};
 
-export function initLevelActions(){
+function initLevelActions(){
   $('#resetBtn').onclick=()=>resetLevel(true);
   const levelCompleteOK=$('#levelCompleteOK');
   if(levelCompleteOK) levelCompleteOK.onclick=async()=>{
@@ -308,3 +310,9 @@ export function initLevelActions(){
   if(levelCompleteDialog) levelCompleteDialog.addEventListener('cancel',e=>e.preventDefault());
 }
 Object.assign(app,{initLevelActions});
+exports["cancelAnchorFlights"] = cancelAnchorFlights;
+exports["animateAnchorsFromRack"] = animateAnchorsFromRack;
+exports["resetLevel"] = resetLevel;
+exports["checkForLevelCompletion"] = checkForLevelCompletion;
+exports["initLevelActions"] = initLevelActions;
+});

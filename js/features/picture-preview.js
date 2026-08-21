@@ -1,13 +1,16 @@
+/** SuJi classic-compatible module wrapper. Source owner: js/features/picture-preview.js */
+SuJiModules.define("js/features/picture-preview.js", function(require, exports){
+'use strict';
 /**
  * SuJi Module: features/picture-preview
  * Migrated from the accepted 1.27.0 implementation with function bodies preserved.
  */
-import {app} from '../core/app-context.js';
-import {state} from '../core/state.js';
-import {$,$$,board,rack} from '../core/dom.js';
-import {TYPE_COLORS,TUTORIAL_LEVELS,RULE_COPY,GAME_CONFIG} from '../../config/game-config.js';
-import {UI_CONFIG} from '../../config/ui-config.js';
-import {STORAGE_KEYS} from '../../config/storage-keys.js';
+const {app} = require("js/core/app-context.js");
+const {state} = require("js/core/state.js");
+const {$, $$, board, rack} = require("js/core/dom.js");
+const {TYPE_COLORS, TUTORIAL_LEVELS, RULE_COPY, GAME_CONFIG} = require("config/game-config.js");
+const {UI_CONFIG} = require("config/ui-config.js");
+const {STORAGE_KEYS} = require("config/storage-keys.js");
 const padLevel=(...args)=>app.padLevel(...args);
 
 function clearPicturePreviewTimer(){
@@ -186,12 +189,24 @@ async function showPicturePreview(){
 
 
 Object.assign(app,{clearPicturePreviewTimer,updatePicturePreviewButton,closePicturePreview,resolvePicturePreviewPromise,bumpPicturePreviewButton,previewTransformFromButton,animatePicturePreviewToButton,picturePreviewAnimationActive,requestClosePicturePreview,picturePreviewTitle,showPicturePreview});
-export {clearPicturePreviewTimer,updatePicturePreviewButton,closePicturePreview,resolvePicturePreviewPromise,bumpPicturePreviewButton,previewTransformFromButton,animatePicturePreviewToButton,picturePreviewAnimationActive,requestClosePicturePreview,picturePreviewTitle,showPicturePreview};
 
-export function initPicturePreview(){
+function initPicturePreview(){
   const btn=$('#picturePreviewBtn'); if(btn) btn.onclick=()=>{ showPicturePreview(); };
   const close=$('#picturePreviewClose'); if(close) close.onclick=()=>requestClosePicturePreview();
   const overlay=$('#picturePreviewOverlay'); if(overlay) overlay.addEventListener('click',e=>{ if(e.target===overlay) requestClosePicturePreview(); });
   window.addEventListener('keydown',e=>{ if(e.key==='Escape') requestClosePicturePreview(); });
 }
 Object.assign(app,{initPicturePreview});
+exports["clearPicturePreviewTimer"] = clearPicturePreviewTimer;
+exports["updatePicturePreviewButton"] = updatePicturePreviewButton;
+exports["closePicturePreview"] = closePicturePreview;
+exports["resolvePicturePreviewPromise"] = resolvePicturePreviewPromise;
+exports["bumpPicturePreviewButton"] = bumpPicturePreviewButton;
+exports["previewTransformFromButton"] = previewTransformFromButton;
+exports["animatePicturePreviewToButton"] = animatePicturePreviewToButton;
+exports["picturePreviewAnimationActive"] = picturePreviewAnimationActive;
+exports["requestClosePicturePreview"] = requestClosePicturePreview;
+exports["picturePreviewTitle"] = picturePreviewTitle;
+exports["showPicturePreview"] = showPicturePreview;
+exports["initPicturePreview"] = initPicturePreview;
+});

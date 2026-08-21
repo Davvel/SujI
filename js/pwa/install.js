@@ -1,6 +1,9 @@
+/** SuJi classic-compatible module wrapper. Source owner: js/pwa/install.js */
+SuJiModules.define("js/pwa/install.js", function(require, exports){
+'use strict';
 /** SuJi Module: pwa/install — service-worker registration and install prompt workflow. */
-import {STORAGE_KEYS} from '../../config/storage-keys.js';
-export function initPWA(){
+const {STORAGE_KEYS} = require("config/storage-keys.js");
+function initPWA(){
   if ('serviceWorker' in navigator) window.addEventListener('load',()=>{ navigator.serviceWorker.register('./sw.js').catch(err=>console.warn('SuJi service worker registration failed:',err)); },{once:true});
   const promptEl=document.getElementById('pwaInstallPrompt'), installBtn=document.getElementById('pwaInstallBtn'), dismissBtn=document.getElementById('pwaInstallDismiss'), titleEl=document.getElementById('pwaInstallTitle'), textEl=document.getElementById('pwaInstallText');
   if(!promptEl||!installBtn||!dismissBtn) return;
@@ -14,3 +17,5 @@ export function initPWA(){
   window.addEventListener('appinstalled',()=>{ deferredInstallPrompt=null; hidePrompt(); try{sessionStorage.removeItem(STORAGE_KEYS.pwaInstallDismissed);}catch(_){} });
   if(isiOS&&!standalone()){ promptEl.classList.add('is-ios'); titleEl.textContent='Install SuJi'; textEl.textContent='Tap Share, then “Add to Home Screen” to install SuJi.'; window.setTimeout(showPrompt,1400); }
 }
+exports["initPWA"] = initPWA;
+});

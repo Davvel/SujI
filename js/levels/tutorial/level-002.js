@@ -1,5 +1,8 @@
+/** SuJi classic-compatible module wrapper. Source owner: js/levels/tutorial/level-002.js */
+SuJiModules.define("js/levels/tutorial/level-002.js", function(require, exports){
+'use strict';
 /** SuJi tutorial level 002. Content only; no game-engine logic. */
-export default Object.freeze({
+const __default_export__ = Object.freeze({
   id: 'tutorial-002',
   number: 2,
   type: 'tutorial',
@@ -8,4 +11,6 @@ export default Object.freeze({
   rules: Object.freeze({pictureMode:true,piecesGuide:false,hintsAllowed:true,rotationsAllowed:false,placementHints:5}),
   progression: Object.freeze({unlockAfter:'tutorial-001'}),
   metadata: Object.freeze({title:"Level 2, Notice the numbers as you build.",tutorialStep:2})
+});
+exports.default = __default_export__;
 });

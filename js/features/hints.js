@@ -1,13 +1,16 @@
+/** SuJi classic-compatible module wrapper. Source owner: js/features/hints.js */
+SuJiModules.define("js/features/hints.js", function(require, exports){
+'use strict';
 /**
  * SuJi Module: features/hints
  * Migrated from the accepted 1.27.0 implementation with function bodies preserved.
  */
-import {app} from '../core/app-context.js';
-import {state} from '../core/state.js';
-import {$,$$,board,rack} from '../core/dom.js';
-import {TYPE_COLORS,TUTORIAL_LEVELS,RULE_COPY,GAME_CONFIG} from '../../config/game-config.js';
-import {UI_CONFIG} from '../../config/ui-config.js';
-import {STORAGE_KEYS} from '../../config/storage-keys.js';
+const {app} = require("js/core/app-context.js");
+const {state} = require("js/core/state.js");
+const {$, $$, board, rack} = require("js/core/dom.js");
+const {TYPE_COLORS, TUTORIAL_LEVELS, RULE_COPY, GAME_CONFIG} = require("config/game-config.js");
+const {UI_CONFIG} = require("config/ui-config.js");
+const {STORAGE_KEYS} = require("config/storage-keys.js");
 const activateCompatiblePieceGuides=(...args)=>app.activateCompatiblePieceGuides(...args);
 const blockerNeedsMoving=(...args)=>app.blockerNeedsMoving(...args);
 const clearCompatiblePieceGuides=(...args)=>app.clearCompatiblePieceGuides(...args);
@@ -283,7 +286,24 @@ function addBlockedHintOverlay(targetPiece){
 
 
 Object.assign(app,{updatePlacementHintButton,pulseHintSelectedPiece,bumpWrongHintPiece,placeHintBubbleNearSelectedPiece,updateHintViewportMetrics,ensureHintDimLayers,setHintModeClass,updateHintInstruction,armPlacementHint,revealPlacementHintForPiece,finishPlacementHint,suppressBlockedHintDestination,clearHintBlockerEmphasis,emphasizeMovableBlockers,clearBlockedHintOverlays,addBlockedHintOverlay});
-export {updatePlacementHintButton,pulseHintSelectedPiece,bumpWrongHintPiece,placeHintBubbleNearSelectedPiece,updateHintViewportMetrics,ensureHintDimLayers,setHintModeClass,updateHintInstruction,armPlacementHint,revealPlacementHintForPiece,finishPlacementHint,suppressBlockedHintDestination,clearHintBlockerEmphasis,emphasizeMovableBlockers,clearBlockedHintOverlays,addBlockedHintOverlay};
 
-export function initHints(){ const placementHintBtn=$('#placementHintBtn'); if(placementHintBtn) placementHintBtn.onclick=()=>armPlacementHint(); }
+function initHints(){ const placementHintBtn=$('#placementHintBtn'); if(placementHintBtn) placementHintBtn.onclick=()=>armPlacementHint(); }
 Object.assign(app,{initHints});
+exports["updatePlacementHintButton"] = updatePlacementHintButton;
+exports["pulseHintSelectedPiece"] = pulseHintSelectedPiece;
+exports["bumpWrongHintPiece"] = bumpWrongHintPiece;
+exports["placeHintBubbleNearSelectedPiece"] = placeHintBubbleNearSelectedPiece;
+exports["updateHintViewportMetrics"] = updateHintViewportMetrics;
+exports["ensureHintDimLayers"] = ensureHintDimLayers;
+exports["setHintModeClass"] = setHintModeClass;
+exports["updateHintInstruction"] = updateHintInstruction;
+exports["armPlacementHint"] = armPlacementHint;
+exports["revealPlacementHintForPiece"] = revealPlacementHintForPiece;
+exports["finishPlacementHint"] = finishPlacementHint;
+exports["suppressBlockedHintDestination"] = suppressBlockedHintDestination;
+exports["clearHintBlockerEmphasis"] = clearHintBlockerEmphasis;
+exports["emphasizeMovableBlockers"] = emphasizeMovableBlockers;
+exports["clearBlockedHintOverlays"] = clearBlockedHintOverlays;
+exports["addBlockedHintOverlay"] = addBlockedHintOverlay;
+exports["initHints"] = initHints;
+});

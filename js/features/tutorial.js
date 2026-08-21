@@ -1,13 +1,16 @@
+/** SuJi classic-compatible module wrapper. Source owner: js/features/tutorial.js */
+SuJiModules.define("js/features/tutorial.js", function(require, exports){
+'use strict';
 /**
  * SuJi Module: features/tutorial
  * Migrated from the accepted 1.27.0 implementation with function bodies preserved.
  */
-import {app} from '../core/app-context.js';
-import {state} from '../core/state.js';
-import {$,$$,board,rack} from '../core/dom.js';
-import {TYPE_COLORS,TUTORIAL_LEVELS,RULE_COPY,GAME_CONFIG} from '../../config/game-config.js';
-import {UI_CONFIG} from '../../config/ui-config.js';
-import {STORAGE_KEYS} from '../../config/storage-keys.js';
+const {app} = require("js/core/app-context.js");
+const {state} = require("js/core/state.js");
+const {$, $$, board, rack} = require("js/core/dom.js");
+const {TYPE_COLORS, TUTORIAL_LEVELS, RULE_COPY, GAME_CONFIG} = require("config/game-config.js");
+const {UI_CONFIG} = require("config/ui-config.js");
+const {STORAGE_KEYS} = require("config/storage-keys.js");
 const clamp=(...args)=>app.clamp(...args);
 const makeSudoku=(...args)=>app.makeSudoku(...args);
 const TUTORIAL_STORAGE_PREFIX=STORAGE_KEYS.tutorialPrefix;
@@ -133,11 +136,29 @@ function paintRuleRegion(rule){
 
 
 Object.assign(app,{canonicalTutorialSudoku,tutorialSudoku,tutorialCount,setTutorialCount,tutorialActive,setTutorialBodyClass,modalIsOpen,closeTutorialModal,openTutorialModal,waitForTutorialModalClose,showTutorialDefault,showRuleTip,clearRuleRegion,conflictIdentity,sameConflict,conflictStillExists,paintRuleRegion});
-export {canonicalTutorialSudoku,tutorialSudoku,tutorialCount,setTutorialCount,tutorialActive,setTutorialBodyClass,modalIsOpen,closeTutorialModal,openTutorialModal,waitForTutorialModalClose,showTutorialDefault,showRuleTip,clearRuleRegion,conflictIdentity,sameConflict,conflictStillExists,paintRuleRegion};
 
-export function initTutorial(){
+function initTutorial(){
   const tutorialClose=$('#tutorialClose'); if(tutorialClose) tutorialClose.addEventListener('click',closeTutorialModal);
   const tutorialOk=$('#tutorialOk'); if(tutorialOk) tutorialOk.addEventListener('click',closeTutorialModal);
   const tutorialModal=$('#tutorialModal'); if(tutorialModal) tutorialModal.addEventListener('cancel',e=>{ e.preventDefault(); closeTutorialModal(); });
 }
 Object.assign(app,{initTutorial});
+exports["canonicalTutorialSudoku"] = canonicalTutorialSudoku;
+exports["tutorialSudoku"] = tutorialSudoku;
+exports["tutorialCount"] = tutorialCount;
+exports["setTutorialCount"] = setTutorialCount;
+exports["tutorialActive"] = tutorialActive;
+exports["setTutorialBodyClass"] = setTutorialBodyClass;
+exports["modalIsOpen"] = modalIsOpen;
+exports["closeTutorialModal"] = closeTutorialModal;
+exports["openTutorialModal"] = openTutorialModal;
+exports["waitForTutorialModalClose"] = waitForTutorialModalClose;
+exports["showTutorialDefault"] = showTutorialDefault;
+exports["showRuleTip"] = showRuleTip;
+exports["clearRuleRegion"] = clearRuleRegion;
+exports["conflictIdentity"] = conflictIdentity;
+exports["sameConflict"] = sameConflict;
+exports["conflictStillExists"] = conflictStillExists;
+exports["paintRuleRegion"] = paintRuleRegion;
+exports["initTutorial"] = initTutorial;
+});

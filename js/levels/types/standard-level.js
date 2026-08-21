@@ -1,5 +1,8 @@
+/** SuJi classic-compatible module wrapper. Source owner: js/levels/types/standard-level.js */
+SuJiModules.define("js/levels/types/standard-level.js", function(require, exports){
+'use strict';
 /** Creates the common contract for the current generated SuJi progression. */
-export function createStandardLevel(level){
+function createStandardLevel(level){
   const n=Number(level)||1;
   return Object.freeze({
     id:`standard-${String(n).padStart(4,'0')}`, number:n, type:'standard',
@@ -10,3 +13,5 @@ export function createStandardLevel(level){
     metadata:Object.freeze({title:`Level ${n}`})
   });
 }
+exports["createStandardLevel"] = createStandardLevel;
+});

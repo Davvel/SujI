@@ -1,5 +1,8 @@
+/** SuJi classic-compatible module wrapper. Source owner: js/levels/tutorial/level-003.js */
+SuJiModules.define("js/levels/tutorial/level-003.js", function(require, exports){
+'use strict';
 /** SuJi tutorial level 003. Content only; no game-engine logic. */
-export default Object.freeze({
+const __default_export__ = Object.freeze({
   id: 'tutorial-003',
   number: 3,
   type: 'tutorial',
@@ -8,4 +11,6 @@ export default Object.freeze({
   rules: Object.freeze({pictureMode:true,piecesGuide:false,hintsAllowed:true,rotationsAllowed:false,placementHints:5}),
   progression: Object.freeze({unlockAfter:'tutorial-002'}),
   metadata: Object.freeze({title:"Level 3, Follow the stripes: each row uses 1\u20139 once.",tutorialStep:3})
+});
+exports.default = __default_export__;
 });

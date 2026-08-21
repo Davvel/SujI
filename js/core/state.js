@@ -1,11 +1,13 @@
+/** SuJi classic-compatible module wrapper. Source owner: js/core/state.js */
+SuJiModules.define("js/core/state.js", function(require, exports){
+'use strict';
 /**
  * SuJi Module: core/state
  * Owns: the single mutable runtime state object.
  */
-import {clamp} from './utils.js';
-import {readToggle} from '../storage/preferences-store.js';
-import {STORAGE_KEYS} from '../../config/storage-keys.js';
-
+const {clamp} = require("js/core/utils.js");
+const {readToggle} = require("js/storage/preferences-store.js");
+const {STORAGE_KEYS} = require("config/storage-keys.js");
 function bootstrapLevelHistory(){
   try{ const raw=JSON.parse(localStorage.getItem(STORAGE_KEYS.levelHistory)||'{}'); return raw&&typeof raw==='object'?raw:{}; }
   catch(_){ return {}; }
@@ -23,7 +25,7 @@ function highestUnlockedFromHistory(history){
   return highest;
 }
 
-export const state = {
+const state = {
   level: clamp(parseInt(localStorage.getItem(STORAGE_KEYS.currentLevel) || '1',10),1,9999),
   picture: readToggle(STORAGE_KEYS.picture, true),
   hints: clamp(parseInt(localStorage.getItem(STORAGE_KEYS.hints) || '3',10),1,3),
@@ -46,3 +48,5 @@ state.highestLevelReached=clamp(Math.max(
   highestUnlockedFromHistory(state.levelHistory)
 ),1,9999);
 localStorage.setItem(STORAGE_KEYS.highestLevelReached,String(state.highestLevelReached));
+exports["state"] = state;
+});

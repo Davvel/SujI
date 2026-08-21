@@ -73,6 +73,8 @@ const PRECACHE = [
   "./js/levels/types/themed-level.js",
   "./js/levels/types/tutorial-level.js",
   "./js/main.js",
+  "./js/module-runtime.js",
+  "./js/start.js",
   "./js/pwa/install.js",
   "./js/storage/preferences-store.js",
   "./js/storage/progress-store.js",

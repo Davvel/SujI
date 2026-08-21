@@ -1,13 +1,16 @@
+/** SuJi classic-compatible module wrapper. Source owner: js/features/level-picker.js */
+SuJiModules.define("js/features/level-picker.js", function(require, exports){
+'use strict';
 /**
  * SuJi Module: features/level-picker
  * Migrated from the accepted 1.27.0 implementation with function bodies preserved.
  */
-import {app} from '../core/app-context.js';
-import {state} from '../core/state.js';
-import {$,$$,board,rack} from '../core/dom.js';
-import {TYPE_COLORS,TUTORIAL_LEVELS,RULE_COPY,GAME_CONFIG} from '../../config/game-config.js';
-import {UI_CONFIG} from '../../config/ui-config.js';
-import {STORAGE_KEYS} from '../../config/storage-keys.js';
+const {app} = require("js/core/app-context.js");
+const {state} = require("js/core/state.js");
+const {$, $$, board, rack} = require("js/core/dom.js");
+const {TYPE_COLORS, TUTORIAL_LEVELS, RULE_COPY, GAME_CONFIG} = require("config/game-config.js");
+const {UI_CONFIG} = require("config/ui-config.js");
+const {STORAGE_KEYS} = require("config/storage-keys.js");
 const bestRecord=(...args)=>app.bestRecord(...args);
 const clamp=(...args)=>app.clamp(...args);
 const formatDurationMinutes=(...args)=>app.formatDurationMinutes(...args);
@@ -166,9 +169,8 @@ function jumpToLevelPage(){
 
 
 Object.assign(app,{requestLevelChange,isCompletedLevel,canOpenLevel,renderLevelPicker,openLevelPicker,jumpToLevelPage});
-export {requestLevelChange,isCompletedLevel,canOpenLevel,renderLevelPicker,openLevelPicker,jumpToLevelPage};
 
-export function initLevelPicker(){
+function initLevelPicker(){
   const levelSelectBtn=$('#levelSelectBtn'); if(levelSelectBtn) levelSelectBtn.onclick=openLevelPicker;
   $('#levelPickerClose').onclick=()=>$('#levelDialog').close();
   $('#levelPagePrev').onclick=()=>{ state.levelPickerPage=Math.max(0,state.levelPickerPage-1); renderLevelPicker(); };
@@ -178,3 +180,11 @@ export function initLevelPicker(){
   $('#levelDialog').addEventListener('cancel',e=>{ e.preventDefault(); $('#levelDialog').close(); });
 }
 Object.assign(app,{initLevelPicker});
+exports["requestLevelChange"] = requestLevelChange;
+exports["isCompletedLevel"] = isCompletedLevel;
+exports["canOpenLevel"] = canOpenLevel;
+exports["renderLevelPicker"] = renderLevelPicker;
+exports["openLevelPicker"] = openLevelPicker;
+exports["jumpToLevelPage"] = jumpToLevelPage;
+exports["initLevelPicker"] = initLevelPicker;
+});

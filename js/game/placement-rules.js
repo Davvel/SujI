@@ -1,15 +1,16 @@
+/** SuJi classic-compatible module wrapper. Source owner: js/game/placement-rules.js */
+SuJiModules.define("js/game/placement-rules.js", function(require, exports){
+'use strict';
 /**
  * SuJi Module: game/placement-rules
  * Migrated from the accepted 1.27.0 implementation with function bodies preserved.
  */
-import {app} from '../core/app-context.js';
-import {state} from '../core/state.js';
-import {$,$$,board,rack} from '../core/dom.js';
-import {TYPE_COLORS,TUTORIAL_LEVELS,RULE_COPY,GAME_CONFIG} from '../../config/game-config.js';
-import {UI_CONFIG} from '../../config/ui-config.js';
-import {STORAGE_KEYS} from '../../config/storage-keys.js';
-
-
+const {app} = require("js/core/app-context.js");
+const {state} = require("js/core/state.js");
+const {$, $$, board, rack} = require("js/core/dom.js");
+const {TYPE_COLORS, TUTORIAL_LEVELS, RULE_COPY, GAME_CONFIG} = require("config/game-config.js");
+const {UI_CONFIG} = require("config/ui-config.js");
+const {STORAGE_KEYS} = require("config/storage-keys.js");
 function placeholderOccupied(targetPiece, ignoreId=null){
   const targetCells = new Set(
     targetPiece.cells.map(([dr,dc])=>`${targetPiece.home.r+dr}:${targetPiece.home.c+dc}`)
@@ -70,4 +71,8 @@ function fits(p,r,c,ignoreId=null){
 
 
 Object.assign(app,{placeholderOccupied,getBlockingPieceIds,blockerNeedsMoving,fits});
-export {placeholderOccupied,getBlockingPieceIds,blockerNeedsMoving,fits};
+exports["placeholderOccupied"] = placeholderOccupied;
+exports["getBlockingPieceIds"] = getBlockingPieceIds;
+exports["blockerNeedsMoving"] = blockerNeedsMoving;
+exports["fits"] = fits;
+});
