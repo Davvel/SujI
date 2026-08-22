@@ -134,6 +134,16 @@ function ensureHintDimLayers(){
     layer.setAttribute('aria-hidden','true');
     boardEl.appendChild(layer);
   }
+  // v1.32.1: Board pieces and guides are siblings of #board inside #boardWrap.
+  // Some mobile browsers therefore render the legacy inner scrim underneath
+  // those pieces. Add a dedicated wrapper-level Step-1 scrim for touch/mobile
+  // layouts so tapping Hint reliably greys the entire visible Board.
+  if(boardWrap && !boardWrap.querySelector(':scope > .hint-board-mobile-dim-layer')){
+    const layer=document.createElement('div');
+    layer.className='hint-board-mobile-dim-layer';
+    layer.setAttribute('aria-hidden','true');
+    boardWrap.appendChild(layer);
+  }
   const rackShell=document.querySelector('.rack-shell');
   if(rackShell && !rackShell.querySelector(':scope > .hint-rack-dim-layer')){
     const layer=document.createElement('div');

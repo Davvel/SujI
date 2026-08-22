@@ -1,4 +1,4 @@
-const CACHE_NAME = 'suji-v1-31-7';
+const CACHE_NAME = 'suji-v1-32-1';
 const PRECACHE = [
   "./config/game-config.js",
   "./config/storage-keys.js",
