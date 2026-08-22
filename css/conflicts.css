@@ -3,22 +3,37 @@
  * 1.31.0 starts with the accepted 1.27.0 cascade preserved in base.css; new rules belong here.
  */
 
-/* v1.31.2 — improve local feedback readability on phones without allowing the
-   bubble to dominate the Board. This also covers the locked-shape message,
-   which intentionally reuses .conflict-bubble. */
+/* v1.31.3 — mobile feedback bubbles now deliberately use nearly the full Board
+   width. This gives short warnings room for much larger, more readable type. */
 @media (max-width:760px){
   .conflict-bubble{
-    max-width:min(300px,84%);
-    min-height:38px;
-    padding:8px 12px 8px 9px;
-    gap:8px;
-    border-radius:13px;
-    font-size:14.5px;
-    line-height:1.25;
+    width:min(420px,94%);
+    max-width:94%;
+    min-height:48px;
+    padding:10px 14px 10px 10px;
+    gap:10px;
+    border-radius:15px;
+    font-size:18.5px;
+    line-height:1.22;
   }
   .conflict-bubble-icon{
-    width:24px;
-    height:24px;
-    font-size:16px;
+    width:30px;
+    height:30px;
+    font-size:19px;
+  }
+}
+
+@media (max-width:380px){
+  .conflict-bubble{
+    width:96%;
+    max-width:96%;
+    padding:9px 11px 9px 9px;
+    gap:8px;
+    font-size:17.5px;
+  }
+  .conflict-bubble-icon{
+    width:28px;
+    height:28px;
+    font-size:18px;
   }
 }
