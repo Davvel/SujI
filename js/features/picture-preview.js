@@ -23,9 +23,22 @@ function clearPicturePreviewTimer(){
 function updatePicturePreviewButton(){
   const btn=$('#picturePreviewBtn');
   if(!btn) return;
+  const thumb=$('#picturePreviewThumb');
   const ready=!!state.imageURL;
+
+  // The picture itself is the preview icon. Pictureless levels have no icon.
+  btn.hidden=!ready;
   btn.disabled=!ready;
   btn.classList.toggle('ready',ready);
+
+  if(thumb){
+    if(ready){
+      const resolved=new URL(state.imageURL,document.baseURI).href;
+      if(thumb.src!==resolved) thumb.src=state.imageURL;
+    }else{
+      thumb.removeAttribute('src');
+    }
+  }
 }
 
 function closePicturePreview(){

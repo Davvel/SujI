@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="SuJi">
-  <title>SuJi — Version 1.31.4</title>
+  <title>SuJi — Version 1.31.5</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/icon-192.png">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -23,7 +23,7 @@
       </div>
       <div>
         <h1>SuJi</h1>
-        <p>Version 1.31.4</p>
+        <p>Version 1.31.5</p>
       </div>
     </div>
     <button id="helpBtn" class="icon-btn settings-btn" title="Settings" aria-label="Settings">⚙</button>
@@ -77,19 +77,8 @@
               <span class="hint-instruction-icon" aria-hidden="true">💡</span>
               <span id="hintInstructionText">Tap a shape to reveal where it belongs.</span>
             </div>
-            <button id="picturePreviewBtn" class="picture-preview-btn" type="button" title="Show completed picture" aria-label="Show completed picture">
-  <svg class="picture-preview-icon" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
-    <defs>
-      <linearGradient id="sujiPicSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#62d8ff"/><stop offset="1" stop-color="#7c8dff"/></linearGradient>
-      <linearGradient id="sujiPicHill" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#56d68b"/><stop offset="1" stop-color="#2ca66f"/></linearGradient>
-    </defs>
-    <rect x="4" y="5" width="40" height="38" rx="10" fill="#ffffff" stroke="#32405c" stroke-width="2"/>
-    <rect x="8" y="9" width="32" height="27" rx="6" fill="url(#sujiPicSky)"/>
-    <circle cx="31" cy="16" r="4.2" fill="#ffd83d" stroke="#fff4b2" stroke-width="1.4"/>
-    <path d="M9 32 L18 22.5 L24 28 L29 23 L40 34 L40 36 L8 36 Z" fill="url(#sujiPicHill)"/>
-    <path d="M9 34 L17 27 L21 30 L25 27 L31 33 L40 29 L40 36 L8 36 Z" fill="#f5bd35" opacity=".92"/>
-    <circle cx="11.5" cy="12.5" r="2.2" fill="#ff5c83"/>
-  </svg>
+            <button id="picturePreviewBtn" class="picture-preview-btn" type="button" title="Show completed picture" aria-label="Show completed picture" hidden>
+              <img id="picturePreviewThumb" class="picture-preview-thumb" alt="" aria-hidden="true">
             </button>
           </div>
         </div>

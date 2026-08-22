@@ -3605,6 +3605,21 @@ body.tutorial-level-5 .piece-number{
   display:block;
   filter:drop-shadow(0 2px 2px rgba(20,35,60,.12));
 }
+/* v1.31.5: use the current puzzle picture itself as the picture-preview icon. */
+.picture-preview-btn[hidden]{display:none !important}
+.picture-preview-thumb{
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  border-radius:8px;
+  background:#fff;
+  pointer-events:none;
+}
+.picture-preview-btn.ready:hover .picture-preview-thumb,
+.picture-preview-btn.ready:focus-visible .picture-preview-thumb{
+  transform:scale(1.04);
+}
 .picture-preview-btn.ready:hover .picture-preview-icon,
 .picture-preview-btn.ready:focus-visible .picture-preview-icon{
   transform:scale(1.05);
