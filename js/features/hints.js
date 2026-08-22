@@ -246,15 +246,49 @@ function suppressBlockedHintDestination(blockingIds){
   return ![...blockingIds].some(blockerNeedsMoving);
 }
 
+function ensureHintBlockerBubble(el){
+  if(!el) return;
+  const pieceId=el.dataset.id || '';
+  let bubble=document.querySelector(`body > .hint-blocker-callout[data-piece-id="${pieceId}"]`);
+  if(!bubble){
+    bubble=document.createElement('span');
+    bubble.className='hint-blocker-callout';
+    bubble.dataset.pieceId=pieceId;
+    bubble.textContent='Move this shape';
+    bubble.setAttribute('aria-hidden','true');
+    document.body.appendChild(bubble);
+  }
+  bubble.style.left='0px';
+  bubble.style.top='0px';
+  const pieceRect=el.getBoundingClientRect();
+  const bubbleRect=bubble.getBoundingClientRect();
+  const gap=10;
+  const pad=8;
+  let left=pieceRect.left + (pieceRect.width/2) - (bubbleRect.width/2);
+  left=Math.max(pad,Math.min(left,window.innerWidth-bubbleRect.width-pad));
+  let top=pieceRect.top - bubbleRect.height - gap;
+  if(top < pad) top=Math.min(window.innerHeight-bubbleRect.height-pad,pieceRect.bottom + gap);
+  bubble.style.setProperty('left',`${Math.round(left)}px`,'important');
+  bubble.style.setProperty('top',`${Math.round(top)}px`,'important');
+  bubble.style.setProperty('bottom','auto','important');
+  bubble.classList.toggle('hint-blocker-callout-below', top > pieceRect.top);
+}
+
 function clearHintBlockerEmphasis(){
-  $$('.piece.board-piece.hint-blocker-move').forEach(el=>el.classList.remove('hint-blocker-move'));
+  $$('.piece.board-piece.hint-blocker-move').forEach(el=>{
+    el.classList.remove('hint-blocker-move');
+  });
+  $$('body > .hint-blocker-callout').forEach(node=>node.remove());
 }
 
 function emphasizeMovableBlockers(blockingIds){
   if(!blockingIds) return;
   for(const id of blockingIds){
     if(!blockerNeedsMoving(id)) continue;
-    $$(`.piece.board-piece[data-id="${id}"]`).forEach(el=>el.classList.add('hint-blocker-move'));
+    $$(`.piece.board-piece[data-id="${id}"]`).forEach(el=>{
+      el.classList.add('hint-blocker-move');
+      ensureHintBlockerBubble(el);
+    });
   }
 }
 
@@ -305,6 +339,7 @@ exports["armPlacementHint"] = armPlacementHint;
 exports["revealPlacementHintForPiece"] = revealPlacementHintForPiece;
 exports["finishPlacementHint"] = finishPlacementHint;
 exports["suppressBlockedHintDestination"] = suppressBlockedHintDestination;
+exports["ensureHintBlockerBubble"] = ensureHintBlockerBubble;
 exports["clearHintBlockerEmphasis"] = clearHintBlockerEmphasis;
 exports["emphasizeMovableBlockers"] = emphasizeMovableBlockers;
 exports["clearBlockedHintOverlays"] = clearBlockedHintOverlays;
