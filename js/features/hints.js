@@ -169,7 +169,7 @@ function updateHintInstruction(){
   // and explain inside the first-step popup that tapping the bulb again cancels
   // without spending a hint. The Board remains dimmed while the Rack stays live.
   if(state.hintArmed){
-    text.textContent='Tap a shape from the Rack Area to reveal where it can fit. Tap the Hint bulb again to cancel. No hint is used until a shape is selected.';
+    text.textContent='Tap a shape you want to solve. Tap Hint Bulb again to Cancel.';
     box.hidden=false;
     return;
   }
