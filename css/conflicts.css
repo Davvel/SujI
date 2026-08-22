@@ -2,3 +2,23 @@
  * Owns: Conflict presentation and conflict-specific animation.
  * 1.31.0 starts with the accepted 1.27.0 cascade preserved in base.css; new rules belong here.
  */
+
+/* v1.31.2 — improve local feedback readability on phones without allowing the
+   bubble to dominate the Board. This also covers the locked-shape message,
+   which intentionally reuses .conflict-bubble. */
+@media (max-width:760px){
+  .conflict-bubble{
+    max-width:min(300px,84%);
+    min-height:38px;
+    padding:8px 12px 8px 9px;
+    gap:8px;
+    border-radius:13px;
+    font-size:14.5px;
+    line-height:1.25;
+  }
+  .conflict-bubble-icon{
+    width:24px;
+    height:24px;
+    font-size:16px;
+  }
+}
