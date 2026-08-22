@@ -62,3 +62,31 @@
     display:none !important;
   }
 }
+
+
+/* v1.32.2 — mobile Step-1 Board grey-out hard override.
+   On mobile, Board pieces are positioned siblings inside #boardWrap. Use the
+   wrapper's own final pseudo-element as the topmost visual scrim so browser
+   compositing cannot place individual pieces above the dim layer. */
+@media (max-width:760px), (hover:none) and (pointer:coarse){
+  body.hint-awaiting-selection #boardWrap{
+    isolation:isolate !important;
+  }
+  body.hint-awaiting-selection #boardWrap::after{
+    content:"" !important;
+    display:block !important;
+    position:absolute !important;
+    inset:0 !important;
+    z-index:120 !important;
+    pointer-events:none !important;
+    border-radius:inherit !important;
+    background:rgba(72,77,86,.60) !important;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.14) !important;
+  }
+  /* Retire the experimental DOM scrim from 1.32.1; the wrapper pseudo-element
+     now owns mobile Step-1 dimming and is guaranteed to cover all Board siblings. */
+  body.hint-awaiting-selection #boardWrap > .hint-board-mobile-dim-layer,
+  body.hint-awaiting-selection .board > .hint-board-dim-layer{
+    display:none !important;
+  }
+}
