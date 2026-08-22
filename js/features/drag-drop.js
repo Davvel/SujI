@@ -26,6 +26,7 @@ const placeholderOccupied=(...args)=>app.placeholderOccupied(...args);
 const pulseHintSelectedPiece=(...args)=>app.pulseHintSelectedPiece(...args);
 const renderAll=(...args)=>app.renderAll(...args);
 const renderGuides=(...args)=>app.renderGuides(...args);
+const saveActiveGame=(...args)=>app.saveActiveGame(...args);
 const revealPlacementHintForPiece=(...args)=>app.revealPlacementHintForPiece(...args);
 const setHintModeClass=(...args)=>app.setHintModeClass(...args);
 const shapeKey=(...args)=>app.shapeKey(...args);
@@ -501,6 +502,7 @@ function endDrag(e){
     // The destination remains visible so the player can grab it again when ready.
     if(usedHint){ renderGuides(); activateCompatiblePieceGuides(); }
     renderAll(false);
+    saveActiveGame();
     return;
   }
 
@@ -546,6 +548,7 @@ function endDrag(e){
     updateHintInstruction();
   }
   renderAll(false);
+  saveActiveGame();
 }
 
 function cancelDrag(){

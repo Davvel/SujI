@@ -1,11 +1,12 @@
 /** SuJi classic-compatible module wrapper. Source owner: js/main.js */
 SuJiModules.define("js/main.js", function(require, exports){
 'use strict';
-/** SuJi 1.31.0 composition root. Detailed behaviour lives in specialised modules. */
+/** SuJi 1.31.4 composition root. Detailed behaviour lives in specialised modules. */
 const {app} = require("js/core/app-context.js");
 const {$} = require("js/core/dom.js");
 require("js/data/pattern-provider.js");
 require("js/storage/progress-store.js");
+require("js/storage/session-store.js");
 require("js/game/scoring.js");
 require("js/ui/stats-view.js");
 require("js/ui/conflict-view.js");
@@ -37,9 +38,10 @@ app.initPicturePreview();
 app.initResponsiveLayout();
 initDialogs();
 initPWA();
+app.initSessionAutosave();
 
 app.updateResponsiveLayout();
 app.buildBoard();
-app.resetLevel(true);
+app.resetLevel(true,{resume:true});
 
 });

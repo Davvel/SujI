@@ -50,6 +50,9 @@ const updateHintInstruction=(...args)=>app.updateHintInstruction(...args);
 const updateLevelTimer=(...args)=>app.updateLevelTimer(...args);
 const updatePicturePreviewButton=(...args)=>app.updatePicturePreviewButton(...args);
 const waitForTutorialModalClose=(...args)=>app.waitForTutorialModalClose(...args);
+const loadActiveGame=(...args)=>app.loadActiveGame(...args);
+const saveActiveGame=(...args)=>app.saveActiveGame(...args);
+const clearActiveGame=(...args)=>app.clearActiveGame(...args);
 let levelResetEpoch=0;
 function cancelAnchorFlights(){
   document.querySelectorAll('.anchor-flight').forEach(el=>{
@@ -128,9 +131,86 @@ async function animateAnchorsFromRack(epoch){
   }
 }
 
-async function resetLevel(animate=true){
+async function restoreSavedLevel(snapshot,epoch){
+  const level=state.level;
+  state.levelDefinition=getLevelDefinition(level);
+  markLevelVisited(level);
+
+  cancelAnchorFlights();
+  if(isDragging()){
+    try{ cleanupDrag(); }catch(_){}
+  }
+
+  setTutorialBodyClass();
+  closeTutorialModal();
+  state.lastTipSignature=null;
+  state.tutorialRule=null;
+  state.lastDroppedId=null;
+  state.activeTeachingConflict=null;
+  state.conflictShakePieceIds.clear();
+  state.conflictShakeOwners.clear();
+  paintTeachingConflictCells(null);
+  clearRuleRegion();
+
+  state.picture=!!snapshot.picture;
+  state.guides=!!snapshot.guides;
+  state.hints=clamp(parseInt(snapshot.hints,10)||3,1,3);
+  state.hintRemaining=Math.max(0,parseInt(snapshot.hintRemaining,10)||0);
+  state.hintArmed=!!snapshot.hintArmed;
+  state.hintInUse=!!snapshot.hintInUse;
+  state.hintSelectedId=snapshot.hintSelectedId==null ? null : Number(snapshot.hintSelectedId);
+  state.hintBubbleDismissed=!!snapshot.hintBubbleDismissed;
+  state.hintMovablePieceIds=new Set((snapshot.hintMovablePieceIds||[]).map(Number));
+  state.hintCorrectPieces=new Set((snapshot.hintCorrectPieces||[]).map(Number));
+  state.sudoku=snapshot.sudoku;
+  state.pieces=snapshot.pieces;
+  state.placed.clear();
+  for(const entry of snapshot.placed||[]){
+    if(!Array.isArray(entry) || entry.length!==2) continue;
+    const id=Number(entry[0]), pos=entry[1];
+    if(!Number.isFinite(id) || !pos) continue;
+    state.placed.set(id,{r:Number(pos.r),c:Number(pos.c)});
+  }
+  state.anchors=new Set((snapshot.anchors||[]).map(Number));
+  state.manualMoves=Math.max(0,Number(snapshot.manualMoves)||0);
+  state.completionHandled=false;
+  state.imageURL=null;
+
+  localStorage.setItem(STORAGE_KEYS.currentLevel,String(level));
+  persistHighestLevelReached(level);
+  setHintModeClass();
+  updateHintInstruction();
+  renderControls();
+  updatePicturePreviewButton();
+  closePicturePreview();
+  renderAll(false);
+
+  // Restart the live timer from the saved active-play duration. Time spent with
+  // the game closed is not charged to the player's attempt.
+  startLevelTimer();
+  state.levelStartedAt=Date.now()-Math.max(0,Number(snapshot.elapsedMs)||0);
+  updateLevelTimer();
+
+  const imageURL=await findImage(level);
+  if(epoch!==levelResetEpoch || level!==state.level) return;
+  state.imageURL=imageURL;
+  updatePicturePreviewButton();
+  renderAll(false);
+  saveActiveGame();
+}
+
+async function resetLevel(animate=true,{resume=false}={}){
   const epoch=++levelResetEpoch;
   const level=state.level;
+  if(resume){
+    const snapshot=loadActiveGame(level);
+    if(snapshot){
+      await restoreSavedLevel(snapshot,epoch);
+      return;
+    }
+  }
+  // A deliberate Reset, Replay, or level change starts a new attempt.
+  clearActiveGame();
   const pictureReadyAt=Date.now()+UI_CONFIG.picturePreviewFirstVisitDelayMs;
   state.levelDefinition=getLevelDefinition(level);
   const firstVisit=!hasVisitedLevel(level);
@@ -234,6 +314,7 @@ async function resetLevel(animate=true){
   }
   if(epoch===levelResetEpoch && level===state.level){
     updateLevelTimer();
+    saveActiveGame();
   }
 }
 
@@ -247,6 +328,7 @@ async function checkForLevelCompletion(){
   if(!solved) return;
 
   state.completionHandled=true;
+  clearActiveGame();
   stopLevelTimer();
   updateLevelTimer();
 

@@ -17,6 +17,7 @@ const clearCompatiblePieceGuides=(...args)=>app.clearCompatiblePieceGuides(...ar
 const pieceBounds=(...args)=>app.pieceBounds(...args);
 const renderAll=(...args)=>app.renderAll(...args);
 const renderGuides=(...args)=>app.renderGuides(...args);
+const saveActiveGame=(...args)=>app.saveActiveGame(...args);
 const updateConflictAlert=(...args)=>app.updateConflictAlert(...args);
 
 function updatePlacementHintButton(){
@@ -196,6 +197,7 @@ function armPlacementHint(){
   updatePlacementHintButton();
   updateConflictAlert(null);
   renderAll(false);
+  saveActiveGame();
 }
 
 function revealPlacementHintForPiece(id,{deferRender=false}={}){
@@ -217,6 +219,7 @@ function revealPlacementHintForPiece(id,{deferRender=false}={}){
   } else {
     renderAll(false);
   }
+  saveActiveGame();
   return true;
 }
 
@@ -233,6 +236,7 @@ function finishPlacementHint(){
   updateHintInstruction();
   updatePlacementHintButton();
   updateConflictAlert(null);
+  saveActiveGame();
 }
 
 function suppressBlockedHintDestination(blockingIds){

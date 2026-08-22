@@ -13,6 +13,7 @@ const STORAGE_KEYS = Object.freeze({
   levelHistory: 'suji.levelHistory.v1',
   highestLevelReached: 'suji.highestLevelReached',
   visitedLevels: 'suji.visitedLevels.v1',
+  activeGame: 'suji.activeGame.v1',
   tutorialPrefix: 'suji.cp6.v607.help.',
   pwaInstallDismissed: 'suji_pwa_install_dismissed_v15'
 });
