@@ -35,6 +35,40 @@ const updateConflictAlert=(...args)=>app.updateConflictAlert(...args);
 const updateHintInstruction=(...args)=>app.updateHintInstruction(...args);
 const updateRackConflictLock=(...args)=>app.updateRackConflictLock(...args);
 let drag=null;
+
+// v1.31.7: A highlighted Hint home is geometrically valid, but the carried
+// Sudoku numbers can still clash with numbers already on the Board. In that
+// case the Hint remains active so the same selected shape can be tried again.
+function placementCreatesSudokuConflict(pieceId){
+  const placedPiece=state.pieces.find(x=>x.id===pieceId);
+  const placedPos=state.placed.get(pieceId);
+  if(!placedPiece || !placedPos) return false;
+
+  const otherTiles=[];
+  for(const [id,pos] of state.placed){
+    if(id===pieceId) continue;
+    const piece=state.pieces.find(x=>x.id===id);
+    if(!piece) continue;
+    for(const tile of piece.tiles){
+      otherTiles.push({r:pos.r+tile.dr,c:pos.c+tile.dc,n:tile.n});
+    }
+  }
+
+  for(const tile of placedPiece.tiles){
+    const r=placedPos.r+tile.dr;
+    const c=placedPos.c+tile.dc;
+    const boxR=Math.floor(r/3);
+    const boxC=Math.floor(c/3);
+    if(otherTiles.some(other=>
+      other.n===tile.n && (
+        other.r===r ||
+        other.c===c ||
+        (Math.floor(other.r/3)===boxR && Math.floor(other.c/3)===boxC)
+      )
+    )) return true;
+  }
+  return false;
+}
 function clearGuideHover(){
   $$('.guide-piece.guide-hover').forEach(g=>g.classList.remove('guide-hover'));
   $('#boardWrap')?.classList.remove('guide-focus-active');
@@ -519,7 +553,9 @@ function endDrag(e){
       else state.hintCorrectPieces.delete(drag.id);
       state.lastDroppedId=drag.id;
       state.manualMoves++;
-      hintCompleted=true;
+      // If this highlighted home creates a Sudoku conflict, preserve the Hint
+      // so the player can move this same shape to another highlighted home.
+      hintCompleted=!placementCreatesSudokuConflict(drag.id);
     } else if(drag.oldPos){
       state.placed.set(drag.id,drag.oldPos);
       if(drag.wasHintCorrect) state.hintCorrectPieces.add(drag.id);
@@ -581,8 +617,9 @@ function cleanupDrag(){
 function isDragging(){ return !!drag; }
 Object.assign(app,{isDragging});
 
-Object.assign(app,{clearGuideHover,activateCompatiblePieceGuides,clearCompatiblePieceGuides,pieceBlocksVisibleHintDestination,cacheGuideTargetsForDrag,findGuideTargetForDrag,showLockedFeedback,startDrag,clearLandingPreview,updateLandingPreview,renderDragFrame,moveGhost,endDrag,cancelDrag,cleanupDrag});
+Object.assign(app,{placementCreatesSudokuConflict,clearGuideHover,activateCompatiblePieceGuides,clearCompatiblePieceGuides,pieceBlocksVisibleHintDestination,cacheGuideTargetsForDrag,findGuideTargetForDrag,showLockedFeedback,startDrag,clearLandingPreview,updateLandingPreview,renderDragFrame,moveGhost,endDrag,cancelDrag,cleanupDrag});
 exports["isDragging"] = isDragging;
+exports["placementCreatesSudokuConflict"] = placementCreatesSudokuConflict;
 exports["clearGuideHover"] = clearGuideHover;
 exports["activateCompatiblePieceGuides"] = activateCompatiblePieceGuides;
 exports["clearCompatiblePieceGuides"] = clearCompatiblePieceGuides;
