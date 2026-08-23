@@ -14,9 +14,12 @@ const {STORAGE_KEYS} = require("config/storage-keys.js");
 const mulberry32=(...args)=>app.mulberry32(...args);
 const shuffle=(...args)=>app.shuffle(...args);
 const sujiPatternForLevel=(...args)=>app.sujiPatternForLevel(...args);
+const {getFrozenLevel} = require("js/levels/frozen/frozen-level-data.js");
 
 function makePieces(seed, sudoku){
-  const pattern=sujiPatternForLevel(seed);
+  const frozen=getFrozenLevel(seed);
+  const pattern=frozen ? {id:frozen.patternId,pieces:frozen.pieces} : sujiPatternForLevel(seed);
+  const numberGrid=frozen ? frozen.sudoku : sudoku;
   const raw=pattern.pieces.map((def,id)=>({
     id,
     type:def.type,
@@ -29,7 +32,7 @@ function makePieces(seed, sudoku){
     p.tiles=p.cells.map(([dr,dc])=>({
       dr,dc,
       srcR:p.home.r+dr, srcC:p.home.c+dc,
-      n:sudoku[p.home.r+dr][p.home.c+dc]
+      n:numberGrid[p.home.r+dr][p.home.c+dc]
     }));
   });
 

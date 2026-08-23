@@ -11,9 +11,9 @@
   <div>
     <div class="logo">☺ SuJi</div>
     <h1>Physical Print Builder</h1>
-    <p>Generate a level board and the 12 matching Cut &amp; Play cards from the same SuJi engine geometry.</p>
+    <p>Generate a level board, 11 matching shape cards, Card 12 quick-start guide, and Card 13 solved-board reference from the same frozen SuJi level data.</p>
   </div>
-  <div class="ver">v0.2</div>
+  <div class="ver">v1.0</div>
 </header>
 <main>
 <section class="controls no-print">
@@ -41,7 +41,7 @@
   <div class="buttons wide-buttons">
     <button id="build">Build Preview</button>
     <button id="printBoard" class="secondary">Board PDF</button>
-    <button id="printCards" class="secondary">12 Cards PDF</button>
+    <button id="printCards" class="secondary">13 Cards PDF</button>
     <button id="printAll" class="secondary">Complete PDF</button>
   </div>
 </section>
@@ -64,7 +64,7 @@
 </section>
 
 <section class="card-section print-cards">
-  <div class="section-title no-print"><b>12 Cut &amp; Play Cards</b><span id="cardScaleLabel"></span></div>
+  <div class="section-title no-print"><b>11 Shape Cards + Guide Card + Solution Card</b><span id="cardScaleLabel"></span></div>
   <section id="cards" class="cards"></section>
 </section>
 </main>
@@ -80,6 +80,7 @@
 <script src="js/core/state.js"></script>
 <script src="js/core/dom.js"></script>
 <script src="js/data/pattern-provider.js"></script>
+<script src="js/levels/frozen/frozen-level-data.js"></script>
 <script src="js/game/sudoku-generator.js"></script>
 <script src="js/game/puzzle-builder.js"></script>
 <script src="js/tools/card-maker.js"></script>
