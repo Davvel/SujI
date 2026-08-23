@@ -40,6 +40,36 @@ function pieceElement(p, cellPx, location='rack'){
     const num=document.createElement('span'); num.className='piece-number'; num.textContent=t.n;
     pc.appendChild(num); el.appendChild(pc);
   }
+
+  if(state.anchors.has(p.id)) {
+    // SuJi 1.33.3: render one real lock element inside the tile nearest the
+    // geometric centre of the locked piece. Keeping lock + number in the same
+    // tile makes their stacking deterministic: lock below, number above.
+    const centreR=b.rows/2;
+    const centreC=b.cols/2;
+    let lockTile=null;
+    let bestDistance=Infinity;
+    for(const t of p.tiles){
+      const dr=(t.dr+.5)-centreR;
+      const dc=(t.dc+.5)-centreC;
+      const distance=(dr*dr)+(dc*dc);
+      if(distance<bestDistance){
+        bestDistance=distance;
+        lockTile=t;
+      }
+    }
+    if(lockTile){
+      const lockCell=el.querySelector(`.piece-cell[data-dr="${lockTile.dr}"][data-dc="${lockTile.dc}"]`);
+      if(lockCell){
+        const lock=document.createElement('span');
+        lock.className='piece-lock';
+        lock.setAttribute('aria-hidden','true');
+        lock.textContent='🔒';
+        lockCell.insertBefore(lock,lockCell.firstChild);
+      }
+    }
+  }
+
   if(!state.anchors.has(p.id)) {
     el.addEventListener('pointerdown', startDrag);
   } else {

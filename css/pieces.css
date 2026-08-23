@@ -2,3 +2,111 @@
  * Owns: Piece cells, shape families, locks and generic piece animation.
  * 1.31.0 starts with the accepted 1.27.0 cascade preserved in base.css; new rules belong here.
  */
+
+
+/* === SuJi 1.33.3: locked-piece padlock lives inside its target cell ===
+   The legacy lock was a ::after pseudo-element on the whole piece. That made
+   stacking against the tile number unreliable. Disable it and use the explicit
+   .piece-lock element inserted by piece-view.js instead. */
+.piece.anchor::after{
+  content:none !important;
+  display:none !important;
+}
+
+.piece.anchor .piece-cell{
+  overflow:visible;
+}
+
+.piece-lock{
+  position:absolute;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%);
+  z-index:1;
+  display:grid;
+  place-items:center;
+  width:1.2em;
+  height:1.2em;
+  font-size:1.18em;
+  line-height:1;
+  pointer-events:none;
+  user-select:none;
+  filter:drop-shadow(0 2px 3px rgba(0,0,0,.35));
+}
+
+/* The Sudoku digit is deliberately one layer above the lock. There is no
+   background/mask on locked-piece numbers, so the lock remains visible around
+   and beneath the glyph. */
+.piece.anchor .piece-number{
+  position:relative;
+  z-index:2 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+}
+
+/* === SuJi 1.33.4: optical centering of lock behind digit ===
+   Emoji lock artwork is visually bottom-heavy inside its font box. Move the
+   lock artwork slightly upward so its visible centre sits behind the number. */
+.piece-lock{
+  top:44% !important;
+  transform:translate(-50%,-50%) !important;
+}
+
+/* === SuJi 1.33.5: deterministic geometric lock ===
+   The platform emoji has uneven internal whitespace, so CSS centering of the
+   emoji box does not guarantee that the visible padlock looks centred.
+   Hide the emoji glyph and draw the lock from CSS geometry instead. The lock
+   box itself is exactly centred in the tile; the number remains above it. */
+.piece-lock{
+  left:50% !important;
+  top:50% !important;
+  transform:translate(-50%,-50%) !important;
+  width:62% !important;
+  height:66% !important;
+  font-size:0 !important;
+  line-height:0 !important;
+  display:block !important;
+  filter:drop-shadow(0 2px 3px rgba(0,0,0,.35));
+}
+
+/* Shackle */
+.piece-lock::before{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:4%;
+  width:48%;
+  height:47%;
+  transform:translateX(-50%);
+  border:clamp(2px, .09em, 4px) solid #c7cbd1;
+  border-bottom:0;
+  border-radius:999px 999px 0 0;
+  box-sizing:border-box;
+  background:transparent;
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.42),
+    0 1px 2px rgba(0,0,0,.28);
+}
+
+/* Lock body: deliberately centred on the Sudoku digit. */
+.piece-lock::after{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:57%;
+  width:72%;
+  height:55%;
+  transform:translate(-50%,-50%);
+  border-radius:18%;
+  background:linear-gradient(180deg,#ffb173 0%,#f38b55 100%);
+  border:clamp(1px, .045em, 2px) solid rgba(121,69,37,.72);
+  box-sizing:border-box;
+  box-shadow:
+    inset 0 2px 0 rgba(255,255,255,.48),
+    inset 0 -2px 0 rgba(123,60,28,.16),
+    0 2px 4px rgba(0,0,0,.32);
+}
+
+.piece.anchor .piece-number{
+  z-index:3 !important;
+}
