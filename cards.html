@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SuJi Physical Print Builder</title>
+<link rel="stylesheet" href="css/card-maker.css">
+</head>
+<body>
+<header class="top no-print">
+  <div>
+    <div class="logo">☺ SuJi</div>
+    <h1>Physical Print Builder</h1>
+    <p>Generate a level board and the 12 matching Cut &amp; Play cards from the same SuJi engine geometry.</p>
+  </div>
+  <div class="ver">v0.2</div>
+</header>
+<main>
+<section class="controls no-print">
+  <label>Pack
+    <select id="pack"></select>
+  </label>
+  <label>Level
+    <select id="level"></select>
+  </label>
+  <label>Board side (cm)
+    <input id="boardCm" type="number" value="18" min="9" max="60" step="0.1">
+    <small>One side of the 9×9 playing board.</small>
+  </label>
+  <label>Card width (mm)
+    <input id="cardW" type="number" value="100" min="70" max="210" step="1">
+  </label>
+  <label>Card height (mm)
+    <input id="cardH" type="number" value="135" min="90" max="297" step="1">
+  </label>
+  <label class="wide">Picture override
+    <input id="image" type="file" accept="image/png,image/jpeg,image/webp">
+    <small>Optional. Otherwise the selected pack's configured picture is used.</small>
+  </label>
+  <label class="check"><input id="picture" type="checkbox" checked> Show picture fragments</label>
+  <div class="buttons wide-buttons">
+    <button id="build">Build Preview</button>
+    <button id="printBoard" class="secondary">Board PDF</button>
+    <button id="printCards" class="secondary">12 Cards PDF</button>
+    <button id="printAll" class="secondary">Complete PDF</button>
+  </div>
+</section>
+<div id="status" class="status no-print"></div>
+<div class="legend no-print">
+  Physical scale is calculated from the board size: <b>cell size = board side ÷ 9</b>. For accurate output choose <b>100% / Actual Size</b> in the print dialog and disable “Fit to page”.
+</div>
+
+<section id="boardSheet" class="board-sheet print-board">
+  <div class="sheet-head">
+    <div><b>SuJi Board</b><span id="boardLabel"></span></div>
+    <div class="size-label" id="boardSizeLabel"></div>
+  </div>
+  <div id="board" class="board" aria-label="9 by 9 SuJi board"></div>
+  <div class="calibration">
+    <div class="cal-line"></div>
+    <span>Calibration line: exactly 50 mm</span>
+  </div>
+  <div class="print-note">PRINT AT 100% / ACTUAL SIZE · DO NOT FIT TO PAGE</div>
+</section>
+
+<section class="card-section print-cards">
+  <div class="section-title no-print"><b>12 Cut &amp; Play Cards</b><span id="cardScaleLabel"></span></div>
+  <section id="cards" class="cards"></section>
+</section>
+</main>
+
+<script src="js/module-runtime.js"></script>
+<script src="config/game-config.js"></script>
+<script src="config/ui-config.js"></script>
+<script src="config/storage-keys.js"></script>
+<script src="config/print-packs.js"></script>
+<script src="js/core/app-context.js"></script>
+<script src="js/core/utils.js"></script>
+<script src="js/storage/preferences-store.js"></script>
+<script src="js/core/state.js"></script>
+<script src="js/core/dom.js"></script>
+<script src="js/data/pattern-provider.js"></script>
+<script src="js/game/sudoku-generator.js"></script>
+<script src="js/game/puzzle-builder.js"></script>
+<script src="js/tools/card-maker.js"></script>
+</body>
+</html>
