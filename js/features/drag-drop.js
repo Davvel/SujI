@@ -252,6 +252,9 @@ function startDrag(e){
 
   const source = e.currentTarget;
   const id = +source.dataset.id;
+  // Level 3's pre-Hint tutorial grey state is a true interaction lock, not just
+  // a visual effect. This JS guard mirrors the CSS pointer lock for mobile safety.
+  if(typeof app.tutorialHintInteractionLocked==='function' && app.tutorialHintInteractionLocked()) return;
   if(state.anchors.has(id)) return;
 
   // Grabbing any movable shape clears the locked-shape bubble. If a Sudoku
@@ -540,8 +543,9 @@ function endDrag(e){
     return;
   }
 
-  // v1.19.3 Hint flow: after a Rack shape is selected the hint is consumed, but
-  // guidance remains active until the selected shape is released on a highlighted
+  // v1.19.3 Hint flow: normally a Rack selection spends the Hint immediately;
+  // Level 3's mandatory first lesson delays that charge until successful placement.
+  // Guidance remains active until the selected shape is released on a highlighted
   // compatible destination. Dropping it elsewhere on the Board simply returns it
   // to the Rack so the same revealed Hint can be tried again.
   let hintCompleted=false;
@@ -576,6 +580,10 @@ function endDrag(e){
   clearCompatiblePieceGuides();
   cleanupDrag();
   if(usedHint && hintCompleted){
+    // Level 3 teaches the complete Hint cycle. Merely revealing destinations is
+    // not enough: release the forced tutorial gate only after the hinted shape
+    // has actually landed on a valid Board destination.
+    if(typeof app.tutorialPlacementHintConsumed==='function') app.tutorialPlacementHintConsumed();
     finishPlacementHint();
   } else if(usedHint){
     renderGuides();

@@ -21,8 +21,8 @@ const TYPE_COLORS = Object.freeze({I:'#2f80ed',O:'#f2b705',ONE:'#2fb65d'});
 
 const TUTORIAL_LEVELS = Object.freeze({
   1:'Find the last 3 shapes in the Jigsaw Puzzle to complete Level 1.',
-  2:'The last 3 shapes are identical. Double-check where each one fits using Sudoku: a number cannot repeat horizontally, vertically, or inside any 3 × 3 quadrant.',
-  3:'Level 3, Follow the stripes: each row uses 1–9 once.',
+  2:'The last 3 shapes are identical. Use Sudoku rules to solve: a number cannot repeat horizontally, vertically, or inside any 3 × 3 quadrant.',
+  3:'Level 3: Half the shapes are already placed. There is no picture. Use Sudoku rules to solve. Press the Hint 💡 button now to learn how Hint helps you find where a shape can fit.',
   4:'Level 4, Follow the stripes: each column uses 1–9 once.',
   5:'Level 5, Use the picture and all Sudoku rules together.'
 });

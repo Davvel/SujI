@@ -40,6 +40,8 @@ const resetLevelTimerDisplay=(...args)=>app.resetLevelTimerDisplay(...args);
 const saveLevelHistory=(...args)=>app.saveLevelHistory(...args);
 const setHintModeClass=(...args)=>app.setHintModeClass(...args);
 const setTutorialBodyClass=(...args)=>app.setTutorialBodyClass(...args);
+const resetTutorialHintCoach=(...args)=>app.resetTutorialHintCoach(...args);
+const updateTutorialHintWaitingClass=(...args)=>app.updateTutorialHintWaitingClass(...args);
 const showPicturePreview=(...args)=>app.showPicturePreview(...args);
 const showTutorialDefault=(...args)=>app.showTutorialDefault(...args);
 const starsText=(...args)=>app.starsText(...args);
@@ -61,15 +63,20 @@ function cancelAnchorFlights(){
   });
 }
 
-function startingRackPieceIds(){
-  const configured=state.levelDefinition?.puzzle?.startingRackPieceIds;
+function configuredPieceIds(key){
+  const configured=state.levelDefinition?.puzzle?.[key];
   if(!Array.isArray(configured)) return null;
   const valid=new Set(state.pieces.map(p=>p.id));
   const ids=new Set(configured.map(Number).filter(id=>valid.has(id)));
   return ids.size ? ids : null;
 }
 
+function startingRackPieceIds(){ return configuredPieceIds('startingRackPieceIds'); }
+function startingBoardPieceIds(){ return configuredPieceIds('startingBoardPieceIds'); }
+
 function chooseStartingAnchors(){
+  const boardIds=startingBoardPieceIds();
+  if(boardIds) return boardIds;
   const rackIds=startingRackPieceIds();
   if(!rackIds) return chooseAnchors();
   // Tutorial "almost complete" layouts lock every solved shape and leave only
@@ -78,8 +85,8 @@ function chooseStartingAnchors(){
 }
 
 function prefillConfiguredAnchors(){
-  const rackIds=startingRackPieceIds();
-  if(!rackIds) return false;
+  const hasConfiguredLayout=!!(startingBoardPieceIds() || startingRackPieceIds());
+  if(!hasConfiguredLayout) return false;
   for(const id of state.anchors){
     const piece=state.pieces.find(p=>p.id===id);
     if(piece) state.placed.set(id,{...piece.home});
@@ -168,6 +175,7 @@ async function restoreSavedLevel(snapshot,epoch){
   }
 
   setTutorialBodyClass();
+  resetTutorialHintCoach({consumed:!!snapshot.tutorialHintConsumed});
   closeTutorialModal();
   state.lastTipSignature=null;
   state.tutorialRule=null;
@@ -186,6 +194,7 @@ async function restoreSavedLevel(snapshot,epoch){
   state.hintInUse=!!snapshot.hintInUse;
   state.hintSelectedId=snapshot.hintSelectedId==null ? null : Number(snapshot.hintSelectedId);
   state.hintBubbleDismissed=!!snapshot.hintBubbleDismissed;
+  updateTutorialHintWaitingClass();
   state.hintMovablePieceIds=new Set((snapshot.hintMovablePieceIds||[]).map(Number));
   state.hintCorrectPieces=new Set((snapshot.hintCorrectPieces||[]).map(Number));
   state.sudoku=snapshot.sudoku;
@@ -268,6 +277,7 @@ async function resetLevel(animate=true,{resume=false}={}){
 
   // Build the new level synchronously and clear the board immediately.
   setTutorialBodyClass();
+  resetTutorialHintCoach({consumed:false});
   closeTutorialModal();
   state.lastTipSignature=null;
   state.tutorialRule=null;
@@ -279,6 +289,7 @@ async function resetLevel(animate=true,{resume=false}={}){
   state.hintInUse=false;
   state.hintSelectedId=null;
   state.hintBubbleDismissed=false;
+  updateTutorialHintWaitingClass();
   setHintModeClass();
   updateHintInstruction();
   state.activeTeachingConflict=null;
@@ -334,8 +345,8 @@ async function resetLevel(animate=true,{resume=false}={}){
       if(epoch!==levelResetEpoch || level!==state.level) return;
     }
     // Normal levels still fly their 1–3 opening locked shapes from the Rack.
-    // Tutorial Levels 1–2 are already dealt on the Board, with only their three
-    // teaching pieces left in the Rack, so there is nothing to animate.
+    // Configured tutorial layouts are already dealt directly on the Board.
+    // Levels 1–2 leave three teaching pieces; Level 3 pre-deals ten spread pieces.
     if(!hasPrefilledTutorialLayout) await animateAnchorsFromRack(epoch);
   } else {
     if(epoch!==levelResetEpoch) return;

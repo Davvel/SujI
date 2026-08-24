@@ -33,7 +33,7 @@ const state = {
   hintRemaining: 0, hintArmed: false, hintInUse: false, hintSelectedId: null, hintBubbleDismissed: false, hintMovablePieceIds: new Set(),
   pieces: [], placed: new Map(), anchors: new Set(), manualMoves: 0,
   sudoku: null, imageURL: null, pendingChange: null,
-  tutorialRule: null, lastTipSignature: null, activeTipSignature: null,
+  tutorialRule: null, lastTipSignature: null, activeTipSignature: null, tutorialHintConsumed: false,
   lastDroppedId: null, activeTeachingConflict: null, conflictShakePieceIds: new Set(), conflictShakeOwners: new Map(), hintCorrectPieces: new Set(), picturePreviewTimer: null, tutorialModalResolver: null, picturePreviewResolver: null,
   levelHistory: bootstrapLevelHistory(),
   visitedLevels: bootstrapVisitedLevels(),

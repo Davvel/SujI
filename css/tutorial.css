@@ -2,3 +2,101 @@
  * Owns: Tutorial presentation.
  * 1.31.0 starts with the accepted 1.27.0 cascade preserved in base.css; new rules belong here.
  */
+
+/* SuJi 1.36.0 / 1.37.1 — Level 3 Hint coach. The hand points at Hint and
+ * stays visible until the Hint button is used. */
+.tutorial-hint-finger{
+  position:fixed;
+  z-index:20050;
+  pointer-events:none;
+  user-select:none;
+  font-size:42px;
+  line-height:1;
+  filter:drop-shadow(0 3px 5px rgba(0,0,0,.32));
+  animation:tutorialHintFingerBob .62s ease-in-out infinite alternate;
+  will-change:transform;
+}
+.tutorial-hint-finger[hidden]{display:none !important}
+@keyframes tutorialHintFingerBob{
+  from{transform:translateY(-6px)}
+  to{transform:translateY(7px)}
+}
+@media (max-width:700px){
+  .tutorial-hint-finger{font-size:36px}
+}
+
+
+/* SuJi 1.37.0 — Level 3 pre-Hint focus. While the tutorial is waiting for the
+ * first Hint press, grey both gameplay areas using the same visual language as
+ * Hint Mode. The Hint bulb itself remains outside these masks and fully active. */
+body.tutorial-hint-waiting #boardWrap,
+body.tutorial-hint-waiting .rack-shell{
+  filter:grayscale(.78) saturate(.30) brightness(.82) contrast(.96);
+  transition:filter .16s ease;
+}
+body.tutorial-hint-waiting #boardWrap::after,
+body.tutorial-hint-waiting .rack-shell::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  border-radius:inherit;
+  background:rgba(72,77,86,.28);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.10);
+}
+body.tutorial-hint-waiting #boardWrap::after{z-index:24}
+body.tutorial-hint-waiting .rack-shell::before{z-index:30}
+
+/* Match the proven mobile Hint treatment: use a wrapper-level top mask so
+ * separately composited Board pieces and touch-layer Rack pieces cannot escape
+ * the grey-out on phones/tablets. */
+@media (max-width:760px), (hover:none) and (pointer:coarse){
+  body.tutorial-hint-waiting #boardWrap,
+  body.tutorial-hint-waiting .rack-shell{
+    isolation:isolate !important;
+    filter:grayscale(.78) saturate(.30) brightness(.82) contrast(.96) !important;
+  }
+  body.tutorial-hint-waiting #boardWrap::after,
+  body.tutorial-hint-waiting .rack-shell::before{
+    display:block !important;
+    content:"" !important;
+    position:absolute !important;
+    inset:0 !important;
+    pointer-events:none !important;
+    border-radius:inherit !important;
+    background:rgba(72,77,86,.60) !important;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.14) !important;
+  }
+  body.tutorial-hint-waiting #boardWrap::after{z-index:120 !important}
+  body.tutorial-hint-waiting .rack-shell::before{z-index:120 !important}
+}
+
+/* SuJi 1.37.1 — once the Level 3 Hint intro is acknowledged, start the
+ * pointing hand immediately and give the Hint bulb a small, friendly wiggle.
+ * The prompting class is removed as soon as Hint is actually pressed. */
+body.tutorial-hint-prompting #placementHintBtn .placement-hint-icon{
+  display:inline-block;
+  transform-origin:50% 82%;
+  animation:tutorialHintIconWiggle .72s ease-in-out infinite;
+  will-change:transform;
+}
+@keyframes tutorialHintIconWiggle{
+  0%,100%{transform:rotate(0deg)}
+  20%{transform:rotate(-4deg)}
+  40%{transform:rotate(4deg)}
+  60%{transform:rotate(-3deg)}
+  80%{transform:rotate(3deg)}
+}
+@media (prefers-reduced-motion:reduce){
+  body.tutorial-hint-prompting #placementHintBtn .placement-hint-icon{animation:none}
+}
+
+
+/* SuJi 1.38.0 — the Level 3 tutorial grey state is also a hard interaction
+ * lock. Shapes cannot receive pointer/touch input until the Hint bulb has
+ * entered normal Hint selection mode. The JS drag guard mirrors this rule. */
+body.tutorial-hint-waiting #boardWrap .piece,
+body.tutorial-hint-waiting .rack-shell .piece{
+  pointer-events:none !important;
+  touch-action:none !important;
+}

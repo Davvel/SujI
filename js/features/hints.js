@@ -202,6 +202,8 @@ function armPlacementHint(){
   state.hintArmed=true;
   state.hintSelectedId=null;
   state.hintBubbleDismissed=false;
+  if(typeof app.hideTutorialHintFinger==='function') app.hideTutorialHintFinger();
+  if(typeof app.updateTutorialHintWaitingClass==='function') app.updateTutorialHintWaitingClass();
   setHintModeClass();
   updateHintInstruction();
   updatePlacementHintButton();
@@ -218,7 +220,11 @@ function revealPlacementHintForPiece(id,{deferRender=false}={}){
   state.hintInUse=true;
   state.hintSelectedId=id;
   state.hintBubbleDismissed=false;
-  state.hintRemaining--;
+  // Normal levels spend the Hint when a Rack shape is selected and its homes are
+  // revealed. Level 3's mandatory lesson is stricter: its first Hint is charged
+  // only after the selected shape is successfully dragged from Rack to Board.
+  const level3PlacementGate=typeof app.tutorialHintNeedsConsumption==='function' && app.tutorialHintNeedsConsumption();
+  if(!level3PlacementGate) state.hintRemaining--;
   setHintModeClass();
   renderGuides();
   activateCompatiblePieceGuides();
@@ -246,6 +252,7 @@ function finishPlacementHint(){
   updateHintInstruction();
   updatePlacementHintButton();
   updateConflictAlert(null);
+  if(typeof app.tutorialHintSessionEnded==='function') app.tutorialHintSessionEnded();
   saveActiveGame();
 }
 

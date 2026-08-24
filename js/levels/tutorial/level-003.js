@@ -6,11 +6,13 @@ const __default_export__ = Object.freeze({
   id: 'tutorial-003',
   number: 3,
   type: 'tutorial',
-  puzzle: Object.freeze({size:9, patternId:3, sudokuSeed:3}),
-  artwork: Object.freeze({image:`resources/Image_0003.png`}),
-  rules: Object.freeze({pictureMode:true,piecesGuide:false,hintsAllowed:true,rotationsAllowed:false,placementHints:5}),
+  // Ten of Pattern 3's 21 shapes are pre-dealt. Their homes were selected to
+  // cover all nine 3x3 regions and keep the locked shapes spatially dispersed.
+  puzzle: Object.freeze({size:9, patternId:3, sudokuSeed:3, startingBoardPieceIds:Object.freeze([0,2,4,6,8,10,15,16,17,18])}),
+  artwork: Object.freeze({image:null}),
+  rules: Object.freeze({pictureMode:false,piecesGuide:false,hintsAllowed:true,rotationsAllowed:false,placementHints:5}),
   progression: Object.freeze({unlockAfter:'tutorial-002'}),
-  metadata: Object.freeze({title:"Level 3, Follow the stripes: each row uses 1\u20139 once.",tutorialStep:3})
+  metadata: Object.freeze({title:"Level 3, Learn to use Hint with Sudoku.",tutorialStep:3})
 });
 exports.default = __default_export__;
 });

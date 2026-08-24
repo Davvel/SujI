@@ -10,7 +10,7 @@ const __default_export__ = Object.freeze({
   artwork: Object.freeze({image:null}),
   rules: Object.freeze({pictureMode:false,piecesGuide:false,hintsAllowed:true,rotationsAllowed:false,placementHints:5}),
   progression: Object.freeze({unlockAfter:'tutorial-001'}),
-  metadata: Object.freeze({title:"Use Sudoku to place 3 identical shapes.",tutorialStep:2})
+  metadata: Object.freeze({title:"Use Sudoku rules to solve 3 identical shapes.",tutorialStep:2})
 });
 exports.default = __default_export__;
 });
