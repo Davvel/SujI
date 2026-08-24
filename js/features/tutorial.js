@@ -13,7 +13,6 @@ const {UI_CONFIG} = require("config/ui-config.js");
 const {STORAGE_KEYS} = require("config/storage-keys.js");
 const clamp=(...args)=>app.clamp(...args);
 const makeSudoku=(...args)=>app.makeSudoku(...args);
-const {cloneFrozenSudoku} = require("js/levels/frozen/frozen-level-data.js");
 const TUTORIAL_STORAGE_PREFIX=STORAGE_KEYS.tutorialPrefix;
 function canonicalTutorialSudoku(){
   const shifts=[0,3,6,1,4,7,2,5,8];
@@ -21,8 +20,6 @@ function canonicalTutorialSudoku(){
 }
 
 function tutorialSudoku(level){
-  const frozen=cloneFrozenSudoku(level);
-  if(frozen) return frozen;
   const g=canonicalTutorialSudoku();
   if(level===4) return g[0].map((_,c)=>g.map(row=>row[c]));
   if(level>=1 && level<=3) return g;

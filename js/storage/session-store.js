@@ -10,6 +10,7 @@ const {state} = require("js/core/state.js");
 const {STORAGE_KEYS} = require("config/storage-keys.js");
 
 const SESSION_SCHEMA=1;
+const TUTORIAL_LAYOUT_REVISION=2;
 let autosaveTimer=null;
 
 function clearActiveGame(){
@@ -49,7 +50,8 @@ function saveActiveGame(){
     pieces:state.pieces,
     placed:[...state.placed].map(([id,pos])=>[Number(id),{r:Number(pos.r),c:Number(pos.c)}]),
     anchors:[...state.anchors].map(Number),
-    manualMoves:Number(state.manualMoves)||0
+    manualMoves:Number(state.manualMoves)||0,
+    tutorialLayoutRevision:(Number(state.level)<=2 ? TUTORIAL_LAYOUT_REVISION : null)
   };
 
   try{
@@ -64,6 +66,7 @@ function loadActiveGame(level=state.level){
     if(!raw) return null;
     const snap=JSON.parse(raw);
     if(!snap || snap.schema!==SESSION_SCHEMA || Number(snap.level)!==Number(level)) return null;
+    if(Number(level)<=2 && Number(snap.tutorialLayoutRevision)!==TUTORIAL_LAYOUT_REVISION) return null;
     if(!Array.isArray(snap.sudoku) || snap.sudoku.length!==9 || snap.sudoku.some(row=>!Array.isArray(row)||row.length!==9)) return null;
     if(!Array.isArray(snap.pieces) || !snap.pieces.length || !Array.isArray(snap.placed) || !Array.isArray(snap.anchors)) return null;
     return snap;

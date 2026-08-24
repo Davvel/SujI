@@ -61,6 +61,32 @@ function cancelAnchorFlights(){
   });
 }
 
+function startingRackPieceIds(){
+  const configured=state.levelDefinition?.puzzle?.startingRackPieceIds;
+  if(!Array.isArray(configured)) return null;
+  const valid=new Set(state.pieces.map(p=>p.id));
+  const ids=new Set(configured.map(Number).filter(id=>valid.has(id)));
+  return ids.size ? ids : null;
+}
+
+function chooseStartingAnchors(){
+  const rackIds=startingRackPieceIds();
+  if(!rackIds) return chooseAnchors();
+  // Tutorial "almost complete" layouts lock every solved shape and leave only
+  // the explicitly configured teaching pieces in the Rack.
+  return new Set(state.pieces.filter(p=>!rackIds.has(p.id)).map(p=>p.id));
+}
+
+function prefillConfiguredAnchors(){
+  const rackIds=startingRackPieceIds();
+  if(!rackIds) return false;
+  for(const id of state.anchors){
+    const piece=state.pieces.find(p=>p.id===id);
+    if(piece) state.placed.set(id,{...piece.home});
+  }
+  return true;
+}
+
 async function animateAnchorsFromRack(epoch){
   const ids=[...state.anchors];
 
@@ -218,11 +244,14 @@ async function resetLevel(animate=true,{resume=false}={}){
   // retriggers the automatic picture introduction for this level.
   markLevelVisited(level);
 
-  // Levels 1–5 are the guided introduction: Picture, Guides, and exactly 3 hints are mandatory.
-  // The player's saved hint preference is preserved separately in localStorage and only
-  // becomes effective from Level 6 onward. Replaying Levels 1–5 must always use 3 hints.
+  // Levels 1–5 are the guided introduction. Their lesson-specific picture mode is
+  // defined by the level content, while exactly 3 starting-hint preference points are
+  // reserved for the tutorial. The player's saved preference becomes effective from
+  // Level 6 onward.
   if(level<=5){
-    state.picture=true;
+    // Tutorial levels can deliberately suppress artwork for a focused lesson
+    // (Level 2 teaches Sudoku without relying on a picture).
+    state.picture=state.levelDefinition?.rules?.pictureMode!==false;
     state.guides=false;
     state.hints=3;
   } else {
@@ -269,7 +298,8 @@ async function resetLevel(animate=true,{resume=false}={}){
   persistHighestLevelReached(level);
   updatePicturePreviewButton();
   closePicturePreview();
-  state.anchors=chooseAnchors();
+  state.anchors=chooseStartingAnchors();
+  const hasPrefilledTutorialLayout=prefillConfiguredAnchors();
 
   renderControls();
   showTutorialDefault();
@@ -303,14 +333,19 @@ async function resetLevel(animate=true,{resume=false}={}){
       await showPicturePreview();
       if(epoch!==levelResetEpoch || level!==state.level) return;
     }
-    await animateAnchorsFromRack(epoch);
+    // Normal levels still fly their 1–3 opening locked shapes from the Rack.
+    // Tutorial Levels 1–2 are already dealt on the Board, with only their three
+    // teaching pieces left in the Rack, so there is nothing to animate.
+    if(!hasPrefilledTutorialLayout) await animateAnchorsFromRack(epoch);
   } else {
     if(epoch!==levelResetEpoch) return;
-    for(const id of state.anchors){
-      const p=state.pieces.find(x=>x.id===id);
-      if(p) state.placed.set(id,{...p.home});
+    if(!hasPrefilledTutorialLayout){
+      for(const id of state.anchors){
+        const p=state.pieces.find(x=>x.id===id);
+        if(p) state.placed.set(id,{...p.home});
+      }
+      renderAll(false);
     }
-    renderAll(false);
   }
   if(epoch===levelResetEpoch && level===state.level){
     updateLevelTimer();

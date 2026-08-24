@@ -6,11 +6,11 @@ const __default_export__ = Object.freeze({
   id: 'tutorial-002',
   number: 2,
   type: 'tutorial',
-  puzzle: Object.freeze({size:9, patternId:2, sudokuSeed:2}),
-  artwork: Object.freeze({image:`resources/Image_0002.png`}),
-  rules: Object.freeze({pictureMode:true,piecesGuide:false,hintsAllowed:true,rotationsAllowed:false,placementHints:5}),
+  puzzle: Object.freeze({size:9, patternId:2, sudokuSeed:2, startingRackPieceIds:Object.freeze([2,12,16])}),
+  artwork: Object.freeze({image:null}),
+  rules: Object.freeze({pictureMode:false,piecesGuide:false,hintsAllowed:true,rotationsAllowed:false,placementHints:5}),
   progression: Object.freeze({unlockAfter:'tutorial-001'}),
-  metadata: Object.freeze({title:"Level 2, Notice the numbers as you build.",tutorialStep:2})
+  metadata: Object.freeze({title:"Use Sudoku to place 3 identical shapes.",tutorialStep:2})
 });
 exports.default = __default_export__;
 });

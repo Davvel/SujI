@@ -14,7 +14,7 @@ const STORAGE_KEYS = Object.freeze({
   highestLevelReached: 'suji.highestLevelReached',
   visitedLevels: 'suji.visitedLevels.v1',
   activeGame: 'suji.activeGame.v1',
-  tutorialPrefix: 'suji.cp6.v607.help.',
+  tutorialPrefix: 'suji.tutorial.v2.help.',
   pwaInstallDismissed: 'suji_pwa_install_dismissed_v15'
 });
 exports["STORAGE_KEYS"] = STORAGE_KEYS;
