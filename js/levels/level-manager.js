@@ -220,6 +220,16 @@ async function restoreSavedLevel(snapshot,epoch){
   closePicturePreview();
   renderAll(false);
 
+  // v1.38.1: Level 3 is a mandatory Hint lesson. A mobile/PWA relaunch can
+  // restore the active attempt instead of running the normal fresh-level path,
+  // so its intro modal must be restored explicitly while that lesson is still
+  // incomplete. The saved Board/Rack progress remains intact; dismissing the
+  // modal returns the player to the same forced-Hint state (or to an already
+  // active Hint session if one was saved).
+  if(level===3 && !state.tutorialHintConsumed){
+    showTutorialDefault();
+  }
+
   // Restart the live timer from the saved active-play duration. Time spent with
   // the game closed is not charged to the player's attempt.
   startLevelTimer();
