@@ -62,7 +62,17 @@ function startLevelTimer(){
 
 function updateStats(){
   updateMoveCounter();
+  const definition=state.levelDefinition;
+  const isTutorial=definition?.type==='tutorial';
   $('#levelBtn').textContent='Level '+padLevel(state.level);
+
+  const title=$('#levelTitle');
+  if(title){
+    const meaningfulTitle=isTutorial ? String(definition?.metadata?.title||'').trim() : '';
+    title.textContent=meaningfulTitle;
+    title.hidden=!meaningfulTitle;
+    title.classList.toggle('tutorial-title',isTutorial);
+  }
   updatePlacementHintButton();
 }
 

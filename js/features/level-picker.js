@@ -43,8 +43,10 @@ function requestLevelChange(newLevel){
 function isCompletedLevel(level){ return !!bestRecord(level); }
 
 function canOpenLevel(level){
-  // Progression is based on the highest level EVER reached, not the level currently being played.
-  // Replaying Level 1 after reaching Level 2 must never re-lock Level 2.
+  // Tutorial Levels 1-10 are always open so players can revisit or jump between
+  // lessons without having to win the preceding tutorial first.
+  if(level>=GAME_CONFIG.tutorialFirstLevel && level<=GAME_CONFIG.tutorialLastLevel) return true;
+  // From Level 11 onward, progression is based on the highest level EVER reached.
   return level>=1 && level<=state.highestLevelReached;
 }
 

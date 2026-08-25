@@ -121,14 +121,8 @@ function requestClosePicturePreview(){
 }
 
 function picturePreviewTitle(level){
-  const titles={
-    1:'Picture Puzzle',
-    2:'Cat Puzzle',
-    3:'Flag of Germany Puzzle',
-    4:'Flag of France Puzzle',
-    5:'Dog Puzzle'
-  };
-  return titles[level] || `Level ${padLevel(level)} Puzzle`;
+  const puzzleTitle=state.levelDefinition?.metadata?.puzzleTitle;
+  return puzzleTitle ? `${puzzleTitle} Puzzle` : `Level ${padLevel(level)} Puzzle`;
 }
 
 async function showPicturePreview(){

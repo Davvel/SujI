@@ -18,7 +18,9 @@ async function findImage(level){
   // Level definitions own their artwork path. Resolve it once against the page
   // so the same URL works from file://, localhost and a GitHub Pages subfolder.
   const definition=getLevelDefinition(level);
-  if(definition?.artwork?.image) return resolveLevelAsset(definition.artwork.image);
+  if(definition?.artwork && Object.prototype.hasOwnProperty.call(definition.artwork,'image')){
+    return definition.artwork.image ? resolveLevelAsset(definition.artwork.image) : null;
+  }
 
   const base='resources/Image_'+padLevel(level);
   for(const ext of ['png','jpg','jpeg','webp']){

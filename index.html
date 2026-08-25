@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="SuJi">
-  <title>SuJi — Version 1.38.1</title>
+  <title>SuJi — Version 1.41.0</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/icon-192.png">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -23,9 +23,10 @@
       </div>
       <div>
         <h1>SuJi</h1>
-        <p>Version 1.38.1</p>
+        <p>Version 1.41.0</p>
       </div>
     </div>
+    <div id="levelTitle" class="topbar-level-title" role="status" aria-live="polite" hidden></div>
     <button id="helpBtn" class="icon-btn settings-btn" title="Settings" aria-label="Settings">⚙</button>
   </header>
 
@@ -162,7 +163,7 @@
           <button id="levelPageNext" class="secondary" type="button">100 ›</button>
         </div>
         <div id="levelGrid" class="level-grid" aria-label="Level history"></div>
-        <p class="level-picker-note">Browse 100 levels at a time, up to Level 9999. Levels above your highest-ever reached level remain locked.</p>
+        <p class="level-picker-note">Tutorial Levels 1–10 are always open. From Level 11 onward, levels above your highest-ever reached level remain locked.</p>
       </div>
     </div>
   </dialog>
@@ -210,7 +211,7 @@
       </section>
 
       <div class="settings-future-space" aria-hidden="true"></div>
-      <p id="settingsLockedNote" class="settings-locked-note" hidden>During Tutorial Levels 1-5 Some settings are locked.</p>
+      <p id="settingsLockedNote" class="settings-locked-note" hidden>During Tutorial Levels 1-10 some settings are locked.</p>
     </form>
   </dialog>
 
@@ -289,6 +290,11 @@
   <script defer src="js/levels/tutorial/level-003.js"></script>
   <script defer src="js/levels/tutorial/level-004.js"></script>
   <script defer src="js/levels/tutorial/level-005.js"></script>
+  <script defer src="js/levels/tutorial/level-006.js"></script>
+  <script defer src="js/levels/tutorial/level-007.js"></script>
+  <script defer src="js/levels/tutorial/level-008.js"></script>
+  <script defer src="js/levels/tutorial/level-009.js"></script>
+  <script defer src="js/levels/tutorial/level-010.js"></script>
   <script defer src="js/levels/types/sponsored-level.js"></script>
   <script defer src="js/levels/types/standard-level.js"></script>
   <script defer src="js/levels/types/themed-level.js"></script>

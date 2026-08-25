@@ -31,10 +31,10 @@ function tutorialCount(key){ return clamp(parseInt(localStorage.getItem(TUTORIAL
 
 function setTutorialCount(key,n){ localStorage.setItem(TUTORIAL_STORAGE_PREFIX+key,String(clamp(n,0,3))); }
 
-function tutorialActive(){ return state.level>=1 && state.level<=5; }
+function tutorialActive(){ return state.level>=GAME_CONFIG.tutorialFirstLevel && state.level<=GAME_CONFIG.tutorialLastLevel; }
 
 function setTutorialBodyClass(){
-  for(let i=1;i<=5;i++) document.body.classList.toggle('tutorial-level-'+i,state.level===i);
+  for(let i=GAME_CONFIG.tutorialFirstLevel;i<=GAME_CONFIG.tutorialLastLevel;i++) document.body.classList.toggle('tutorial-level-'+i,state.level===i);
   if(state.level!==3) hideTutorialHintFinger();
   updateTutorialHintWaitingClass();
 }

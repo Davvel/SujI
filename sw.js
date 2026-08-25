@@ -1,4 +1,4 @@
-const CACHE_NAME = 'suji-v1-38-1';
+const CACHE_NAME = 'suji-v1-41-0';
 const PRECACHE = [
   "./config/game-config.js",
   "./config/storage-keys.js",
@@ -65,6 +65,11 @@ const PRECACHE = [
   "./js/levels/tutorial/level-003.js",
   "./js/levels/tutorial/level-004.js",
   "./js/levels/tutorial/level-005.js",
+  "./js/levels/tutorial/level-006.js",
+  "./js/levels/tutorial/level-007.js",
+  "./js/levels/tutorial/level-008.js",
+  "./js/levels/tutorial/level-009.js",
+  "./js/levels/tutorial/level-010.js",
   "./js/levels/types/sponsored-level.js",
   "./js/levels/types/standard-level.js",
   "./js/levels/types/themed-level.js",
@@ -85,6 +90,7 @@ const PRECACHE = [
   "./manifest.webmanifest",
   "./resources/Image_0001.png",
   "./resources/Image_0007.png",
+  "./resources/Image_0008.png",
   "./resources/Image_0004.png",
   "./resources/Image_0005.png",
   "./resources/Image_0006.png",

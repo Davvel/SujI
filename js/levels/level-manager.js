@@ -263,13 +263,12 @@ async function resetLevel(animate=true,{resume=false}={}){
   // retriggers the automatic picture introduction for this level.
   markLevelVisited(level);
 
-  // Levels 1–5 are the guided introduction. Their lesson-specific picture mode is
+  // Levels 1–10 are the guided introduction. Their lesson-specific picture mode is
   // defined by the level content, while exactly 3 starting-hint preference points are
   // reserved for the tutorial. The player's saved preference becomes effective from
-  // Level 6 onward.
-  if(level<=5){
-    // Tutorial levels can deliberately suppress artwork for a focused lesson
-    // (Level 2 teaches Sudoku without relying on a picture).
+  // Level 11 onward.
+  if(level>=GAME_CONFIG.tutorialFirstLevel && level<=GAME_CONFIG.tutorialLastLevel){
+    // Tutorial levels can deliberately suppress artwork for a focused Sudoku lesson.
     state.picture=state.levelDefinition?.rules?.pictureMode!==false;
     state.guides=false;
     state.hints=3;
@@ -356,7 +355,7 @@ async function resetLevel(animate=true,{resume=false}={}){
     }
     // Normal levels still fly their 1–3 opening locked shapes from the Rack.
     // Configured tutorial layouts are already dealt directly on the Board.
-    // Levels 1–2 leave three teaching pieces; Level 3 pre-deals ten spread pieces.
+    // Tutorial levels with configured layouts are dealt directly onto the Board.
     if(!hasPrefilledTutorialLayout) await animateAnchorsFromRack(epoch);
   } else {
     if(epoch!==levelResetEpoch) return;

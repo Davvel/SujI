@@ -2,3 +2,53 @@
  * Owns: Header, controls, overall application shell.
  * 1.31.0 starts with the accepted 1.27.0 cascade preserved in base.css; new rules belong here.
  */
+
+
+/* === SuJi 1.41.0: meaningful level title in the main header === */
+.topbar{position:sticky}
+.topbar-level-title{
+  position:absolute;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%);
+  z-index:1;
+  max-width:min(56vw,520px);
+  padding:.32rem .7rem;
+  border:1px solid rgba(255,213,54,.28);
+  border-radius:999px;
+  background:rgba(255,255,255,.055);
+  color:#f7f9ff;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.05);
+  font-size:clamp(10px,1.3vw,15px);
+  font-weight:850;
+  line-height:1.08;
+  letter-spacing:.01em;
+  text-align:center;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  pointer-events:none;
+}
+.topbar-level-title.tutorial-title::before{
+  content:'✦';
+  display:inline-block;
+  margin-right:.38em;
+  color:#ffd536;
+  font-size:.82em;
+  vertical-align:.06em;
+}
+.topbar-level-title[hidden]{display:none !important}
+
+@media (max-width:520px){
+  .topbar-level-title{
+    max-width:50vw;
+    padding:.27rem .5rem;
+    font-size:clamp(9px,2.55vw,12px);
+  }
+}
+
+body.mobile-landscape-ui .topbar-level-title{
+  max-width:48vw;
+  padding:.2rem .45rem;
+  font-size:10px;
+}

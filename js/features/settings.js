@@ -18,7 +18,7 @@ const updatePlacementHintButton=(...args)=>app.updatePlacementHintButton(...args
 function hasManualProgress(){ return state.manualMoves>0; }
 
 function renderControls(){
-  const tutorialLocked=state.level<=5;
+  const tutorialLocked=state.level>=GAME_CONFIG.tutorialFirstLevel && state.level<=GAME_CONFIG.tutorialLastLevel;
   const pictureGroup=document.querySelector('.option-group-picture');
   const hintGroup=$('#hintOptionGroup');
   if(pictureGroup) pictureGroup.hidden=false;
@@ -104,7 +104,7 @@ Object.assign(app,{hasManualProgress,renderControls,requestOptionChange,shakeSet
 function initSettings(){
   $('#confirmDialog').addEventListener('close',()=>{ if($('#confirmDialog').returnValue==='confirm'&&state.pendingChange)state.pendingChange(); state.pendingChange=null; });
   const pictureToggle=$('#pictureToggle');
-  if(pictureToggle) pictureToggle.onclick=()=>{ if(state.level<=5){ shakeSettingsPadlock('#pictureLock'); return; } requestOptionChange('picture',!state.picture); };
+  if(pictureToggle) pictureToggle.onclick=()=>{ if(state.level>=GAME_CONFIG.tutorialFirstLevel && state.level<=GAME_CONFIG.tutorialLastLevel){ shakeSettingsPadlock('#pictureLock'); return; } requestOptionChange('picture',!state.picture); };
   const hintDownBtn=$('#hintDownBtn'), hintUpBtn=$('#hintUpBtn');
   if(hintDownBtn) hintDownBtn.onclick=()=>requestOptionChange('hints',Math.max(1,state.hints-1));
   if(hintUpBtn) hintUpBtn.onclick=()=>requestOptionChange('hints',Math.min(3,state.hints+1));

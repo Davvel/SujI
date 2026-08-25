@@ -9,8 +9,8 @@ const __default_export__ = Object.freeze({
   puzzle: Object.freeze({size:9, patternId:2, sudokuSeed:2, startingRackPieceIds:Object.freeze([2,12,16])}),
   artwork: Object.freeze({image:null}),
   rules: Object.freeze({pictureMode:false,piecesGuide:false,hintsAllowed:true,rotationsAllowed:false,placementHints:5}),
-  progression: Object.freeze({unlockAfter:'tutorial-001'}),
-  metadata: Object.freeze({title:"Use Sudoku rules to solve 3 identical shapes.",tutorialStep:2})
+  progression: Object.freeze({unlockAfter:null}),
+  metadata: Object.freeze({title:'Tutorial Level - Sudoku Lite',tutorialStep:2,tutorialTotal:10})
 });
 exports.default = __default_export__;
 });

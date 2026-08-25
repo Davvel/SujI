@@ -10,7 +10,7 @@ const GAME_CONFIG = Object.freeze({
   maxLevel: 9999,
   levelsPerPickerPage: 100,
   tutorialFirstLevel: 1,
-  tutorialLastLevel: 5,
+  tutorialLastLevel: 10,
   placementHintsPerLevel: 5,
   minStartingHints: 1,
   maxStartingHints: 3,
@@ -24,7 +24,7 @@ const TUTORIAL_LEVELS = Object.freeze({
   2:'The last 3 shapes are identical. Use Sudoku rules to solve: a number cannot repeat horizontally, vertically, or inside any 3 × 3 quadrant.',
   3:'Level 3: Half the shapes are already placed. There is no picture. Use Sudoku rules to solve. Press the Hint 💡 button now to learn how Hint helps you find where a shape can fit.',
   4:'Level 4, Follow the stripes: each column uses 1–9 once.',
-  5:'Level 5, Use the picture and all Sudoku rules together.'
+  5:'Level 5, Use all Sudoku rules together.'
 });
 
 const RULE_COPY = Object.freeze({

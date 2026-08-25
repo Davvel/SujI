@@ -10,7 +10,7 @@ const __default_export__ = Object.freeze({
   artwork: Object.freeze({image:`resources/Image_0001.png`}),
   rules: Object.freeze({pictureMode:true,piecesGuide:false,hintsAllowed:true,rotationsAllowed:false,placementHints:5}),
   progression: Object.freeze({unlockAfter:null}),
-  metadata: Object.freeze({title:"Find the last 3 shapes in the Jigsaw Puzzle to complete Level 1.",tutorialStep:1})
+  metadata: Object.freeze({title:'Tutorial - Smiley Face',puzzleTitle:'Smiley Face',tutorialStep:1,tutorialTotal:10})
 });
 exports.default = __default_export__;
 });

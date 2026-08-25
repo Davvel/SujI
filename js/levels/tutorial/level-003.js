@@ -6,13 +6,12 @@ const __default_export__ = Object.freeze({
   id: 'tutorial-003',
   number: 3,
   type: 'tutorial',
-  // Ten of Pattern 3's 21 shapes are pre-dealt. Their homes were selected to
-  // cover all nine 3x3 regions and keep the locked shapes spatially dispersed.
-  puzzle: Object.freeze({size:9, patternId:3, sudokuSeed:3, startingBoardPieceIds:Object.freeze([0,2,4,6,8,10,15,16,17,18])}),
+  // Six dispersed shapes remain in the Rack; the other fifteen are pre-solved.
+  puzzle: Object.freeze({size:9, patternId:3, sudokuSeed:3, startingRackPieceIds:Object.freeze([0,17,4,16,11,18])}),
   artwork: Object.freeze({image:null}),
   rules: Object.freeze({pictureMode:false,piecesGuide:false,hintsAllowed:true,rotationsAllowed:false,placementHints:5}),
-  progression: Object.freeze({unlockAfter:'tutorial-002'}),
-  metadata: Object.freeze({title:"Level 3, Learn to use Hint with Sudoku.",tutorialStep:3})
+  progression: Object.freeze({unlockAfter:null}),
+  metadata: Object.freeze({title:'Tutorial Level - Sudoku Easy',tutorialStep:3,tutorialTotal:10})
 });
 exports.default = __default_export__;
 });
