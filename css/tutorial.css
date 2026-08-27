@@ -100,3 +100,71 @@ body.tutorial-hint-waiting .rack-shell .piece{
   pointer-events:none !important;
   touch-action:none !important;
 }
+
+
+/* SuJi 1.42.0 — Level 1 gesture coach. A hand travels from a Rack shape
+ * toward the Board so first-time players immediately see the drag gesture. */
+.tutorial-drag-coach{
+  position:fixed;
+  inset:0;
+  z-index:20060;
+  pointer-events:none;
+}
+.tutorial-drag-coach[hidden]{display:none !important}
+.tutorial-drag-coach-hand{
+  position:fixed;
+  z-index:2;
+  font-size:40px;
+  line-height:1;
+  transform:translate(-50%,-50%);
+  filter:drop-shadow(0 3px 5px rgba(0,0,0,.32));
+  will-change:transform;
+}
+.tutorial-drag-coach-label{
+  position:fixed;
+  z-index:1;
+  min-width:190px;
+  max-width:220px;
+  padding:9px 12px;
+  border-radius:14px;
+  background:rgba(17,24,39,.94);
+  color:#fff;
+  font-size:14px;
+  font-weight:800;
+  line-height:1.25;
+  text-align:center;
+  box-shadow:0 8px 22px rgba(0,0,0,.28);
+}
+.tutorial-drag-coach-running .tutorial-drag-coach-hand{
+  animation:tutorialDragGesture 1.55s ease-in-out 2;
+}
+@keyframes tutorialDragGesture{
+  0%,12%{transform:translate(-50%,-50%) translate(0,0) scale(.96)}
+  22%{transform:translate(-50%,-50%) translate(0,0) scale(.84)}
+  70%,82%{transform:translate(-50%,-50%) translate(var(--tutorial-drag-x),var(--tutorial-drag-y)) scale(.84)}
+  100%{transform:translate(-50%,-50%) translate(0,0) scale(.96)}
+}
+
+/* SuJi 1.42.0 — after the mandatory Level 3 Hint is pressed, make the Rack
+ * the unmistakable next action while the hand points at a Rack shape. */
+body.tutorial-hint-rack-choice .rack-shell{
+  position:relative;
+  outline:3px solid rgba(255,196,46,.92);
+  outline-offset:3px;
+  box-shadow:0 0 0 7px rgba(255,196,46,.16),0 0 24px rgba(255,196,46,.28);
+}
+body.tutorial-hint-rack-choice .rack .piece{
+  animation:tutorialRackChoicePulse .9s ease-in-out infinite alternate;
+}
+@keyframes tutorialRackChoicePulse{
+  from{filter:brightness(1)}
+  to{filter:brightness(1.14) drop-shadow(0 0 7px rgba(255,196,46,.58))}
+}
+@media (max-width:700px){
+  .tutorial-drag-coach-hand{font-size:36px}
+  .tutorial-drag-coach-label{font-size:13px;min-width:175px;max-width:205px}
+}
+@media (prefers-reduced-motion:reduce){
+  .tutorial-drag-coach-running .tutorial-drag-coach-hand,
+  body.tutorial-hint-rack-choice .rack .piece{animation:none}
+}

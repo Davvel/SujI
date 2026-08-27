@@ -36,12 +36,23 @@ function updatePlacementHintButton(){
   btn.classList.toggle('hint-disabled',disabled);
   btn.classList.toggle('hint-active',active);
   btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+  const forcedTutorialHint=typeof app.tutorialHintNeedsConsumption==='function' && app.tutorialHintNeedsConsumption();
   if(state.hintArmed){
-    btn.title='Cancel hint';
-    btn.setAttribute('aria-label', `Hint active. Tap to cancel. ${state.hintRemaining} remaining`);
+    if(forcedTutorialHint){
+      btn.title='Choose a shape from the Rack';
+      btn.setAttribute('aria-label','Hint lesson active. Now tap a shape from the Rack');
+    } else {
+      btn.title='Cancel hint';
+      btn.setAttribute('aria-label', `Hint active. Tap to cancel. ${state.hintRemaining} remaining`);
+    }
   } else if(state.hintInUse){
-    btn.title='Exit hint guidance';
-    btn.setAttribute('aria-label', `Hint revealed. Tap to exit guidance. ${state.hintRemaining} remaining`);
+    if(forcedTutorialHint){
+      btn.title='Drag the selected shape to a highlighted position';
+      btn.setAttribute('aria-label','Hint lesson active. Drag the selected shape to a highlighted position');
+    } else {
+      btn.title='Exit hint guidance';
+      btn.setAttribute('aria-label', `Hint revealed. Tap to exit guidance. ${state.hintRemaining} remaining`);
+    }
   } else if(hasPendingSudokuError){
     btn.title='Fix the Sudoku error first';
     btn.setAttribute('aria-label', 'Hint unavailable while a Sudoku error is showing on the Board');
@@ -179,13 +190,18 @@ function updateHintInstruction(){
   // v1.19.7: the Hint bulb itself is the cancel affordance. Keep the UI clean
   // and explain inside the first-step popup that tapping the bulb again cancels
   // without spending a hint. The Board remains dimmed while the Rack stays live.
+  const forcedTutorialHint=typeof app.tutorialHintNeedsConsumption==='function' && app.tutorialHintNeedsConsumption();
   if(state.hintArmed){
-    text.textContent='Tap a shape you want to solve. Tap Hint Bulb again to Cancel.';
+    text.textContent=forcedTutorialHint
+      ? 'Now tap a shape from the Rack.'
+      : 'Tap a shape you want to solve. Tap Hint Bulb again to Cancel.';
     box.hidden=false;
     return;
   }
 
-  text.textContent='Drag the selected shape onto the board.';
+  text.textContent=forcedTutorialHint
+    ? 'Now drag this shape to a highlighted position.'
+    : 'Drag the selected shape onto the board.';
   if(state.hintBubbleDismissed) return;
   box.hidden=false;
   if(!placeHintBubbleNearSelectedPiece(box)){
@@ -194,8 +210,23 @@ function updateHintInstruction(){
 }
 
 function armPlacementHint(){
-  if(state.hintArmed){ finishPlacementHint(); renderAll(false); return; }
-  if(state.hintInUse){ finishPlacementHint(); renderAll(false); return; }
+  const forcedTutorialHint=typeof app.tutorialHintNeedsConsumption==='function' && app.tutorialHintNeedsConsumption();
+  if(state.hintArmed){
+    if(forcedTutorialHint){
+      updateHintInstruction();
+      if(typeof app.showTutorialHintRackCoach==='function') app.showTutorialHintRackCoach();
+      return;
+    }
+    finishPlacementHint(); renderAll(false); return;
+  }
+  if(state.hintInUse){
+    if(forcedTutorialHint){
+      pulseHintSelectedPiece();
+      updateHintInstruction();
+      return;
+    }
+    finishPlacementHint(); renderAll(false); return;
+  }
   if(state.hintRemaining<=0) return;
   if(state.activeTeachingConflict) return;
   if(!state.pieces.some(p=>!state.placed.has(p.id))) return;
@@ -209,6 +240,7 @@ function armPlacementHint(){
   updatePlacementHintButton();
   updateConflictAlert(null);
   renderAll(false);
+  if(forcedTutorialHint && typeof app.showTutorialHintRackCoach==='function') app.showTutorialHintRackCoach();
   saveActiveGame();
 }
 
@@ -220,6 +252,7 @@ function revealPlacementHintForPiece(id,{deferRender=false}={}){
   state.hintInUse=true;
   state.hintSelectedId=id;
   state.hintBubbleDismissed=false;
+  if(typeof app.tutorialHintPieceSelected==='function') app.tutorialHintPieceSelected(id);
   // Normal levels spend the Hint when a Rack shape is selected and its homes are
   // revealed. Level 3's mandatory lesson is stricter: its first Hint is charged
   // only after the selected shape is successfully dragged from Rack to Board.

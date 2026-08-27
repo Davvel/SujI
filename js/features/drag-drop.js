@@ -264,6 +264,7 @@ function startDrag(e){
 
   const p = state.pieces.find(x=>x.id===id);
   const oldPos = state.placed.get(id) ? {...state.placed.get(id)} : null;
+  if(!oldPos && state.level===1 && typeof app.tutorialLevel1DragStarted==='function') app.tutorialLevel1DragStarted(id);
 
   // Checkpoint 18.2.0: while a Sudoku conflict is active, do not allow a new
   // shape to leave the Rack. Board shapes remain fully movable, including back
@@ -527,6 +528,9 @@ function endDrag(e){
   const pointInRack =
     e.clientX >= rr.left && e.clientX <= rr.right &&
     e.clientY >= rr.top && e.clientY <= rr.bottom;
+  const gestureDistance=Math.hypot(e.clientX-drag.startClientX,e.clientY-drag.startClientY);
+  const level1TapWithoutDrag=state.level===1 && !drag.oldPos && gestureDistance<14;
+  const level1PieceId=drag.id;
 
   // Returning to Rack always wins, regardless of guide state.
   if(pointInRack){
@@ -539,6 +543,7 @@ function endDrag(e){
     // The destination remains visible so the player can grab it again when ready.
     if(usedHint){ renderGuides(); activateCompatiblePieceGuides(); }
     renderAll(false);
+    if(level1TapWithoutDrag && typeof app.tutorialLevel1TapWithoutDrag==='function') app.tutorialLevel1TapWithoutDrag(level1PieceId);
     saveActiveGame();
     return;
   }
@@ -577,6 +582,7 @@ function endDrag(e){
   }
 
   const usedHint=state.hintInUse && state.hintSelectedId===drag.id;
+  const level1DragSucceeded=state.level===1 && !drag.oldPos && state.placed.has(drag.id);
   clearCompatiblePieceGuides();
   cleanupDrag();
   if(usedHint && hintCompleted){
@@ -592,6 +598,7 @@ function endDrag(e){
     updateHintInstruction();
   }
   renderAll(false);
+  if(level1DragSucceeded && typeof app.tutorialLevel1DragSucceeded==='function') app.tutorialLevel1DragSucceeded();
   saveActiveGame();
 }
 

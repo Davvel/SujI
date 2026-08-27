@@ -15,6 +15,10 @@ const clamp=(...args)=>app.clamp(...args);
 const makeSudoku=(...args)=>app.makeSudoku(...args);
 const TUTORIAL_STORAGE_PREFIX=STORAGE_KEYS.tutorialPrefix;
 let tutorialHintFinger=null;
+let tutorialHintFingerTarget='hint';
+let tutorialLevel1CoachTimer=null;
+let tutorialDragCoach=null;
+let tutorialLevel1DragLearned=false;
 function canonicalTutorialSudoku(){
   const shifts=[0,3,6,1,4,7,2,5,8];
   return shifts.map(shift=>Array.from({length:9},(_,c)=>((c+shift)%9)+1));
@@ -36,6 +40,7 @@ function tutorialActive(){ return state.level>=GAME_CONFIG.tutorialFirstLevel &&
 function setTutorialBodyClass(){
   for(let i=GAME_CONFIG.tutorialFirstLevel;i<=GAME_CONFIG.tutorialLastLevel;i++) document.body.classList.toggle('tutorial-level-'+i,state.level===i);
   if(state.level!==3) hideTutorialHintFinger();
+  if(state.level!==1) hideTutorialDragCoach();
   updateTutorialHintWaitingClass();
 }
 
@@ -60,7 +65,9 @@ function tutorialHintInteractionLocked(){
 
 function updateTutorialHintWaitingClass(){
   const waiting=tutorialHintCoachActive();
+  const choosing=tutorialHintNeedsConsumption() && state.hintArmed;
   document.body.classList.toggle('tutorial-hint-waiting',waiting);
+  document.body.classList.toggle('tutorial-hint-rack-choice',choosing);
   if(waiting && typeof app.ensureHintDimLayers==='function') app.ensureHintDimLayers();
 }
 
@@ -77,9 +84,12 @@ function ensureTutorialHintFinger(){
 
 function positionTutorialHintFinger(){
   const finger=tutorialHintFinger;
-  const btn=$('#placementHintBtn');
-  if(!finger || finger.hidden || !btn) return;
-  const br=btn.getBoundingClientRect();
+  if(!finger || finger.hidden) return;
+  const target=tutorialHintFingerTarget==='rack'
+    ? document.querySelector('.rack .piece:not(.anchor)')
+    : $('#placementHintBtn');
+  if(!target) return;
+  const br=target.getBoundingClientRect();
   if(!br.width || !br.height) return;
   const above=br.top>=72;
   finger.textContent=above ? '👇' : '👆';
@@ -93,16 +103,130 @@ function positionTutorialHintFinger(){
 
 function hideTutorialHintFinger(){
   if(tutorialHintFinger) tutorialHintFinger.hidden=true;
-  document.body.classList.remove('tutorial-hint-prompting');
+  document.body.classList.remove('tutorial-hint-prompting','tutorial-hint-rack-prompting');
 }
 
-function showTutorialHintFinger(){
-  if(!tutorialHintCoachActive() || modalIsOpen()) return false;
+function showTutorialHintFinger(target='hint'){
+  if(!tutorialHintNeedsConsumption() || modalIsOpen()) return false;
+  if(target==='hint' && !tutorialHintCoachActive()) return false;
+  if(target==='rack' && !state.hintArmed) return false;
+  tutorialHintFingerTarget=target;
   const finger=ensureTutorialHintFinger();
   finger.hidden=false;
-  document.body.classList.add('tutorial-hint-prompting');
+  document.body.classList.toggle('tutorial-hint-prompting',target==='hint');
+  document.body.classList.toggle('tutorial-hint-rack-prompting',target==='rack');
   requestAnimationFrame(positionTutorialHintFinger);
   return true;
+}
+
+function showTutorialHintRackCoach(){
+  updateTutorialHintWaitingClass();
+  return showTutorialHintFinger('rack');
+}
+
+function tutorialHintPieceSelected(){
+  hideTutorialHintFinger();
+  updateTutorialHintWaitingClass();
+}
+
+function ensureTutorialDragCoach(){
+  if(tutorialDragCoach && tutorialDragCoach.isConnected) return tutorialDragCoach;
+  const wrap=document.createElement('div');
+  wrap.className='tutorial-drag-coach';
+  wrap.hidden=true;
+  wrap.setAttribute('aria-hidden','true');
+  const hand=document.createElement('span');
+  hand.className='tutorial-drag-coach-hand';
+  hand.textContent='☝️';
+  const label=document.createElement('span');
+  label.className='tutorial-drag-coach-label';
+  label.textContent='Drag shapes onto the board.';
+  wrap.append(hand,label);
+  document.body.appendChild(wrap);
+  tutorialDragCoach=wrap;
+  return wrap;
+}
+
+function hideTutorialDragCoach(){
+  if(tutorialLevel1CoachTimer){
+    clearTimeout(tutorialLevel1CoachTimer);
+    tutorialLevel1CoachTimer=null;
+  }
+  if(tutorialDragCoach){
+    tutorialDragCoach.hidden=true;
+    tutorialDragCoach.classList.remove('tutorial-drag-coach-running');
+  }
+}
+
+function showTutorialDragCoach(pieceId=null){
+  if(state.level!==1 || tutorialLevel1DragLearned || state.hintArmed || state.hintInUse) return false;
+  const pictureOverlay=$('#picturePreviewOverlay');
+  if(document.querySelector('dialog[open]') || (pictureOverlay && !pictureOverlay.hidden)){
+    scheduleTutorialDragCoach(pieceId,700);
+    return false;
+  }
+  const source=(pieceId!=null ? document.querySelector(`.rack .piece[data-id="${pieceId}"]`) : null)
+    || document.querySelector('.rack .piece:not(.anchor)');
+  const boardEl=$('#boardWrap');
+  if(!source || !boardEl) return false;
+  const sr=source.getBoundingClientRect();
+  const br=boardEl.getBoundingClientRect();
+  if(!sr.width || !sr.height || !br.width || !br.height) return false;
+
+  const coach=ensureTutorialDragCoach();
+  const hand=coach.querySelector('.tutorial-drag-coach-hand');
+  const label=coach.querySelector('.tutorial-drag-coach-label');
+  const startX=sr.left+sr.width/2;
+  const startY=sr.top+sr.height/2;
+  const boardX=br.left+br.width/2;
+  const boardY=br.top+br.height/2;
+  const rawDx=boardX-startX;
+  const rawDy=boardY-startY;
+  const distance=Math.max(1,Math.hypot(rawDx,rawDy));
+  const travel=Math.min(distance*.58,180);
+  hand.style.left=`${Math.round(startX)}px`;
+  hand.style.top=`${Math.round(startY)}px`;
+  hand.style.setProperty('--tutorial-drag-x',`${Math.round((rawDx/distance)*travel)}px`);
+  hand.style.setProperty('--tutorial-drag-y',`${Math.round((rawDy/distance)*travel)}px`);
+
+  const labelLeft=Math.max(10,Math.min(window.innerWidth-230,startX-105));
+  const labelTop=startY>110 ? Math.max(10,startY-92) : Math.min(window.innerHeight-54,startY+42);
+  label.style.left=`${Math.round(labelLeft)}px`;
+  label.style.top=`${Math.round(labelTop)}px`;
+  coach.hidden=false;
+  coach.classList.remove('tutorial-drag-coach-running');
+  void coach.offsetWidth;
+  coach.classList.add('tutorial-drag-coach-running');
+  return true;
+}
+
+function scheduleTutorialDragCoach(pieceId=null,delay=2500){
+  hideTutorialDragCoach();
+  if(state.level!==1 || tutorialLevel1DragLearned) return;
+  tutorialLevel1CoachTimer=setTimeout(()=>{
+    tutorialLevel1CoachTimer=null;
+    showTutorialDragCoach(pieceId);
+  },delay);
+}
+
+function resetTutorialLevel1DragCoach(){
+  tutorialLevel1DragLearned=false;
+  hideTutorialDragCoach();
+}
+
+function tutorialLevel1DragStarted(){
+  if(state.level===1) hideTutorialDragCoach();
+}
+
+function tutorialLevel1TapWithoutDrag(pieceId){
+  if(state.level!==1 || tutorialLevel1DragLearned) return;
+  scheduleTutorialDragCoach(pieceId,350);
+}
+
+function tutorialLevel1DragSucceeded(){
+  if(state.level!==1) return;
+  tutorialLevel1DragLearned=true;
+  hideTutorialDragCoach();
 }
 
 function resetTutorialHintCoach({consumed=false}={}){
@@ -113,8 +237,16 @@ function resetTutorialHintCoach({consumed=false}={}){
 
 function tutorialHintButtonPressed(){
   if(state.level!==3 || !tutorialHintNeedsConsumption()) return;
-  // Pressing the bulb only STARTS the lesson. Do not mark it complete yet: the
-  // first Level 3 Hint is consumed only after its selected Rack shape lands on the Board.
+  // The mandatory lesson is a guided sequence. Re-pressing the bulb reinforces
+  // the current next step instead of cancelling the lesson.
+  if(state.hintArmed){
+    showTutorialHintRackCoach();
+    return;
+  }
+  if(state.hintInUse){
+    if(typeof app.pulseHintSelectedPiece==='function') app.pulseHintSelectedPiece();
+    return;
+  }
   hideTutorialHintFinger();
 }
 
@@ -188,6 +320,7 @@ function waitForTutorialModalClose(){
 
 function showTutorialDefault(){
   if(!tutorialActive()) return;
+  if(state.level===1) resetTutorialLevel1DragCoach();
   const text=TUTORIAL_LEVELS[state.level];
   if(!text) return;
   // All non-error tutorial information should be shown as a centered
@@ -250,7 +383,7 @@ function paintRuleRegion(rule){
 }
 
 
-Object.assign(app,{canonicalTutorialSudoku,tutorialSudoku,tutorialCount,setTutorialCount,tutorialActive,setTutorialBodyClass,modalIsOpen,tutorialHintNeedsConsumption,tutorialHintCoachActive,tutorialHintInteractionLocked,updateTutorialHintWaitingClass,showTutorialHintFinger,hideTutorialHintFinger,resetTutorialHintCoach,tutorialHintButtonPressed,tutorialPlacementHintConsumed,tutorialHintSessionEnded,positionTutorialHintFinger,closeTutorialModal,openTutorialModal,waitForTutorialModalClose,showTutorialDefault,showRuleTip,clearRuleRegion,conflictIdentity,sameConflict,conflictStillExists,paintRuleRegion});
+Object.assign(app,{canonicalTutorialSudoku,tutorialSudoku,tutorialCount,setTutorialCount,tutorialActive,setTutorialBodyClass,modalIsOpen,tutorialHintNeedsConsumption,tutorialHintCoachActive,tutorialHintInteractionLocked,updateTutorialHintWaitingClass,showTutorialHintFinger,showTutorialHintRackCoach,hideTutorialHintFinger,tutorialHintPieceSelected,showTutorialDragCoach,hideTutorialDragCoach,scheduleTutorialDragCoach,resetTutorialLevel1DragCoach,tutorialLevel1DragStarted,tutorialLevel1TapWithoutDrag,tutorialLevel1DragSucceeded,resetTutorialHintCoach,tutorialHintButtonPressed,tutorialPlacementHintConsumed,tutorialHintSessionEnded,positionTutorialHintFinger,closeTutorialModal,openTutorialModal,waitForTutorialModalClose,showTutorialDefault,showRuleTip,clearRuleRegion,conflictIdentity,sameConflict,conflictStillExists,paintRuleRegion});
 
 function initTutorial(){
   const dismissTutorialModalByUser=()=>{
@@ -258,7 +391,12 @@ function initTutorial(){
     closeTutorialModal();
     // Level 3: the hand and bulb wiggle begin immediately after ANY deliberate
     // dismissal of the intro (OK, close X, or keyboard cancel).
-    if(shouldPrompt) showTutorialHintFinger();
+    if(shouldPrompt){
+      if(state.hintArmed) showTutorialHintRackCoach();
+      else if(state.hintInUse && typeof app.pulseHintSelectedPiece==='function') app.pulseHintSelectedPiece();
+      else showTutorialHintFinger();
+    }
+    if(state.level===1) scheduleTutorialDragCoach(null,2500);
   };
   const tutorialClose=$('#tutorialClose'); if(tutorialClose) tutorialClose.addEventListener('click',dismissTutorialModalByUser);
   const tutorialOk=$('#tutorialOk'); if(tutorialOk) tutorialOk.addEventListener('click',dismissTutorialModalByUser);
@@ -282,6 +420,15 @@ exports["tutorialHintInteractionLocked"] = tutorialHintInteractionLocked;
 exports["updateTutorialHintWaitingClass"] = updateTutorialHintWaitingClass;
 exports["showTutorialHintFinger"] = showTutorialHintFinger;
 exports["hideTutorialHintFinger"] = hideTutorialHintFinger;
+exports["showTutorialHintRackCoach"] = showTutorialHintRackCoach;
+exports["tutorialHintPieceSelected"] = tutorialHintPieceSelected;
+exports["showTutorialDragCoach"] = showTutorialDragCoach;
+exports["hideTutorialDragCoach"] = hideTutorialDragCoach;
+exports["scheduleTutorialDragCoach"] = scheduleTutorialDragCoach;
+exports["resetTutorialLevel1DragCoach"] = resetTutorialLevel1DragCoach;
+exports["tutorialLevel1DragStarted"] = tutorialLevel1DragStarted;
+exports["tutorialLevel1TapWithoutDrag"] = tutorialLevel1TapWithoutDrag;
+exports["tutorialLevel1DragSucceeded"] = tutorialLevel1DragSucceeded;
 exports["resetTutorialHintCoach"] = resetTutorialHintCoach;
 exports["tutorialHintButtonPressed"] = tutorialHintButtonPressed;
 exports["tutorialPlacementHintConsumed"] = tutorialPlacementHintConsumed;
