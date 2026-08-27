@@ -1,112 +1,124 @@
+
 /* SuJi Module: css/pieces
  * Owns: Piece cells, shape families, locks and generic piece animation.
  * 1.31.0 starts with the accepted 1.27.0 cascade preserved in base.css; new rules belong here.
  */
 
-
-/* === SuJi 1.33.3: locked-piece padlock lives inside its target cell ===
-   The legacy lock was a ::after pseudo-element on the whole piece. That made
-   stacking against the tile number unreliable. Disable it and use the explicit
-   .piece-lock element inserted by piece-view.js instead. */
+/* SuJi 1.43.5 — Locked clue presentation
+   Locked shapes use the same tile treatment as movable shapes. Their only
+   persistent identifiers are white clue numbers (rendered slightly off-white).
+   Each whole shape also has one compact gray padlock badge with a copper lock. */
 .piece.anchor::after{
   content:none !important;
   display:none !important;
 }
 
-.piece.anchor .piece-cell{
-  overflow:visible;
+/* Match the ordinary movable-piece shadow instead of adding a special gold/cyan
+   halo or border to locked shapes. */
+.piece.anchor{
+  outline:none !important;
+  box-shadow:none !important;
+  filter:drop-shadow(0 5px 4px #0005) !important;
+  overflow:visible !important;
 }
 
-.piece-lock{
+/* Exactly the normal SuJi tile bevel — no special locked border. */
+.piece.anchor .piece-cell{
+  box-shadow:
+    inset 0 -4px 0 #0002,
+    inset 0 4px 8px #fff3 !important;
+}
+
+/* Locked clue numbers: subtle but clearer differentiation.
+   Movable numbers remain dark with a white edge; locked clues become slightly off-white
+   with the same crisp dark outline/shadow treatment. No extra number box. */
+.piece.anchor .piece-number{
+  color:#d7dde5 !important;
+  -webkit-text-stroke:1.45px rgba(5,12,22,.98) !important;
+  paint-order:stroke fill;
+  text-shadow:
+    0 1px 0 rgba(0,0,0,.92),
+    0 0 3px rgba(0,0,0,.90),
+    0 2px 6px rgba(0,0,0,.62),
+    0 0 10px rgba(0,0,0,.34) !important;
+  filter:drop-shadow(0 1px 1px rgba(0,0,0,.38)) !important;
+}
+
+/* Hit testing follows the TRUE jigsaw geometry, not the rectangular element
+   used for layout. Only occupied tiles receive pointer input; their events
+   still bubble to the piece handler so a real tile drags the entire shape. */
+.piece{
+  pointer-events:none;
+}
+.piece .piece-cell{
+  pointer-events:auto;
+  touch-action:none;
+  user-select:none;
+  cursor:grab;
+}
+.piece.anchor .piece-cell{
+  cursor:default;
+}
+.piece.drag-ghost,
+.drag-ghost{
+  pointer-events:none !important;
+}
+
+/* One compact lock per Starting Shape. JS positions this badge on the
+   top-most/left-most occupied tile, never inside an empty bounding-box hole. */
+.starting-shape-badge{
   position:absolute;
-  left:50%;
-  top:50%;
-  transform:translate(-50%,-50%);
-  z-index:1;
+  z-index:8;
+  width:clamp(14px, calc(var(--piece-cell) * .34), 19px);
+  height:clamp(14px, calc(var(--piece-cell) * .34), 19px);
   display:grid;
   place-items:center;
-  width:1.2em;
-  height:1.2em;
-  font-size:1.18em;
-  line-height:1;
+  border-radius:999px;
+  border:1px solid rgba(58,66,78,.82);
+  background:linear-gradient(180deg, rgba(205,213,223,.98), rgba(151,162,176,.98));
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.46),
+    0 1px 3px rgba(0,0,0,.30);
   pointer-events:none;
   user-select:none;
-  filter:drop-shadow(0 2px 3px rgba(0,0,0,.35));
 }
 
-/* The Sudoku digit is deliberately one layer above the lock. There is no
-   background/mask on locked-piece numbers, so the lock remains visible around
-   and beneath the glyph. */
-.piece.anchor .piece-number{
+.starting-shape-lock{
   position:relative;
-  z-index:2 !important;
-  background:transparent !important;
-  box-shadow:none !important;
+  display:block;
+  width:clamp(8px, calc(var(--piece-cell) * .20), 12px);
+  height:clamp(8px, calc(var(--piece-cell) * .20), 12px);
 }
-
-/* === SuJi 1.33.4: optical centering of lock behind digit ===
-   Emoji lock artwork is visually bottom-heavy inside its font box. Move the
-   lock artwork slightly upward so its visible centre sits behind the number. */
-.piece-lock{
-  top:44% !important;
-  transform:translate(-50%,-50%) !important;
-}
-
-/* === SuJi 1.33.5: deterministic geometric lock ===
-   The platform emoji has uneven internal whitespace, so CSS centering of the
-   emoji box does not guarantee that the visible padlock looks centred.
-   Hide the emoji glyph and draw the lock from CSS geometry instead. The lock
-   box itself is exactly centred in the tile; the number remains above it. */
-.piece-lock{
-  left:50% !important;
-  top:50% !important;
-  transform:translate(-50%,-50%) !important;
-  width:62% !important;
-  height:66% !important;
-  font-size:0 !important;
-  line-height:0 !important;
-  display:block !important;
-  filter:drop-shadow(0 2px 3px rgba(0,0,0,.35));
-}
-
-/* Shackle */
-.piece-lock::before{
+.starting-shape-lock::before{
   content:"";
   position:absolute;
   left:50%;
-  top:4%;
-  width:48%;
-  height:47%;
+  top:0;
+  width:56%;
+  height:54%;
   transform:translateX(-50%);
-  border:clamp(2px, .09em, 4px) solid #c7cbd1;
+  border:1.55px solid #b87333;
   border-bottom:0;
   border-radius:999px 999px 0 0;
   box-sizing:border-box;
-  background:transparent;
-  box-shadow:
-    inset 0 0 0 1px rgba(255,255,255,.42),
-    0 1px 2px rgba(0,0,0,.28);
 }
-
-/* Lock body: deliberately centred on the Sudoku digit. */
-.piece-lock::after{
+.starting-shape-lock::after{
   content:"";
   position:absolute;
   left:50%;
-  top:57%;
-  width:72%;
-  height:55%;
-  transform:translate(-50%,-50%);
-  border-radius:18%;
-  background:linear-gradient(180deg,#ffb173 0%,#f38b55 100%);
-  border:clamp(1px, .045em, 2px) solid rgba(121,69,37,.72);
-  box-sizing:border-box;
-  box-shadow:
-    inset 0 2px 0 rgba(255,255,255,.48),
-    inset 0 -2px 0 rgba(123,60,28,.16),
-    0 2px 4px rgba(0,0,0,.32);
+  bottom:0;
+  width:84%;
+  height:61%;
+  transform:translateX(-50%);
+  border-radius:2px;
+  background:#b87333;
+  box-shadow:inset 0 1px 0 rgba(255,235,214,.30);
 }
 
-.piece.anchor .piece-number{
-  z-index:3 !important;
+.piece.anchor.locked-bump .starting-shape-badge{
+  animation:sujiStartingBadgePulse .46s ease-in-out;
+}
+@keyframes sujiStartingBadgePulse{
+  0%,100%{transform:scale(1)}
+  45%{transform:scale(1.16)}
 }

@@ -20,6 +20,12 @@ const renderGuides=(...args)=>app.renderGuides(...args);
 const saveActiveGame=(...args)=>app.saveActiveGame(...args);
 const updateConflictAlert=(...args)=>app.updateConflictAlert(...args);
 
+function hintCancelAllowed(){
+  // Tutorial Level 3 must teach a full Hint cycle before cancellation is exposed.
+  // Once the first Hint has genuinely been consumed, normal Hint behaviour returns.
+  return !(state.level===3 && !state.tutorialHintConsumed);
+}
+
 function updatePlacementHintButton(){
   const btn=$('#placementHintBtn');
   const count=$('#placementHintCount');
@@ -37,16 +43,17 @@ function updatePlacementHintButton(){
   btn.classList.toggle('hint-active',active);
   btn.setAttribute('aria-pressed', active ? 'true' : 'false');
   const forcedTutorialHint=typeof app.tutorialHintNeedsConsumption==='function' && app.tutorialHintNeedsConsumption();
+  const canCancel=hintCancelAllowed();
   if(state.hintArmed){
-    if(forcedTutorialHint){
-      btn.title='Choose a shape from the Rack';
-      btn.setAttribute('aria-label','Hint lesson active. Now tap a shape from the Rack');
+    if(!canCancel || forcedTutorialHint){
+      btn.title='Choose a shape from the unsolved rack';
+      btn.setAttribute('aria-label','Hint lesson active. Select a shape from the unsolved rack');
     } else {
       btn.title='Cancel hint';
       btn.setAttribute('aria-label', `Hint active. Tap to cancel. ${state.hintRemaining} remaining`);
     }
   } else if(state.hintInUse){
-    if(forcedTutorialHint){
+    if(!canCancel || forcedTutorialHint){
       btn.title='Drag the selected shape to a highlighted position';
       btn.setAttribute('aria-label','Hint lesson active. Drag the selected shape to a highlighted position');
     } else {
@@ -191,15 +198,22 @@ function updateHintInstruction(){
   // and explain inside the first-step popup that tapping the bulb again cancels
   // without spending a hint. The Board remains dimmed while the Rack stays live.
   const forcedTutorialHint=typeof app.tutorialHintNeedsConsumption==='function' && app.tutorialHintNeedsConsumption();
+  const canCancel=hintCancelAllowed();
   if(state.hintArmed){
-    text.textContent=forcedTutorialHint
-      ? 'Now tap a shape from the Rack.'
+    // SuJi 1.43.12: during the forced Level 3 rack-selection step, the tutorial
+    // rack coach is the only visible teacher. Hide the large board banner.
+    if(forcedTutorialHint){
+      box.hidden=true;
+      return;
+    }
+    text.textContent=(!canCancel)
+      ? 'Select a shape from the unsolved rack'
       : 'Tap a shape you want to solve. Tap Hint Bulb again to Cancel.';
     box.hidden=false;
     return;
   }
 
-  text.textContent=forcedTutorialHint
+  text.textContent=(!canCancel || forcedTutorialHint)
     ? 'Now drag this shape to a highlighted position.'
     : 'Drag the selected shape onto the board.';
   if(state.hintBubbleDismissed) return;
@@ -211,8 +225,9 @@ function updateHintInstruction(){
 
 function armPlacementHint(){
   const forcedTutorialHint=typeof app.tutorialHintNeedsConsumption==='function' && app.tutorialHintNeedsConsumption();
+  const canCancel=hintCancelAllowed();
   if(state.hintArmed){
-    if(forcedTutorialHint){
+    if(!canCancel || forcedTutorialHint){
       updateHintInstruction();
       if(typeof app.showTutorialHintRackCoach==='function') app.showTutorialHintRackCoach();
       return;
@@ -220,7 +235,7 @@ function armPlacementHint(){
     finishPlacementHint(); renderAll(false); return;
   }
   if(state.hintInUse){
-    if(forcedTutorialHint){
+    if(!canCancel || forcedTutorialHint){
       pulseHintSelectedPiece();
       updateHintInstruction();
       return;
@@ -377,6 +392,7 @@ Object.assign(app,{updatePlacementHintButton,pulseHintSelectedPiece,bumpWrongHin
 
 function initHints(){ const placementHintBtn=$('#placementHintBtn'); if(placementHintBtn) placementHintBtn.onclick=()=>armPlacementHint(); }
 Object.assign(app,{initHints});
+exports["hintCancelAllowed"] = hintCancelAllowed;
 exports["updatePlacementHintButton"] = updatePlacementHintButton;
 exports["pulseHintSelectedPiece"] = pulseHintSelectedPiece;
 exports["bumpWrongHintPiece"] = bumpWrongHintPiece;

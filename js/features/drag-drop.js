@@ -193,6 +193,11 @@ function findGuideTargetForDrag(left, top){
 function showLockedFeedback(e){
   e.preventDefault();
   e.stopPropagation();
+  // Grey means inert: while Hint is waiting for a Rack selection, Board clues
+  // must not react at all. The pre-Hint forced tutorial grey state is inert too.
+  if(state.hintArmed) return;
+  if(typeof app.tutorialHintInteractionLocked==='function' && app.tutorialHintInteractionLocked()) return;
+  if(typeof app.tutorialHintBoardLocked==='function' && app.tutorialHintBoardLocked()) return;
   const el = e.currentTarget;
   el.classList.remove('locked-bump');
   void el.offsetWidth;
@@ -216,7 +221,7 @@ function showLockedFeedback(e){
   const wrap=$('#boardWrap');
   if(!bubble || !text || !wrap) return;
 
-  text.textContent='Locked Shapes cannot be moved.';
+  text.textContent='White initial clue numbers cannot be moved.';
   bubble.hidden=false;
   bubble.dataset.conflictIdentity='locked-shape';
 
@@ -264,6 +269,10 @@ function startDrag(e){
 
   const p = state.pieces.find(x=>x.id===id);
   const oldPos = state.placed.get(id) ? {...state.placed.get(id)} : null;
+  // Universal Hint Step 1 rule: the grey Board is inert while the player is
+  // choosing a Rack shape. Rack pieces remain available for selection.
+  if(oldPos && state.hintArmed) return;
+  if(oldPos && typeof app.tutorialHintBoardLocked==='function' && app.tutorialHintBoardLocked()) return;
   if(!oldPos && state.level===1 && typeof app.tutorialLevel1DragStarted==='function') app.tutorialLevel1DragStarted(id);
 
   // Checkpoint 18.2.0: while a Sudoku conflict is active, do not allow a new

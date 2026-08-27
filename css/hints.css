@@ -90,3 +90,12 @@
     display:none !important;
   }
 }
+
+
+/* SuJi 1.43.9 — a greyed Hint Step-1 Board is inert, not merely dimmed.
+ * Important after true-shape hitboxes made .piece-cell explicitly clickable. */
+body.hint-awaiting-selection #boardWrap .piece,
+body.hint-awaiting-selection #boardWrap .piece-cell{
+  pointer-events:none !important;
+  touch-action:none !important;
+}

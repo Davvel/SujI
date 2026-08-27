@@ -16,6 +16,8 @@ const makeSudoku=(...args)=>app.makeSudoku(...args);
 const TUTORIAL_STORAGE_PREFIX=STORAGE_KEYS.tutorialPrefix;
 let tutorialHintFinger=null;
 let tutorialHintFingerTarget='hint';
+let tutorialHintRackTarget=null;
+let tutorialHintPrompt=null;
 let tutorialLevel1CoachTimer=null;
 let tutorialDragCoach=null;
 let tutorialLevel1DragLearned=false;
@@ -63,12 +65,59 @@ function tutorialHintInteractionLocked(){
   return tutorialHintCoachActive();
 }
 
+function tutorialHintBoardLocked(){
+  return tutorialHintNeedsConsumption() && state.hintArmed && !state.hintInUse;
+}
+
 function updateTutorialHintWaitingClass(){
   const waiting=tutorialHintCoachActive();
   const choosing=tutorialHintNeedsConsumption() && state.hintArmed;
   document.body.classList.toggle('tutorial-hint-waiting',waiting);
   document.body.classList.toggle('tutorial-hint-rack-choice',choosing);
   if(waiting && typeof app.ensureHintDimLayers==='function') app.ensureHintDimLayers();
+}
+
+function clearTutorialRackTarget(){
+  if(tutorialHintRackTarget && tutorialHintRackTarget.isConnected) tutorialHintRackTarget.classList.remove('tutorial-rack-shape-target');
+  tutorialHintRackTarget=null;
+}
+
+function pickTutorialRackTarget(){
+  const pieces=[...document.querySelectorAll('.rack .piece:not(.anchor)')].filter(el=>{
+    const r=el.getBoundingClientRect();
+    return r.width>0 && r.height>0;
+  });
+  if(!pieces.length) return null;
+  pieces.sort((a,b)=>{
+    const ar=a.getBoundingClientRect();
+    const br=b.getBoundingClientRect();
+    const rowGap=Math.abs(ar.top-br.top);
+    if(rowGap>8) return ar.top-br.top;
+    return ar.left-br.left;
+  });
+  return pieces[0] || null;
+}
+
+function applyTutorialRackTarget(){
+  clearTutorialRackTarget();
+  const target=pickTutorialRackTarget();
+  if(target){
+    target.classList.add('tutorial-rack-shape-target');
+    tutorialHintRackTarget=target;
+  }
+  return target;
+}
+
+function ensureTutorialHintPrompt(){
+  if(tutorialHintPrompt && tutorialHintPrompt.isConnected) return tutorialHintPrompt;
+  const el=document.createElement('div');
+  el.className='tutorial-hint-rack-bubble';
+  el.hidden=true;
+  el.setAttribute('aria-hidden','true');
+  el.textContent='Select a shape from here';
+  document.body.appendChild(el);
+  tutorialHintPrompt=el;
+  return el;
 }
 
 function ensureTutorialHintFinger(){
@@ -86,7 +135,7 @@ function positionTutorialHintFinger(){
   const finger=tutorialHintFinger;
   if(!finger || finger.hidden) return;
   const target=tutorialHintFingerTarget==='rack'
-    ? document.querySelector('.rack .piece:not(.anchor)')
+    ? (applyTutorialRackTarget() || document.querySelector('.rack .piece:not(.anchor)'))
     : $('#placementHintBtn');
   if(!target) return;
   const br=target.getBoundingClientRect();
@@ -95,14 +144,43 @@ function positionTutorialHintFinger(){
   finger.textContent=above ? '👇' : '👆';
   finger.classList.toggle('tutorial-hint-finger-below',!above);
   const fr=finger.getBoundingClientRect();
-  const left=Math.max(4,Math.min(window.innerWidth-fr.width-4,br.left+(br.width-fr.width)/2));
-  const top=above ? Math.max(4,br.top-fr.height-8) : Math.min(window.innerHeight-fr.height-4,br.bottom+8);
+
+  let preferredX = br.left + (br.width / 2);
+  let top = above ? Math.max(4, br.top - fr.height - 8) : Math.min(window.innerHeight - fr.height - 4, br.bottom + 8);
+
+  if(tutorialHintFingerTarget==='rack'){
+    const shell=document.querySelector('.rack-shell');
+    const prompt=ensureTutorialHintPrompt();
+    prompt.hidden=false;
+    prompt.textContent='Select a shape from here';
+
+    if(shell){
+      const sr=shell.getBoundingClientRect();
+      const bandLeft=Math.max(8, sr.left + 12);
+      const bandWidth=Math.max(180, Math.min(window.innerWidth - bandLeft - 8, sr.width - 24));
+      prompt.style.left=`${Math.round(bandLeft)}px`;
+      prompt.style.width=`${Math.round(bandWidth)}px`;
+      const pr=prompt.getBoundingClientRect();
+      const bandTop=Math.max(8, sr.bottom - pr.height - 12);
+      prompt.style.top=`${Math.round(bandTop)}px`;
+    }
+  } else if(tutorialHintPrompt){
+    tutorialHintPrompt.style.removeProperty('width');
+    tutorialHintPrompt.hidden=true;
+  }
+
+  const left=Math.max(4,Math.min(window.innerWidth-fr.width-4,preferredX-(fr.width/2)));
   finger.style.left=`${Math.round(left)}px`;
   finger.style.top=`${Math.round(top)}px`;
 }
 
 function hideTutorialHintFinger(){
   if(tutorialHintFinger) tutorialHintFinger.hidden=true;
+  if(tutorialHintPrompt){
+    tutorialHintPrompt.hidden=true;
+    tutorialHintPrompt.style.removeProperty('width');
+  }
+  clearTutorialRackTarget();
   document.body.classList.remove('tutorial-hint-prompting','tutorial-hint-rack-prompting');
 }
 
@@ -111,6 +189,7 @@ function showTutorialHintFinger(target='hint'){
   if(target==='hint' && !tutorialHintCoachActive()) return false;
   if(target==='rack' && !state.hintArmed) return false;
   tutorialHintFingerTarget=target;
+  if(target==='rack') applyTutorialRackTarget(); else clearTutorialRackTarget();
   const finger=ensureTutorialHintFinger();
   finger.hidden=false;
   document.body.classList.toggle('tutorial-hint-prompting',target==='hint');
@@ -383,7 +462,7 @@ function paintRuleRegion(rule){
 }
 
 
-Object.assign(app,{canonicalTutorialSudoku,tutorialSudoku,tutorialCount,setTutorialCount,tutorialActive,setTutorialBodyClass,modalIsOpen,tutorialHintNeedsConsumption,tutorialHintCoachActive,tutorialHintInteractionLocked,updateTutorialHintWaitingClass,showTutorialHintFinger,showTutorialHintRackCoach,hideTutorialHintFinger,tutorialHintPieceSelected,showTutorialDragCoach,hideTutorialDragCoach,scheduleTutorialDragCoach,resetTutorialLevel1DragCoach,tutorialLevel1DragStarted,tutorialLevel1TapWithoutDrag,tutorialLevel1DragSucceeded,resetTutorialHintCoach,tutorialHintButtonPressed,tutorialPlacementHintConsumed,tutorialHintSessionEnded,positionTutorialHintFinger,closeTutorialModal,openTutorialModal,waitForTutorialModalClose,showTutorialDefault,showRuleTip,clearRuleRegion,conflictIdentity,sameConflict,conflictStillExists,paintRuleRegion});
+Object.assign(app,{canonicalTutorialSudoku,tutorialSudoku,tutorialCount,setTutorialCount,tutorialActive,setTutorialBodyClass,modalIsOpen,tutorialHintNeedsConsumption,tutorialHintCoachActive,tutorialHintInteractionLocked,tutorialHintBoardLocked,updateTutorialHintWaitingClass,showTutorialHintFinger,showTutorialHintRackCoach,hideTutorialHintFinger,tutorialHintPieceSelected,showTutorialDragCoach,hideTutorialDragCoach,scheduleTutorialDragCoach,resetTutorialLevel1DragCoach,tutorialLevel1DragStarted,tutorialLevel1TapWithoutDrag,tutorialLevel1DragSucceeded,resetTutorialHintCoach,tutorialHintButtonPressed,tutorialPlacementHintConsumed,tutorialHintSessionEnded,positionTutorialHintFinger,closeTutorialModal,openTutorialModal,waitForTutorialModalClose,showTutorialDefault,showRuleTip,clearRuleRegion,conflictIdentity,sameConflict,conflictStillExists,paintRuleRegion});
 
 function initTutorial(){
   const dismissTutorialModalByUser=()=>{
@@ -417,6 +496,7 @@ exports["modalIsOpen"] = modalIsOpen;
 exports["tutorialHintNeedsConsumption"] = tutorialHintNeedsConsumption;
 exports["tutorialHintCoachActive"] = tutorialHintCoachActive;
 exports["tutorialHintInteractionLocked"] = tutorialHintInteractionLocked;
+exports["tutorialHintBoardLocked"] = tutorialHintBoardLocked;
 exports["updateTutorialHintWaitingClass"] = updateTutorialHintWaitingClass;
 exports["showTutorialHintFinger"] = showTutorialHintFinger;
 exports["hideTutorialHintFinger"] = hideTutorialHintFinger;

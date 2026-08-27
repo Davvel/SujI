@@ -20,10 +20,10 @@ const GAME_CONFIG = Object.freeze({
 const TYPE_COLORS = Object.freeze({I:'#2f80ed',O:'#f2b705',ONE:'#2fb65d'});
 
 const TUTORIAL_LEVELS = Object.freeze({
-  1:'Find the last 3 shapes in the Jigsaw Puzzle to complete Level 1.',
-  2:'The last 3 shapes are identical. Use Sudoku rules to solve: a number cannot repeat horizontally, vertically, or inside any 3 × 3 quadrant.',
-  3:'Level 3: Half the shapes are already placed. There is no picture. Use Sudoku rules to solve. Press the Hint 💡 button now to learn how Hint helps you find where a shape can fit.',
-  4:'Level 4, Follow the stripes: each column uses 1–9 once.',
+  1:'SuJi - Where Sudoku meets Jigsaw Puzzle. Drag the missing shapes to complete the picture.',
+  2:'Let\'s try a Sudoku level. Without a picture to guide which shape goes where, Sudoku rules will guide us. In Sudoku levels, colours only help you distinguish the different shapes; they do not affect the solution. Sudoku forbids the same number from repeating in any row, column, or 3 × 3 quadrant.',
+  3:'In this level you must use a hint at least once.',
+  4:'Some levels include pictures that can still be hard to solve, especially when large areas have the same colour. In these cases, you can rely on both the visual cues from the colours and the Sudoku rules.',
   5:'Level 5, Use all Sudoku rules together.'
 });
 

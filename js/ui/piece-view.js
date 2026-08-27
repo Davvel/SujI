@@ -42,32 +42,35 @@ function pieceElement(p, cellPx, location='rack'){
   }
 
   if(state.anchors.has(p.id)) {
-    // SuJi 1.33.3: render one real lock element inside the tile nearest the
-    // geometric centre of the locked piece. Keeping lock + number in the same
-    // tile makes their stacking deterministic: lock below, number above.
-    const centreR=b.rows/2;
-    const centreC=b.cols/2;
-    let lockTile=null;
-    let bestDistance=Infinity;
-    for(const t of p.tiles){
-      const dr=(t.dr+.5)-centreR;
-      const dc=(t.dc+.5)-centreC;
-      const distance=(dr*dr)+(dc*dc);
-      if(distance<bestDistance){
-        bestDistance=distance;
-        lockTile=t;
-      }
-    }
+    // SuJi 1.43.2: keep Starting Shapes clear without changing normal number rendering.
+    // Every number in the shape uses a clue style, while a single compact lock
+    // belongs to the whole piece rather than to one Sudoku cell.
+    el.classList.add('starting-shape');
+    el.dataset.startingShape='true';
+    el.setAttribute('aria-label','Starting Shape. Fixed in place to help solve the puzzle.');
+
+    const badge=document.createElement('span');
+    badge.className='starting-shape-badge';
+    badge.setAttribute('aria-hidden','true');
+
+    const lock=document.createElement('span');
+    lock.className='starting-shape-lock';
+
+    // Put the whole-piece lock on the top-most, then left-most ACTUAL tile.
+    // This prevents irregular pieces from showing a lock in an empty area of
+    // their rectangular bounding box.
+    const lockTile=p.tiles.reduce((best,t)=>{
+      if(!best || t.dr<best.dr || (t.dr===best.dr && t.dc<best.dc)) return t;
+      return best;
+    },null);
     if(lockTile){
-      const lockCell=el.querySelector(`.piece-cell[data-dr="${lockTile.dr}"][data-dc="${lockTile.dc}"]`);
-      if(lockCell){
-        const lock=document.createElement('span');
-        lock.className='piece-lock';
-        lock.setAttribute('aria-hidden','true');
-        lock.textContent='🔒';
-        lockCell.insertBefore(lock,lockCell.firstChild);
-      }
+      const inset=Math.max(1,Math.min(4,cellPx*.04));
+      badge.style.left=(lockTile.dc*cellPx+inset)+'px';
+      badge.style.top=(lockTile.dr*cellPx+inset)+'px';
     }
+
+    badge.append(lock);
+    el.appendChild(badge);
   }
 
   if(!state.anchors.has(p.id)) {
